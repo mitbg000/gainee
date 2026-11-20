@@ -675,7 +675,7 @@
   },
   "writing": {
     "title": "Luyện Writing",
-    "intro": "Viết bài IELTS Task 1, Task 2 hoặc viết tự do. AI ra đề và chấm điểm theo 4 tiêu chí.",
+    "intro": "Viết bài IELTS Task 1, Task 2, viết tự do, dịch bài Việt → Anh hoặc dịch câu ngắn. AI ra đề và chấm điểm.",
     "history": "Bài đã viết",
     "new": "Bài mới",
     "noHistory": "Chưa có bài nào.",
@@ -683,7 +683,9 @@
     "kind": {
       "task1": "Task 1",
       "task2": "Task 2",
-      "free": "Viết tự do"
+      "free": "Viết tự do",
+      "translate": "Dịch bài",
+      "sentence": "Dịch câu ngắn"
     },
     "question": "Đề bài",
     "aiPrompt": "Đề do AI ra",
@@ -706,11 +708,16 @@
       "tr": "Task Response",
       "cc": "Coherence & Cohesion",
       "lr": "Lexical Resource",
-      "gra": "Grammar"
+      "gra": "Grammar",
+      "acc": "Độ chính xác"
     },
     "notConfigured": "Chưa cấu hình nhà cung cấp AI trong Cài đặt.",
     "aiError": "AI bị lỗi, hãy thử lại.",
     "saveError": "Không lưu được bài, hãy thử lại.",
-    "draft": "Nháp"
+    "draft": "Nháp",
+    "source": "Bài tiếng Việt",
+    "sourcePlaceholder": "Dán đoạn văn hoặc các câu tiếng Việt cần dịch…",
+    "translatePlaceholder": "Viết bản dịch tiếng Anh… Dùng các từ vựng gợi ý ở trên.",
+    "sentencePlaceholder": "Mỗi câu dịch một dòng, theo đúng thứ tự 1, 2, 3…"
   }
 }

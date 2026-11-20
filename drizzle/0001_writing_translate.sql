@@ -1,0 +1,1 @@
+ALTER TABLE `writings` MODIFY COLUMN `kind` enum('paraphrase','speaking','task1','task2','free','translate','sentence') NOT NULL;

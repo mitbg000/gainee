@@ -675,7 +675,7 @@
   },
   "writing": {
     "title": "Writing practice",
-    "intro": "Write IELTS Task 1, Task 2 or free writing. The AI sets questions and scores you on the four criteria.",
+    "intro": "Write IELTS Task 1, Task 2, free writing, translate a Vietnamese text into English, or translate short sentences. AI sets the task and scores it.",
     "history": "Your writing",
     "new": "New",
     "noHistory": "Nothing yet.",
@@ -683,7 +683,9 @@
     "kind": {
       "task1": "Task 1",
       "task2": "Task 2",
-      "free": "Free writing"
+      "free": "Free writing",
+      "translate": "Translate text",
+      "sentence": "Short sentences"
     },
     "question": "Question",
     "aiPrompt": "AI question",
@@ -706,11 +708,16 @@
       "tr": "Task Response",
       "cc": "Coherence & Cohesion",
       "lr": "Lexical Resource",
-      "gra": "Grammar"
+      "gra": "Grammar",
+      "acc": "Accuracy"
     },
     "notConfigured": "No AI provider is configured in Settings.",
     "aiError": "The AI failed, please try again.",
     "saveError": "Could not save, please try again.",
-    "draft": "Draft"
+    "draft": "Draft",
+    "source": "Vietnamese text",
+    "sourcePlaceholder": "Paste the Vietnamese paragraph or sentences to translate…",
+    "translatePlaceholder": "Write your English translation… Try the suggested words above.",
+    "sentencePlaceholder": "One translated sentence per line, in order 1, 2, 3…"
   }
 }

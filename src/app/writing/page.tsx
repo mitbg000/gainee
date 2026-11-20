@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import WritingStudio from "@/components/writing/WritingStudio";
-import { getWriting, listWritings, type Grade } from "@/lib/writing";
+import { getWriting, listWritings, type Grade, type WritingKind } from "@/lib/writing";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
   // Without an id, continue the latest unscored draft; "New" (?new=1) starts a blank one.
   const id = Number(sp.id) || (sp.new ? null : (list.find((w) => w.bandOverall == null)?.id ?? null));
   const cur = id ? await getWriting(id) : undefined;
-  const initial = cur ? { id: cur.id, kind: cur.kind as "task1" | "task2" | "free", prompt: cur.prompt ?? "", body: cur.body, grade: (cur.feedback as Grade | null) ?? null } : null;
+  const initial = cur ? { id: cur.id, kind: cur.kind as WritingKind, prompt: cur.prompt ?? "", body: cur.body, grade: (cur.feedback as Grade | null) ?? null } : null;
 
   return (
     <Shell wide>
@@ -35,7 +35,7 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
               <li key={w.id}>
                 <Link href={`/writing?id=${w.id}`} className={`block rounded-xl border px-3 py-2 text-sm ${w.id === id ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent"}`}>
                   <span className="flex items-center justify-between gap-2 text-xs text-muted">
-                    <span>{t(`kind.${w.kind as "task1" | "task2" | "free"}`)} · {t("words", { n: w.wordCount })}</span>
+                    <span>{t(`kind.${w.kind as WritingKind}`)} · {t("words", { n: w.wordCount })}</span>
                     {w.bandOverall != null ? <b className="rounded bg-accent px-1.5 text-on-accent">{w.bandOverall}</b> : <span className="rounded bg-amber-100 px-1.5 text-amber-800 dark:bg-amber-950 dark:text-amber-300">{t("draft")}</span>}
                   </span>
                   <span className="mt-0.5 line-clamp-2">{w.prompt || "…"}</span>

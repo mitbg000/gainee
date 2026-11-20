@@ -261,7 +261,7 @@ export const readingSessions = mysqlTable(
 export const writings = mysqlTable("writings", {
   id: pk(),
   lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
-  kind: mysqlEnum("kind", ["paraphrase", "speaking", "task1", "task2", "free"]).notNull(),
+  kind: mysqlEnum("kind", ["paraphrase", "speaking", "task1", "task2", "free", "translate", "sentence"]).notNull(),
   prompt: text("prompt"),
   body: longtext("body").notNull(),
   audioMediaId: int("audio_media_id").references(() => media.id, { onDelete: "set null" }),

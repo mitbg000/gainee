@@ -9,9 +9,10 @@ import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/Mod
 import type { Grade, WritingKind } from "@/lib/writing";
 import * as I from "@/components/icons";
 
-const KINDS: WritingKind[] = ["task2", "task1", "free"];
-const MIN_WORDS: Record<WritingKind, number> = { task1: 150, task2: 250, free: 0 };
-const MINUTES: Record<WritingKind, number> = { task1: 20, task2: 40, free: 0 };
+const KINDS: WritingKind[] = ["task2", "task1", "translate", "sentence", "free"];
+const MIN_WORDS: Record<WritingKind, number> = { task1: 150, task2: 250, free: 0, translate: 0, sentence: 0 };
+const MINUTES: Record<WritingKind, number> = { task1: 20, task2: 40, free: 0, translate: 20, sentence: 10 };
+const isTranslation = (k: WritingKind) => k === "translate" || k === "sentence";
 const countWords = (s: string) => (s.trim() ? s.trim().split(/\s+/).length : 0);
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
@@ -174,7 +175,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
       {/* question */}
       <section className="rounded-2xl border border-line bg-card p-4">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("question")}</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{isTranslation(kind) ? t("source") : t("question")}</h2>
           <span className="ml-auto flex gap-2">
             <button onClick={newPrompt} disabled={!!busy || !!grade} className="btn btn-sm btn-outline">
               <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {busy === "prompt" ? t("generating") : t("aiPrompt")}
@@ -187,7 +188,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
           </span>
         </div>
         {editPrompt ? (
-          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={t("promptPlaceholder")} className="field w-full p-3 text-base" />
+          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={isTranslation(kind) ? t("sourcePlaceholder") : t("promptPlaceholder")} className="field w-full p-3 text-base" />
         ) : (
           <Markdown text={prompt} className="text-[15px] leading-relaxed" />
         )}
@@ -216,9 +217,9 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
               setNow(Date.now());
             }
           }}
-          rows={16}
+          rows={kind === "sentence" ? 8 : 16}
           spellCheck={false}
-          placeholder={t("bodyPlaceholder")}
+          placeholder={kind === "sentence" ? t("sentencePlaceholder") : kind === "translate" ? t("translatePlaceholder") : t("bodyPlaceholder")}
           className="w-full rounded-2xl border border-line bg-card p-4 font-serif text-[17px] leading-relaxed outline-none focus:border-accent"
         />
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -249,7 +250,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
             </div>
             {grade.criteria.map((c) => (
               <div key={c.key} className="min-w-20 rounded-xl bg-paper px-3 py-2">
-                <p className="text-xs text-muted">{t(`criteria.${c.key as "ta" | "tr" | "cc" | "lr" | "gra"}`)}</p>
+                <p className="text-xs text-muted">{t(`criteria.${c.key as "ta" | "tr" | "cc" | "lr" | "gra" | "acc"}`)}</p>
                 <p className="text-xl font-bold">{c.band}</p>
               </div>
             ))}
