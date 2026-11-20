@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Gainee – Learn English through reading",
     short_name: "Gainee",
     description: "Turn articles into IELTS lessons with vocabulary, exercises and spaced repetition.",
-    start_url: "/",
+    start_url: "/resume", // reopens the lesson you were reading
     scope: "/",
     display: "standalone",
     orientation: "any",

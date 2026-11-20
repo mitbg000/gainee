@@ -469,5 +469,11 @@
     "undo": "Hoàn tác",
     "redo": "Làm lại",
     "uploadFailed": "Không tải được ảnh (PNG, JPG, GIF hoặc WebP, tối đa 8 MB)"
+  },
+  "wordList": {
+    "title": "Từ đã lưu",
+    "empty": "Chưa có từ nào. Bấm vào một từ khi đọc rồi bấm ☆.",
+    "fromLesson": "Từ bài đọc",
+    "remove": "Xóa"
   }
 }

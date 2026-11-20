@@ -21,6 +21,7 @@ type Props = {
   annotations: Annotation[];
   aiMessages: AiMsg[];
   saved: Record<number, number>;
+  savedTerms: Record<string, number>;
   flash: { p: number; start: number; end: number } | null;
   onCreateAnnotation: (a: Omit<Annotation, "id" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix">) => Promise<number | null>;
   onPatchAnnotation: (id: number, patch: { note?: string | null; color?: HlColor }) => void;
@@ -240,6 +241,7 @@ export default function ReadPane(props: Props) {
       lessonId={props.lessonId}
       vocab={vocab}
       saved={props.saved}
+      savedTerms={props.savedTerms}
       onToggleSave={props.onToggleSave}
       onSaveTerm={props.onSaveTerm}
       onClose={() => setTool(null)}

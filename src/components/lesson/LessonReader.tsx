@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseRich } from "@/lib/text/rich";
 import RichBlock from "./RichBlock";
 import LessonEditor from "./LessonEditor";
@@ -21,6 +21,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const [annotations, setAnnotations] = useState<Annotation[]>(data.annotations);
   const [aiMessages, setAiMessages] = useState<AiMsg[]>(data.aiMessages);
   const [saved, setSaved] = useState<Record<number, number>>(data.savedVocab);
+  const [savedTerms, setSavedTerms] = useState<Record<string, number>>(data.savedTerms);
   const [flash, setFlash] = useState<{ p: number; start: number; end: number } | null>(null);
   const [completed, setCompleted] = useState(!!lesson.completedAt);
   const [best, setBest] = useState<number | null>(lesson.bestScore);
@@ -33,6 +34,29 @@ export default function LessonReader({ data }: { data: LessonData }) {
   };
   const blocks = useMemo(() => lesson.paragraphs.map(parseRich), [lesson.paragraphs]);
   const plain = useMemo(() => blocks.map((b) => b.text), [blocks]);
+  // remember where the reader is, so reopening the app (or an evicted tab) continues here
+  useEffect(() => {
+    document.cookie = `last_lesson=${lesson.id}; path=/; max-age=31536000; samesite=lax`;
+    const key = `scroll_${lesson.id}`;
+    try {
+      const y = Number(localStorage.getItem(key));
+      if (y > 0) setTimeout(() => window.scrollTo(0, y), 150);
+    } catch {}
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        try {
+          localStorage.setItem(key, String(Math.round(window.scrollY)));
+        } catch {}
+      }, 300);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(t);
+    };
+  }, [lesson.id]);
   const idx = siblings.findIndex((s) => s.id === lesson.id);
   const prev = siblings[idx - 1];
   const next = siblings[idx + 1];
@@ -106,12 +130,27 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const saveAll = async () => {
     for (const v of vocab) if (!saved[v.id]) await toggleSave(v.id);
   };
-  const saveTerm = useCallback(
+  /** Save / un-save a word that is not in the lesson's vocabulary list (dictionary look-ups, selected words). */
+  const toggleTerm = useCallback(
     async (term: string, context: string) => {
+      const key = term.toLowerCase().slice(0, 191);
+      const id = savedTerms[key];
+      if (id) {
+        setSavedTerms((s) => {
+          const next = { ...s };
+          delete next[key];
+          return next;
+        });
+        await fetch(`/api/words/${id}`, { method: "DELETE" });
+        return say(t("unsaved"));
+      }
       const r = await fetch("/api/words", { method: "POST", ...json({ term: term.slice(0, 191), context, lessonId: lesson.id }) });
-      say(r.ok ? t("saved") : t("error"));
+      if (!r.ok) return say(t("error"));
+      const { id: newId } = await r.json();
+      setSavedTerms((s) => ({ ...s, [key]: newId }));
+      say(t("saved"));
     },
-    [lesson.id, t],
+    [savedTerms, lesson.id, t],
   );
 
   async function toggleComplete() {
@@ -183,7 +222,8 @@ export default function LessonReader({ data }: { data: LessonData }) {
             onPin={pin}
             onUnpin={unpin}
             onToggleSave={toggleSave}
-            onSaveTerm={saveTerm}
+            onSaveTerm={toggleTerm}
+            savedTerms={savedTerms}
           />
         )}
         {tab !== "read" && (

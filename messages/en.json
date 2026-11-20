@@ -469,5 +469,11 @@
     "undo": "Undo",
     "redo": "Redo",
     "uploadFailed": "Could not upload the image (PNG, JPG, GIF or WebP, up to 8 MB)"
+  },
+  "wordList": {
+    "title": "Saved words",
+    "empty": "No saved words yet. Tap a word while reading, then ☆.",
+    "fromLesson": "From a lesson",
+    "remove": "Remove"
   }
 }

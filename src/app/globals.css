@@ -3,6 +3,15 @@
 /* Dark mode is driven by the `dark` class on <html> (see src/theme). */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Tailwind v4 no longer shows a pointer cursor on buttons. */
+button:not(:disabled),
+[role="button"],
+summary,
+label:has(input[type="checkbox"]),
+select {
+  cursor: pointer;
+}
+
 :root {
   --paper: #faf7f1;
   --card: #ffffff;

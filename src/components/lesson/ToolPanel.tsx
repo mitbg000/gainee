@@ -28,6 +28,7 @@ export default function ToolPanel({
   lessonId,
   vocab,
   saved,
+  savedTerms,
   onToggleSave,
   onSaveTerm,
   onClose,
@@ -38,6 +39,7 @@ export default function ToolPanel({
   lessonId: number;
   vocab: Vocab[];
   saved: Record<number, number>;
+  savedTerms: Record<string, number>;
   onToggleSave: (vocabId: number) => void;
   onSaveTerm: (term: string, context: string, meaning?: string) => void;
   onClose: () => void;
@@ -54,7 +56,7 @@ export default function ToolPanel({
         </button>
       </div>
       {tool.mode === "lookup" ? (
-        <Lookup tool={tool} vocab={vocab} saved={saved} onToggleSave={onToggleSave} onSaveTerm={onSaveTerm} onAskAi={onAskAi} />
+        <Lookup tool={tool} vocab={vocab} saved={saved} savedTerms={savedTerms} onToggleSave={onToggleSave} onSaveTerm={onSaveTerm} onAskAi={onAskAi} />
       ) : (
         <AiAsk key={`${tool.selection}-${tool.action}`} tool={tool} lessonId={lessonId} onPin={onPin} />
       )}
@@ -66,6 +68,7 @@ function Lookup({
   tool,
   vocab,
   saved,
+  savedTerms,
   onToggleSave,
   onSaveTerm,
   onAskAi,
@@ -73,6 +76,7 @@ function Lookup({
   tool: Extract<Tool, { mode: "lookup" }>;
   vocab: Vocab[];
   saved: Record<number, number>;
+  savedTerms: Record<string, number>;
   onToggleSave: (id: number) => void;
   onSaveTerm: (term: string, context: string, meaning?: string) => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
@@ -119,8 +123,12 @@ function Lookup({
             {saved[v.id] ? "★" : "☆"}
           </button>
         ) : (
-          <button onClick={() => onSaveTerm(entry?.headword ?? tool.text, context)} className="rounded-lg border border-line px-2 py-1" aria-label={t("save")}>
-            ☆
+          <button
+            onClick={() => onSaveTerm(entry?.headword ?? tool.text, context)}
+            className={`rounded-lg border px-2 py-1 ${savedTerms[(entry?.headword ?? tool.text).toLowerCase()] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
+            aria-label={t("save")}
+          >
+            {savedTerms[(entry?.headword ?? tool.text).toLowerCase()] ? "★" : "☆"}
           </button>
         )}
       </div>
