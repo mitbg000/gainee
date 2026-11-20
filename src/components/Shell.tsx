@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
 import { getTheme } from "@/theme/server";
 import CollapsibleSidebar from "./CollapsibleSidebar";
-import LessonTree from "./LessonTree";
 import LanguageSwitcher from "./LanguageSwitcher";
 import LogoutButton from "./LogoutButton";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
@@ -33,8 +32,7 @@ export default async function Shell({ children, wide = false }: { children: Reac
           <span className="hidden text-center group-data-[collapsed=true]/sb:block">{t("app.name").charAt(0)}</span>
         </Link>
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
-        <SidebarNav />
-        <LessonTree docs={tree} />
+        <SidebarNav tree={tree} />
         <div className="mt-auto flex flex-col gap-3 pt-4 group-data-[collapsed=true]/sb:hidden">
           {controls}
           <LogoutButton />

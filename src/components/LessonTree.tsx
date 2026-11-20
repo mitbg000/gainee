@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { TreeDoc } from "@/lib/documents/queries";
 
-/** Sidebar tree: text → lessons. The text holding the current page is open by default. */
+/** Nested under "Library" in the sidebar: text → lessons. The text holding the current page is open by default. */
 export default function LessonTree({ docs }: { docs: TreeDoc[] }) {
-  const t = useTranslations("nav");
   const path = usePathname();
   const [manual, setManual] = useState<Record<number, boolean>>({});
   if (!docs.length) return null;
@@ -17,9 +15,8 @@ export default function LessonTree({ docs }: { docs: TreeDoc[] }) {
   const docId = /^\/library\/(\d+)/.exec(path)?.[1];
 
   return (
-    <div className="mt-4 flex min-h-0 flex-1 flex-col group-data-[collapsed=true]/sb:hidden">
-      <p className="px-3 text-xs font-bold uppercase tracking-wider text-muted">{t("tree")}</p>
-      <ul className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1 text-sm">
+    <div className="group-data-[collapsed=true]/sb:hidden">
+      <ul className="ml-5 space-y-0.5 border-l border-line pl-1 text-sm">
         {docs.map((d) => {
           const current = String(d.id) === docId || d.lessons.some((l) => String(l.id) === lessonId);
           const open = manual[d.id] ?? current;

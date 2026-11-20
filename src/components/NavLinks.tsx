@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import type { TreeDoc } from "@/lib/documents/queries";
+import LessonTree from "./LessonTree";
 import { NAV, type NavItem } from "./nav";
 import * as I from "./icons";
 
@@ -17,14 +19,34 @@ function isActive(path: string, href: string) {
 }
 
 /** Desktop sidebar list. */
-export function SidebarNav() {
+export function SidebarNav({ tree }: { tree: TreeDoc[] }) {
   const t = useTranslations("nav");
   const path = usePathname();
+  const inLibrary = path.startsWith("/library") || path.startsWith("/lessons");
+  const [libOpen, setLibOpen] = useState<boolean | null>(null); // null = follow the current page
+  const open = libOpen ?? inLibrary;
   return (
-    <nav className="mt-6 flex flex-col gap-0.5">
-      {NAV.map((n) => (
-        <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} />
-      ))}
+    <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
+      {NAV.map((n) => {
+        const item = <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} />;
+        if (n.href !== "/library" || !tree.length) return item;
+        return (
+          <div key={n.key}>
+            <div className="relative">
+              {item}
+              <button
+                onClick={() => setLibOpen(!open)}
+                aria-expanded={open}
+                aria-label={t("tree")}
+                className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:bg-paper group-data-[collapsed=true]/sb:hidden"
+              >
+                <span className={`transition-transform ${open ? "rotate-90" : ""}`}>▸</span>
+              </button>
+            </div>
+            {open && <LessonTree docs={tree} />}
+          </div>
+        );
+      })}
     </nav>
   );
 }
