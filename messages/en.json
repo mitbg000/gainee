@@ -69,7 +69,9 @@
     "continue": "Continue reading",
     "part": "Part {n}",
     "importFirst": "Import your first article",
-    "advanced": "System & tools"
+    "advanced": "System & tools",
+    "goals": "Today's goals",
+    "allProgress": "All progress"
   },
   "jobs": {
     "title": "Background jobs",
@@ -506,7 +508,11 @@
       "context": "Sentence from the text"
     },
     "saveWord": "Save word",
-    "saved": "Saved"
+    "saved": "Saved",
+    "images": "Images",
+    "imagesHint": "Paste (Ctrl/Cmd+V), drop or pick images – PNG, JPG, GIF, WebP up to 8 MB.",
+    "imageFailed": "Some images could not be added.",
+    "removeImage": "Remove image"
   },
   "review": {
     "title": "Today's review",
@@ -560,6 +566,17 @@
       "matching": "Matching",
       "heading": "Headings",
       "short": "Short answer"
+    },
+    "goals": "Goals",
+    "noGoals": "All goals are turned off.",
+    "badges": "Achievements",
+    "badge": {
+      "streak": "{n}-day streak",
+      "lessons": "{n, plural, one {First lesson} other {# lessons}}",
+      "words": "{n} saved words",
+      "reviews": "{n} reviews",
+      "mastered": "{n} words mastered",
+      "xp": "{n} XP"
     }
   },
   "assistant": {
@@ -575,6 +592,18 @@
       "s1": "How can I paraphrase better in IELTS Reading?",
       "s2": "Explain the difference between “affect” and “effect”",
       "s3": "Give me 5 advanced linking words for Writing Task 2"
+    }
+  },
+  "goals": {
+    "edit": "Change goals",
+    "save": "Save goals",
+    "saved": "Saved",
+    "offHint": "Set 0 to turn a goal off.",
+    "kind": {
+      "daily_minutes": "Reading minutes today",
+      "daily_reviews": "Reviews today",
+      "weekly_lessons": "Lessons this week",
+      "weekly_words": "New words this week"
     }
   }
 }

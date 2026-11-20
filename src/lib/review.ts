@@ -3,6 +3,7 @@ import { and, asc, count, eq, lte, sql } from "drizzle-orm";
 import { fsrs, type Card, type Grade } from "ts-fsrs";
 import { getDb, schema } from "@/db";
 import { addXp, bumpActivity } from "./activity";
+import { imagesForWords } from "./images";
 
 const { words, lessons, documents, reviewLogs } = schema;
 const scheduler = fsrs({ enable_fuzz: true });
@@ -31,7 +32,7 @@ const dueFilter = (documentId?: number) =>
 
 /** Words due now (oldest first), optionally only from one text. */
 export async function dueWords(documentId?: number, limit = 50) {
-  return getDb()
+  const rows = await getDb()
     .select({
       id: words.id,
       term: words.term,
@@ -49,6 +50,8 @@ export async function dueWords(documentId?: number, limit = 50) {
     .where(dueFilter(documentId))
     .orderBy(asc(words.due))
     .limit(limit);
+  const images = await imagesForWords(rows.map((r) => r.id));
+  return rows.map((r) => ({ ...r, images: (images.get(r.id) ?? []).map((i) => i.url) }));
 }
 
 /** Due counts per text (texts without due words are left out); `null` id = words not tied to a text. */

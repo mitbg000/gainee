@@ -5,6 +5,7 @@ import AddWord from "@/components/AddWord";
 import Shell from "@/components/Shell";
 import WordCard from "@/components/WordCard";
 import { getDb, schema } from "@/db";
+import { imagesForWords } from "@/lib/images";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
     .orderBy(desc(words.id))
     .limit(2000);
 
+  const images = await imagesForWords(rows.map((r) => r.id));
   type Row = (typeof rows)[number];
   const docs = new Map<number, { title: string; lessons: Map<number, { position: number; title: string; words: Row[] }> }>();
   const other: Row[] = [];
@@ -54,7 +56,7 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
     docs.set(w.docId, d); // insertion order = most recently saved word first
   }
 
-  const card = (w: Row) => <WordCard key={w.id} word={w} />;
+  const card = (w: Row) => <WordCard key={w.id} word={w} images={images.get(w.id) ?? []} />;
 
   return (
     <Shell>

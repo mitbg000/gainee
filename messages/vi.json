@@ -69,7 +69,9 @@
     "continue": "Học tiếp",
     "part": "Phần {n}",
     "importFirst": "Nhập bài báo đầu tiên",
-    "advanced": "Hệ thống & công cụ"
+    "advanced": "Hệ thống & công cụ",
+    "goals": "Mục tiêu hôm nay",
+    "allProgress": "Xem tiến độ"
   },
   "jobs": {
     "title": "Việc nền",
@@ -506,7 +508,11 @@
       "context": "Câu trong bài"
     },
     "saveWord": "Lưu từ",
-    "saved": "Đã lưu"
+    "saved": "Đã lưu",
+    "images": "Ảnh",
+    "imagesHint": "Dán (Ctrl/Cmd+V), kéo thả hoặc chọn ảnh – PNG, JPG, GIF, WebP tối đa 8 MB.",
+    "imageFailed": "Một số ảnh không thêm được.",
+    "removeImage": "Xóa ảnh"
   },
   "review": {
     "title": "Ôn tập hôm nay",
@@ -560,6 +566,17 @@
       "matching": "Nối",
       "heading": "Chọn tiêu đề",
       "short": "Trả lời ngắn"
+    },
+    "goals": "Mục tiêu",
+    "noGoals": "Tất cả mục tiêu đang tắt.",
+    "badges": "Huy hiệu",
+    "badge": {
+      "streak": "Chuỗi {n} ngày",
+      "lessons": "{n, plural, =1 {Bài đầu tiên} other {# bài đã học}}",
+      "words": "{n} từ đã lưu",
+      "reviews": "{n} lượt ôn",
+      "mastered": "Thuộc {n} từ",
+      "xp": "{n} XP"
     }
   },
   "assistant": {
@@ -575,6 +592,18 @@
       "s1": "Làm sao paraphrase tốt hơn trong IELTS Reading?",
       "s2": "Phân biệt “affect” và “effect”",
       "s3": "Cho tôi 5 từ nối nâng cao cho Writing Task 2"
+    }
+  },
+  "goals": {
+    "edit": "Đổi mục tiêu",
+    "save": "Lưu mục tiêu",
+    "saved": "Đã lưu",
+    "offHint": "Đặt 0 để tắt một mục tiêu.",
+    "kind": {
+      "daily_minutes": "Phút đọc hôm nay",
+      "daily_reviews": "Lượt ôn hôm nay",
+      "weekly_lessons": "Bài học tuần này",
+      "weekly_words": "Từ mới tuần này"
     }
   }
 }

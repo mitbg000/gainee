@@ -16,6 +16,7 @@ type Card = {
   note: string | null;
   context: string | null;
   state: number;
+  images: string[];
 };
 type Mode = "recognize" | "recall" | "cloze" | "listen";
 const MODES: Mode[] = ["recognize", "recall", "cloze", "listen"];
@@ -150,6 +151,14 @@ export default function ReviewSession({ doc }: { doc?: number }) {
           <div className="mt-5 space-y-3 border-t border-line pt-5">
             {effective !== "recognize" && head}
             {effective !== "recall" && meaning}
+            {card.images.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2">
+                {card.images.map((u) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={u} src={u} alt={card.term} className="max-h-48 rounded-xl" />
+                ))}
+              </div>
+            )}
             {card.context && <p className="rounded-xl bg-paper px-4 py-3 font-serif text-[15px] italic">“{card.context}”</p>}
             {card.example && <p className="text-sm italic">✎ {card.example}</p>}
             {card.note && <p className="text-sm text-muted">💡 {card.note}</p>}

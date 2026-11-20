@@ -21,12 +21,30 @@ const FIELDS = ["term", "ipa", "pos", "meaningVi", "definitionEn", "example", "n
 const input = "w-full rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm outline-none focus:border-accent";
 
 /** One saved word: view, edit in place, listen, delete. */
-export default function WordCard({ word }: { word: WordData }) {
+type Img = { id: number; url: string };
+
+export default function WordCard({ word, images }: { word: WordData; images: Img[] }) {
   const t = useTranslations("wordList");
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  async function addImages(files: File[]) {
+    setImgError(false);
+    for (const f of files.filter((x) => x.type.startsWith("image/"))) {
+      const fd = new FormData();
+      fd.set("file", f);
+      const r = await fetch(`/api/words/${word.id}/images`, { method: "POST", body: fd }).catch(() => null);
+      if (!r?.ok) setImgError(true);
+    }
+    router.refresh();
+  }
+  async function removeImage(mediaId: number) {
+    await fetch(`/api/words/${word.id}/images/${mediaId}`, { method: "DELETE" });
+    router.refresh();
+  }
 
   const start = () => {
     setForm(Object.fromEntries(FIELDS.map((k) => [k, word[k] ?? ""])));
@@ -63,6 +81,41 @@ export default function WordCard({ word }: { word: WordData }) {
             </label>
           ))}
         </div>
+        <div
+          className="mt-3 rounded-xl border border-dashed border-line p-3"
+          onPaste={(e) => {
+            const files = [...e.clipboardData.files];
+            if (files.length) {
+              e.preventDefault();
+              addImages(files);
+            }
+          }}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            addImages([...e.dataTransfer.files]);
+          }}
+          tabIndex={0}
+        >
+          <div className="text-xs text-muted">{t("images")}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {images.map((im) => (
+              <div key={im.id} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={im.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                <button onClick={() => removeImage(im.id)} aria-label={t("removeImage")} className="absolute -right-1.5 -top-1.5 h-6 w-6 rounded-full bg-ink text-xs text-paper">
+                  ✕
+                </button>
+              </div>
+            ))}
+            <label className="flex h-20 w-20 items-center justify-center rounded-lg border border-line text-2xl text-muted hover:border-accent">
+              +
+              <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple className="hidden" onChange={(e) => (addImages([...(e.target.files ?? [])]), (e.target.value = ""))} />
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-muted">{t("imagesHint")}</p>
+          {imgError && <p className="mt-1 text-xs text-red-600">{t("imageFailed")}</p>}
+        </div>
         <div className="mt-3 flex gap-2">
           <button disabled={busy || !form.term?.trim()} onClick={save} className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50">
             {t("save")}
@@ -87,6 +140,14 @@ export default function WordCard({ word }: { word: WordData }) {
         {word.example && <div className="mt-1 text-sm italic">✎ {word.example}</div>}
         {word.context && <div className="mt-1 text-sm italic text-muted">“{word.context}”</div>}
         {word.note && <div className="mt-1 text-sm text-muted">💡 {word.note}</div>}
+        {images.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {images.map((im) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={im.id} src={im.url} alt={word.term} loading="lazy" className="h-24 max-w-[10rem] rounded-lg object-cover" />
+            ))}
+          </div>
+        )}
         {!word.meaningVi && !word.ipa && <button onClick={start} className="mt-1 text-sm text-accent underline">{t("addDetails")}</button>}
       </div>
       <div className="flex flex-none gap-1">

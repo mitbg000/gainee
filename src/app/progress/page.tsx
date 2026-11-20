@@ -1,5 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
+import GoalBars from "@/components/GoalBars";
+import GoalsEditor from "@/components/GoalsEditor";
+import { getGoals, goalProgress, syncAchievements } from "@/lib/goals";
 import { progressData } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +11,8 @@ const LEVEL = ["bg-line/60", "bg-accent/25", "bg-accent/50", "bg-accent/75", "bg
 
 export default async function ProgressPage() {
   const t = await getTranslations("progress");
-  const d = await progressData();
+  const [d, goals, targets] = await Promise.all([progressData(), goalProgress(), getGoals()]);
+  const badges = await syncAchievements({ streak: d.totals.streak, words: d.totals.words, lessons: d.totals.lessonsDone, mastered: d.totals.mastered, xp: d.totals.xp });
 
   // heat map: 26 weeks × 7 days, ending today
   const byDay = new Map(d.days.map((x) => [x.day, x]));
@@ -42,6 +46,12 @@ export default async function ProgressPage() {
           </div>
         ))}
       </div>
+
+      <section className={`mt-5 ${box}`}>
+        <h2 className="font-serif text-xl font-bold">{t("goals")}</h2>
+        <div className="mt-3">{goals.length ? <GoalBars goals={goals} /> : <p className="text-sm text-muted">{t("noGoals")}</p>}</div>
+        <GoalsEditor targets={targets} />
+      </section>
 
       <section className={`mt-5 ${box}`}>
         <h2 className="font-serif text-xl font-bold">{t("activity")}</h2>
@@ -109,6 +119,24 @@ export default async function ProgressPage() {
         ) : (
           <p className="mt-3 text-sm text-muted">{t("noAnswers")}</p>
         )}
+      </section>
+      <section className={`mt-5 ${box}`}>
+        <h2 className="font-serif text-xl font-bold">
+          {t("badges")} <span className="text-sm font-normal text-muted">{badges.filter((b) => b.unlockedAt).length}/{badges.length}</span>
+        </h2>
+        <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {badges.map((b) => (
+            <li key={b.code} className={`rounded-xl border p-3 text-center ${b.unlockedAt ? "border-accent bg-accent/5" : "border-line opacity-60"}`} title={b.unlockedAt ? b.unlockedAt.toLocaleDateString() : `${b.progress}/${b.target}`}>
+              <div className={`text-2xl ${b.unlockedAt ? "" : "grayscale"}`}>{b.icon}</div>
+              <div className="mt-1 text-sm font-medium">{t(`badge.${b.metric}`, { n: b.target })}</div>
+              {!b.unlockedAt && (
+                <div className="mt-1.5 h-1.5 rounded-full bg-line/60">
+                  <div className="h-1.5 rounded-full bg-accent" style={{ width: `${(b.progress / b.target) * 100}%` }} />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
       </section>
     </Shell>
   );

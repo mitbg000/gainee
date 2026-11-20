@@ -2,6 +2,8 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { getSetting } from "@/lib/settings";
 import { dashboardStats, nextLesson } from "@/lib/stats";
+import { goalProgress } from "@/lib/goals";
+import GoalBars from "@/components/GoalBars";
 import Shell from "@/components/Shell";
 import JobsPanel from "@/components/JobsPanel";
 import InstallPrompt from "@/components/InstallPrompt";
@@ -9,8 +11,8 @@ import InstallPrompt from "@/components/InstallPrompt";
 export const dynamic = "force-dynamic";
 
 async function loadStats() {
-  const [s, hb, next] = await Promise.all([dashboardStats(), getSetting<number>("worker.heartbeat"), nextLesson()]);
-  return { ...s, heartbeat: hb ?? 0, next };
+  const [s, hb, next, goals] = await Promise.all([dashboardStats(), getSetting<number>("worker.heartbeat"), nextLesson(), goalProgress()]);
+  return { ...s, heartbeat: hb ?? 0, next, goals };
 }
 
 export default async function DashboardPage() {
@@ -58,6 +60,20 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {stats && stats.goals.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-line bg-card p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-serif text-xl font-bold">{t("goals")}</h2>
+            <Link href="/progress" className="text-sm text-accent underline">
+              {t("allProgress")}
+            </Link>
+          </div>
+          <div className="mt-3">
+            <GoalBars goals={stats.goals} />
+          </div>
+        </section>
+      )}
 
       <section className="mt-6 rounded-2xl border border-line bg-card p-5">
         <h2 className="font-serif text-xl font-bold">{t("system.title")}</h2>
