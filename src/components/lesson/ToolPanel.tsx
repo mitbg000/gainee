@@ -268,7 +268,7 @@ function AiAsk({
 
   return (
     <div className="space-y-3">
-      <blockquote className="max-h-24 overflow-auto border-l-4 border-accent/40 pl-3 font-serif text-[15px] italic">{tool.selection}</blockquote>
+      <blockquote className="max-h-24 overflow-auto no-scrollbar border-l-4 border-accent/40 pl-3 font-serif text-[15px] italic">{tool.selection}</blockquote>
       <p className="text-xs font-medium uppercase tracking-wide text-muted">{t("choose")}</p>
       <div className="flex flex-wrap gap-1.5">
         {ACTIONS.map((a) => (

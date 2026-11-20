@@ -355,7 +355,7 @@ export default function ReadPane(props: Props) {
         {/* desktop right column: tool panel (sticky) above margin notes */}
         {desktop && (
           <aside className="relative">
-            {tool && <div className="sticky top-4 z-10 mb-3 max-h-[calc(100dvh-2rem)] overflow-y-auto">{toolPanel}</div>}
+            {tool && <div className="sticky top-4 z-10 mb-3 max-h-[calc(100dvh-2rem)] overflow-y-auto no-scrollbar">{toolPanel}</div>}
             <div className={tool ? "pointer-events-none absolute inset-0 opacity-30" : "absolute inset-0"}>
               <MarginNotes
                 annotations={annotations}
@@ -447,7 +447,7 @@ export default function ReadPane(props: Props) {
               setNotesOpen(false);
             }}
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-3xl bg-paper p-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}>
+          <div className="absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto no-scrollbar rounded-t-3xl bg-paper p-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}>
             <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line" />
             {tool ? (
               toolPanel
