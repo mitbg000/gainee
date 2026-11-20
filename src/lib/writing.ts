@@ -66,7 +66,7 @@ const TOPICS = [
 ];
 const FORMS: Partial<Record<WritingKind, string[]>> = {
   task2: ["agree or disagree", "discuss both views and give your opinion", "advantages and disadvantages", "problem and solution", "causes and effects", "a two-part direct question", "do the advantages outweigh the disadvantages"],
-  task1: ["line graph over time", "bar chart comparing groups", "pie charts for two years", "table of figures", "process diagram", "two maps of a place before and after", "a bar chart and a pie chart together"],
+  task1: ["line graph over time", "bar chart comparing groups", "pie charts for two years", "table of figures", "manufacturing or production process", "natural process or life cycle", "how a machine or device works (technical diagram)", "development of a place shown in two or three maps", "a bar chart and a pie chart together"],
   translate: ["argue an opinion", "explain causes and effects", "compare two options", "describe a trend with numbers", "propose solutions to a problem"],
   free: ["describe a personal experience", "give an opinion", "explain how to do something", "compare past and present", "imagine the future"],
 };
@@ -116,8 +116,8 @@ Then a line "### Từ vựng gợi ý" and a bulleted list of ${kind === "transl
       ? `After the instruction line, give the visual in the form below. Use realistic, varied numbers with clear trends and contrasts.
 - line graph, bar chart or pie charts: a fenced code block with language "chart" holding JSON {"type": "line"|"bar"|"pie", "title": string, "unit": string (e.g. "%", "million tonnes"), "labels": string[], "series": [{"name": string, "values": number[]}]}. line/bar: labels are the x-axis (years, countries…), one series per line or bar group, 2–4 series, 4–8 labels. pie: labels are the slices (3–6), one series per pie (1–2 pies, e.g. two years), values add up to 100. For a bar chart and a pie chart together give two chart blocks.
 - table: a compact Markdown table.
-- process: numbered steps (7–10).
-- two maps: two bulleted lists headed "**Year …**" listing what is where.
+- process, life cycle or technical diagram: a "chart" block with JSON {"type": "process", "title": string, "cycle": boolean (true for natural cycles that repeat), "steps": [{"label": string (2–5 words), "note": string (optional, under 10 words: material, temperature, duration…)}]}, 6–10 steps. For a technical diagram the steps are the stages the material, water, air or energy passes through inside the device.
+- maps: a "chart" block with JSON {"type": "map", "title": string, "maps": [{"name": string (e.g. "1995"), "items": [{"label": string (1–3 words), "kind": "building"|"road"|"park"|"water"|"farm"|"other", "x": number, "y": number, "w": number, "h": number}]}]}, coordinates on a 0–100 grid with north at the top, 6–12 items per map, roads as long thin rectangles, items not overlapping except labels on roads. 2–3 maps of the same place with clear changes (new buildings, removed park, wider road…).
 End with: Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.`
       : kind === "task2"
         ? "End with: Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words."
@@ -126,7 +126,7 @@ End with: Summarise the information by selecting and reporting the main features
     task: "reader_quick",
     override,
     temperature: 1,
-    maxTokens: 1200,
+    maxTokens: 2000,
     messages: [
       { role: "system", content: `You write realistic exam questions for a learner aiming at IELTS band ${p.targetBand}. Reply with the question only, in English, no title or commentary.` },
       { role: "user", content: `Write one new ${TASK[kind]} question. ${extra}\n${vary}` },
