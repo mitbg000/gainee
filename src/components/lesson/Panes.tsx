@@ -6,15 +6,7 @@ import type { LessonContent } from "@/lib/lessons/generate";
 import Markdown from "./Markdown";
 import type { Vocab } from "./types";
 import { useAiAsk } from "./useAiAsk";
-
-function speak(text: string) {
-  if (!("speechSynthesis" in window)) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "en-US";
-  u.rate = 0.9;
-  speechSynthesis.speak(u);
-}
+import { speak } from "@/lib/speech";
 
 /* =================================================================== vocabulary */
 export function VocabPane({ vocab, saved, onToggleSave, onSaveAll }: { vocab: Vocab[]; saved: Record<number, number>; onToggleSave: (id: number) => void; onSaveAll: () => void }) {

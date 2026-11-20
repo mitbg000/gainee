@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DictResult } from "@/lib/dictionary/lookup";
+import { speak } from "@/lib/speech";
 
 /**
  * Kindle-style look-up for any reading text.
@@ -193,15 +194,6 @@ export default function ReaderLookup({ children, className = "" }: { children: R
       )}
     </>
   );
-}
-
-function speak(text: string) {
-  if (!("speechSynthesis" in window)) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "en-US";
-  u.rate = 0.9;
-  speechSynthesis.speak(u);
 }
 
 function LookupCard({

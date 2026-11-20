@@ -7,20 +7,12 @@ import type { DictResult } from "@/lib/dictionary/lookup";
 import Markdown from "./Markdown";
 import type { Anchor, Tool, Vocab } from "./types";
 import { useAiAsk, type AskInput } from "./useAiAsk";
+import { speak } from "@/lib/speech";
 
 type Provider = { id: number; label: string; defaultModel: string; enabled: boolean };
 const ACTIONS: AskInput["action"][] = ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase"];
 
 let providerCache: Provider[] | null = null;
-
-function speak(text: string) {
-  if (!("speechSynthesis" in window)) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "en-US";
-  u.rate = 0.9;
-  speechSynthesis.speak(u);
-}
 
 /** Right-hand (desktop) / bottom-sheet (mobile) panel: dictionary look-up and quick AI questions. */
 export default function ToolPanel({

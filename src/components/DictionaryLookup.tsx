@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DictResult } from "@/lib/dictionary/lookup";
+import { speak } from "@/lib/speech";
 
 /**
  * Offline dictionary viewer. Used on /dictionary and (Phase 1) in the reader side panel.
@@ -42,15 +43,6 @@ export default function DictionaryLookup({ initialQuery = "", autoFocus = false 
       search(a.getAttribute("data-word") || "");
       box.current?.scrollTo({ top: 0 });
     }
-  }
-
-  function speak(text: string) {
-    if (!("speechSynthesis" in window)) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US";
-    u.rate = 0.9;
-    speechSynthesis.speak(u);
   }
 
   return (
