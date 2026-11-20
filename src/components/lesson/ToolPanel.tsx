@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { parseDictEntry } from "@/lib/dictionary/parse";
 import type { DictResult } from "@/lib/dictionary/lookup";
 import Markdown from "./Markdown";
 import type { Anchor, Tool, Vocab } from "./types";
@@ -33,7 +34,7 @@ export default function ToolPanel({
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
   onToggleSave: (vocabId: number) => void;
-  onSaveTerm: (term: string, context: string, meaning?: string) => void;
+  onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
   onClose: () => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
   onPin: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AskInput["action"]) => Promise<void>;
@@ -70,7 +71,7 @@ function Lookup({
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
   onToggleSave: (id: number) => void;
-  onSaveTerm: (term: string, context: string, meaning?: string) => void;
+  onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
 }) {
   const t = useTranslations("lesson.tool");
@@ -116,7 +117,7 @@ function Lookup({
           </button>
         ) : (
           <button
-            onClick={() => onSaveTerm(entry?.headword ?? tool.text, context)}
+            onClick={() => onSaveTerm(entry?.headword ?? tool.text, context, entry ? parseDictEntry(entry.html, entry.headword) : undefined)}
             className={`rounded-lg border px-2 py-1 ${savedTerms[(entry?.headword ?? tool.text).toLowerCase()] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
             aria-label={t("save")}
           >

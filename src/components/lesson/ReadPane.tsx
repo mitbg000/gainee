@@ -29,7 +29,7 @@ type Props = {
   onPin: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
   onUnpin: (messageId: number) => void;
   onToggleSave: (vocabId: number) => void;
-  onSaveTerm: (term: string, context: string) => void;
+  onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
 };
 
 type Sel = Anchor & { rect: DOMRect };

@@ -479,6 +479,25 @@
     "total": "{n} từ đã lưu, nhóm theo bài đọc và phần",
     "count": "{n} từ",
     "part": "Phần {n}",
-    "other": "Từ khác"
+    "other": "Từ khác",
+    "search": "Tìm từ, nghĩa…",
+    "searchBtn": "Tìm",
+    "noResults": "Không có từ phù hợp",
+    "add": "Thêm từ",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "addDetails": "Thêm phiên âm / nghĩa",
+    "listen": "Nghe",
+    "deleteConfirm": "Xóa từ “{term}”?",
+    "field": {
+      "term": "Từ",
+      "ipa": "Phiên âm (IPA)",
+      "pos": "Loại từ",
+      "meaningVi": "Nghĩa (tiếng Việt)",
+      "definitionEn": "Định nghĩa tiếng Anh",
+      "example": "Ví dụ",
+      "note": "Ghi chú",
+      "context": "Câu trong bài"
+    }
   }
 }

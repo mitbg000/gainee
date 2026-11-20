@@ -479,6 +479,25 @@
     "total": "{n} saved words, grouped by text and lesson",
     "count": "{n} words",
     "part": "Part {n}",
-    "other": "Other words"
+    "other": "Other words",
+    "search": "Search words, meanings…",
+    "searchBtn": "Search",
+    "noResults": "No matching words",
+    "add": "Add a word",
+    "save": "Save",
+    "cancel": "Cancel",
+    "addDetails": "Add pronunciation / meaning",
+    "listen": "Listen",
+    "deleteConfirm": "Delete “{term}”?",
+    "field": {
+      "term": "Word",
+      "ipa": "Pronunciation (IPA)",
+      "pos": "Part of speech",
+      "meaningVi": "Meaning (Vietnamese)",
+      "definitionEn": "English definition",
+      "example": "Example",
+      "note": "Note",
+      "context": "Sentence from the text"
+    }
   }
 }

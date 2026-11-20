@@ -10,7 +10,11 @@ export const WordInput = z.union([
   z.object({ lessonVocabId: z.number().int().positive() }),
   z.object({
     term: z.string().trim().min(1).max(191),
+    ipa: z.string().trim().max(191).optional(),
+    pos: z.string().trim().max(32).optional(),
     meaningVi: z.string().trim().max(500).optional(),
+    definitionEn: z.string().max(2000).optional(),
+    example: z.string().max(2000).optional(),
     context: z.string().max(2000).optional(),
     note: z.string().max(2000).optional(),
     lessonId: z.number().int().positive().optional(),
@@ -43,7 +47,7 @@ export async function addWord(input: z.infer<typeof WordInput>): Promise<number>
       const [dup] = await db.select({ id: words.id }).from(words).where(and(eq(words.term, input.term), eq(words.lessonId, input.lessonId)));
       if (dup) return dup.id;
     }
-    values = { term: input.term, meaningVi: input.meaningVi || null, context: input.context || null, note: input.note || null, lessonId: input.lessonId ?? null };
+    values = { term: input.term, ipa: input.ipa || null, pos: input.pos || null, meaningVi: input.meaningVi || null, definitionEn: input.definitionEn || null, example: input.example || null, context: input.context || null, note: input.note || null, lessonId: input.lessonId ?? null };
   }
   const [{ id }] = await db.insert(words).values(values).$returningId();
   if (values.lessonId) {
@@ -60,4 +64,24 @@ export async function addWord(input: z.infer<typeof WordInput>): Promise<number>
 
 export async function removeWord(id: number) {
   await getDb().delete(words).where(eq(words.id, id));
+}
+
+export const WordPatch = z.object({
+  term: z.string().trim().min(1).max(191),
+  ipa: z.string().trim().max(191),
+  pos: z.string().trim().max(32),
+  meaningVi: z.string().trim().max(500),
+  definitionEn: z.string().max(2000),
+  example: z.string().max(2000),
+  note: z.string().max(2000),
+  context: z.string().max(2000),
+}).partial();
+
+/** Edit a saved word; empty strings clear optional fields. */
+export async function updateWord(id: number, patch: z.infer<typeof WordPatch>) {
+  const { term, ...rest } = patch;
+  const set: Partial<typeof words.$inferInsert> = Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, v === "" ? null : v]));
+  if (term) set.term = term;
+  if (!Object.keys(set).length) return;
+  await getDb().update(words).set(set).where(eq(words.id, id));
 }
