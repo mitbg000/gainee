@@ -1,5 +1,5 @@
 /** Stand-alone writing practice (IELTS Task 1/2, free writing, Vietnamese→English translation, short sentences) with AI prompts and scores. */
-import { desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { chat, parseJsonReply, type ChatOptions } from "@/lib/ai/client";
@@ -52,14 +52,47 @@ const isTranslation = (k: string) => k === "translate" || k === "sentence";
 /** Vietnamese source for the translation kinds: the text, then English words the learner may use. */
 const SOURCE: Partial<Record<WritingKind, string>> = {
   translate:
-    "Write one Vietnamese paragraph of 120–170 words in the style of an IELTS Task 2 essay body paragraph on a common IELTS topic.",
+    "Write one Vietnamese paragraph of 120–170 words in the style of an IELTS essay body paragraph.",
   sentence:
-    "Write 5 short, separate Vietnamese sentences (8–20 words each) on one common IELTS topic, as a numbered list. Each should practise a useful structure (comparison, cause–effect, passive, conditional, relative clause).",
+    "Write 5 short, separate Vietnamese sentences (8–20 words each) on the topic below, as a numbered list. Each should practise a useful structure (comparison, cause–effect, passive, conditional, relative clause).",
 };
 
 /** A new practice question. Task 1 has no picture, so the data is given as a small Markdown table. */
+const TOPICS = [
+  "education", "technology", "environment", "health", "work and careers", "crime and law", "government and society",
+  "media and advertising", "globalisation", "transport and cities", "family and children", "tourism", "culture and tradition",
+  "science and research", "sport and leisure", "food and agriculture", "housing and architecture", "energy",
+  "money and consumerism", "languages", "art", "animals and wildlife", "space exploration", "ageing population",
+];
+const FORMS: Partial<Record<WritingKind, string[]>> = {
+  task2: ["agree or disagree", "discuss both views and give your opinion", "advantages and disadvantages", "problem and solution", "causes and effects", "a two-part direct question", "do the advantages outweigh the disadvantages"],
+  task1: ["line graph over time", "bar chart comparing groups", "pie charts for two years", "table of figures", "process diagram", "two maps of a place before and after", "a bar chart and a pie chart together"],
+  translate: ["argue an opinion", "explain causes and effects", "compare two options", "describe a trend with numbers", "propose solutions to a problem"],
+  free: ["describe a personal experience", "give an opinion", "explain how to do something", "compare past and present", "imagine the future"],
+};
+const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
+
+/** Topic and question form are chosen here at random (models repeat themselves when left to choose), and recent questions are listed to avoid. */
+async function variety(kind: WritingKind) {
+  const recent = await getDb()
+    .select({ prompt: w.prompt })
+    .from(w)
+    .where(and(isNull(w.lessonId), eq(w.kind, kind)))
+    .orderBy(desc(w.id))
+    .limit(6);
+  const forms = FORMS[kind];
+  const avoid = recent.map((r) => (r.prompt ?? "").replace(/\s+/g, " ").slice(0, 160)).filter(Boolean);
+  return [
+    `Topic: ${pick(TOPICS)} (choose a specific, fresh angle within it).`,
+    forms ? `Form: ${pick(forms)}.` : "",
+    avoid.length ? `Do not reuse the idea or wording of these recent questions:\n${avoid.map((a) => `- ${a}`).join("\n")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 export async function generatePrompt(kind: WritingKind, override?: ChatOptions["override"]) {
-  const p = await getProfile();
+  const [p, vary] = await Promise.all([getProfile(), variety(kind)]);
   if (SOURCE[kind]) {
     const r = await chat({
       task: "reader_quick",
@@ -71,6 +104,7 @@ export async function generatePrompt(kind: WritingKind, override?: ChatOptions["
         {
           role: "user",
           content: `${SOURCE[kind]}
+${vary}
 Then a line "### Từ vựng gợi ý" and a bulleted list of ${kind === "translate" ? "8–10" : "6–8"} English words or phrases (band 6.5+) that fit the translation, each as "- **english** – nghĩa tiếng Việt". Do not give the English translation.`,
         },
       ],
@@ -90,7 +124,7 @@ Then a line "### Từ vựng gợi ý" and a bulleted list of ${kind === "transl
     maxTokens: 600,
     messages: [
       { role: "system", content: `You write realistic exam questions for a learner aiming at IELTS band ${p.targetBand}. Reply with the question only, in English, no title or commentary.` },
-      { role: "user", content: `Write one new ${TASK[kind]} question. ${extra}` },
+      { role: "user", content: `Write one new ${TASK[kind]} question. ${extra}\n${vary}` },
     ],
   });
   return r.text.trim();
