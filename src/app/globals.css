@@ -149,3 +149,11 @@ body {
   0%, 60% { box-shadow: 0 0 0 3px rgb(250 204 21 / 0.6); }
   100% { box-shadow: 0 0 0 0 transparent; }
 }
+
+/* Scrollable but without a visible scrollbar (sidebar menu). */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

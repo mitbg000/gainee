@@ -26,7 +26,7 @@ export function SidebarNav({ tree }: { tree: TreeDoc[] }) {
   const [libOpen, setLibOpen] = useState<boolean | null>(null); // null = follow the current page
   const open = libOpen ?? inLibrary;
   return (
-    <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
+    <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar">
       {NAV.map((n) => {
         const item = <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} />;
         if (n.href !== "/library" || !tree.length) return item;
