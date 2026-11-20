@@ -15,6 +15,8 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
   const kind = (WRITING_KINDS as readonly string[]).includes(sp.kind ?? "") ? (sp.kind as WritingKind) : undefined;
   const id = Number(sp.id) || (sp.new ? null : (list.find((w) => w.bandOverall == null && (!kind || w.kind === kind))?.id ?? null));
   const cur = id ? await getWriting(id) : undefined;
+  const shown = (cur?.kind as WritingKind | undefined) ?? kind ?? "task2"; // the history lists only this type
+  const mine = list.filter((w) => w.kind === shown);
   const initial = cur ? { id: cur.id, kind: cur.kind as WritingKind, prompt: cur.prompt ?? "", body: cur.body, grade: (cur.feedback as Grade | null) ?? null } : null;
 
   return (
@@ -26,13 +28,13 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
         <aside className="mt-8 lg:mt-0">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("history")}</h2>
-            <Link href="/writing?new=1" className="text-sm text-accent underline">
+            <Link href={`/writing?new=1&kind=${shown}`} className="text-sm text-accent underline">
               <I.IconPlus className="inline-block h-4 w-4 align-[-0.2em]" /> {t("new")}
             </Link>
           </div>
-          {list.length === 0 && <p className="text-sm text-muted">{t("noHistory")}</p>}
+          {mine.length === 0 && <p className="text-sm text-muted">{t("noHistory")}</p>}
           <ul className="space-y-1.5">
-            {list.map((w) => (
+            {mine.map((w) => (
               <li key={w.id}>
                 <Link href={`/writing?id=${w.id}`} className={`block rounded-xl border px-3 py-2 text-sm ${w.id === id ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent"}`}>
                   <span className="flex items-center justify-between gap-2 text-xs text-muted">
