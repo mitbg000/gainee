@@ -1,9 +1,8 @@
 name: Check & deploy
 
+# Runs only when started by hand (GitHub → Actions → "Check & deploy" → Run workflow).
+# Pushing no longer builds; deploy on the server with: bash scripts/deploy.sh
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -13,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24 # ts-fsrs needs Node 24
           cache: npm
       - run: npm ci
       - run: npm run lint
@@ -22,7 +21,7 @@ jobs:
 
   deploy:
     needs: check
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency: deploy
     steps:
