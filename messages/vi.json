@@ -1,0 +1,65 @@
+{
+  "app": {
+    "name": "ReadLearn",
+    "tagline": "Học tiếng Anh qua bài đọc",
+    "description": "Biến bài báo thành bài học IELTS: từ vựng, bài tập, ôn tập ngắt quãng và theo dõi tiến độ."
+  },
+  "language": {
+    "label": "Ngôn ngữ",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "nav": {
+    "dashboard": "Tổng quan",
+    "library": "Thư viện bài đọc",
+    "import": "Thêm bài mới",
+    "words": "Sổ tay từ vựng",
+    "review": "Ôn tập hôm nay",
+    "progress": "Tiến độ",
+    "assistant": "Trợ lý AI",
+    "settings": "Cài đặt",
+    "phase": "GĐ {n}",
+    "logout": "Đăng xuất"
+  },
+  "login": {
+    "password": "Mật khẩu",
+    "submit": "Đăng nhập",
+    "checking": "Đang kiểm tra…",
+    "errors": {
+      "wrong_password": "Sai mật khẩu",
+      "too_many_attempts": "Thử sai quá nhiều lần. Hãy đợi 15 phút.",
+      "unknown": "Đăng nhập thất bại"
+    }
+  },
+  "dashboard": {
+    "kicker": "Tổng quan",
+    "greeting": "Chào bạn 👋",
+    "intro": "Hệ thống đã sẵn sàng. Giai đoạn 1 sẽ thêm phần nhập bài đọc và để AI tạo bài học.",
+    "stats": {
+      "documents": "Bài đọc",
+      "lessons": "Bài học",
+      "words": "Từ trong sổ tay"
+    },
+    "system": {
+      "title": "Trạng thái hệ thống",
+      "web": "Web app đang chạy",
+      "db": "Cơ sở dữ liệu MySQL: kết nối tốt",
+      "dbError": "Cơ sở dữ liệu MySQL: {error}",
+      "workerAlive": "Worker: đang hoạt động (tín hiệu {seconds}s trước)",
+      "workerLost": "Worker: mất tín hiệu {seconds}s",
+      "workerNever": "Worker: chưa khởi động"
+    }
+  },
+  "jobs": {
+    "title": "Việc nền",
+    "intro": "Sau này AI tạo bài học sẽ chạy ở đây. Bấm nút để kiểm tra worker có hoạt động không.",
+    "test": "Chạy việc thử",
+    "empty": "Chưa có việc nào.",
+    "status": {
+      "queued": "Đang chờ",
+      "running": "Đang chạy",
+      "done": "Xong",
+      "failed": "Lỗi"
+    }
+  }
+}

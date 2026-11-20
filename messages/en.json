@@ -1,0 +1,65 @@
+{
+  "app": {
+    "name": "ReadLearn",
+    "tagline": "Learn English through reading",
+    "description": "Turn articles into IELTS lessons: vocabulary, exercises, spaced repetition and progress tracking."
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "library": "Reading library",
+    "import": "Add new text",
+    "words": "Vocabulary notebook",
+    "review": "Today's review",
+    "progress": "Progress",
+    "assistant": "AI assistant",
+    "settings": "Settings",
+    "phase": "Phase {n}",
+    "logout": "Log out"
+  },
+  "login": {
+    "password": "Password",
+    "submit": "Log in",
+    "checking": "Checking…",
+    "errors": {
+      "wrong_password": "Wrong password",
+      "too_many_attempts": "Too many attempts. Please wait 15 minutes.",
+      "unknown": "Login failed"
+    }
+  },
+  "dashboard": {
+    "kicker": "Dashboard",
+    "greeting": "Hello 👋",
+    "intro": "The system is ready. Phase 1 adds importing texts and AI-generated lessons.",
+    "stats": {
+      "documents": "Texts",
+      "lessons": "Lessons",
+      "words": "Words in notebook"
+    },
+    "system": {
+      "title": "System status",
+      "web": "Web app is running",
+      "db": "MySQL database: connected",
+      "dbError": "MySQL database: {error}",
+      "workerAlive": "Worker: running (last signal {seconds}s ago)",
+      "workerLost": "Worker: no signal for {seconds}s",
+      "workerNever": "Worker: not started yet"
+    }
+  },
+  "jobs": {
+    "title": "Background jobs",
+    "intro": "AI lesson generation will run here. Press the button to check that the worker is working.",
+    "test": "Run test job",
+    "empty": "No jobs yet.",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "done": "Done",
+      "failed": "Failed"
+    }
+  }
+}

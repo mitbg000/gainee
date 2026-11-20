@@ -1,0 +1,373 @@
+/**
+ * ReadLearn database schema (MySQL 5.7+/8.0 or MariaDB 10.4+, single user).
+ *
+ * Tables for later phases are defined up front so the structure stays stable.
+ * Conventions:
+ *  - JSON is stored through `jsonText` (works on both MySQL JSON and MariaDB LONGTEXT JSON).
+ *  - No DEFAULT on TEXT/JSON columns (MySQL 5.7 does not allow it); set them in code.
+ *  - All timestamps are UTC DATETIME(3).
+ */
+import { sql } from "drizzle-orm";
+import {
+  boolean,
+  customType,
+  date,
+  datetime,
+  double,
+  index,
+  int,
+  longtext,
+  mysqlEnum,
+  mysqlTable,
+  primaryKey,
+  text,
+  tinyint,
+  uniqueIndex,
+  varchar,
+} from "drizzle-orm/mysql-core";
+
+/* ---------- helpers ---------- */
+const jsonText = <T>(name: string) =>
+  customType<{ data: T; driverData: string }>({
+    dataType: () => "json",
+    toDriver: (v) => JSON.stringify(v),
+    fromDriver: (v) => (typeof v === "string" ? JSON.parse(v) : v) as T,
+  })(name);
+
+const pk = () => int("id").autoincrement().primaryKey();
+const ts = (name: string) => datetime(name, { mode: "date", fsp: 3 });
+const createdAt = () => ts("created_at").notNull().default(sql`CURRENT_TIMESTAMP(3)`);
+const updatedAt = () =>
+  ts("updated_at").notNull().default(sql`CURRENT_TIMESTAMP(3)`).$onUpdate(() => new Date());
+
+/* =====================================================================
+ * Settings (key/value)
+ * ===================================================================== */
+export const settings = mysqlTable("settings", {
+  key: varchar("key", { length: 191 }).primaryKey(),
+  value: jsonText<unknown>("value").notNull(),
+  updatedAt: updatedAt(),
+});
+
+/* =====================================================================
+ * Content: documents → lessons → lesson vocabulary
+ * ===================================================================== */
+export const documents = mysqlTable("documents", {
+  id: pk(),
+  title: varchar("title", { length: 500 }).notNull(),
+  author: varchar("author", { length: 255 }),
+  source: varchar("source", { length: 1000 }), // publication name or URL
+  sourceType: mysqlEnum("source_type", ["paste", "pdf", "docx", "txt", "url"]).notNull(),
+  filePath: varchar("file_path", { length: 500 }), // original file under UPLOAD_DIR
+  rawText: longtext("raw_text").notNull(),
+  wordCount: int("word_count").notNull().default(0),
+  level: varchar("level", { length: 8 }), // estimated CEFR: B1..C2
+  tags: jsonText<string[]>("tags"),
+  status: mysqlEnum("status", ["draft", "processing", "ready", "error"]).notNull().default("draft"),
+  error: text("error"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const lessons = mysqlTable(
+  "lessons",
+  {
+    id: pk(),
+    documentId: int("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+    position: int("position").notNull(),
+    title: varchar("title", { length: 500 }).notNull(),
+    titleVi: varchar("title_vi", { length: 500 }),
+    paragraphs: jsonText<string[]>("paragraphs").notNull(),
+    wordCount: int("word_count").notNull().default(0),
+    warmup: text("warmup"),
+    summary: text("summary"),
+    /** Exercises, sentence structures, paraphrase, speaking/writing prompts (validated with zod). */
+    content: jsonText<Record<string, unknown>>("content"),
+    status: mysqlEnum("status", ["pending", "generating", "ready", "error"]).notNull().default("pending"),
+    error: text("error"),
+    completedAt: ts("completed_at"),
+    bestScore: int("best_score"), // 0..100
+    notes: text("notes"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("lessons_doc_pos").on(t.documentId, t.position)],
+);
+
+export const lessonVocab = mysqlTable(
+  "lesson_vocab",
+  {
+    id: pk(),
+    lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+    headword: varchar("headword", { length: 191 }).notNull(),
+    match: varchar("match", { length: 191 }).notNull(), // form as it appears in the text
+    ipa: varchar("ipa", { length: 191 }),
+    pos: varchar("pos", { length: 32 }),
+    meaningVi: text("meaning_vi"),
+    definitionEn: text("definition_en"),
+    example: text("example"),
+    note: text("note"),
+    context: text("context"), // original sentence from the text
+    cefr: varchar("cefr", { length: 4 }),
+  },
+  (t) => [index("lesson_vocab_lesson").on(t.lessonId)],
+);
+
+/* =====================================================================
+ * Vocabulary notebook + FSRS spaced repetition + images
+ * ===================================================================== */
+export const words = mysqlTable(
+  "words",
+  {
+    id: pk(),
+    term: varchar("term", { length: 191 }).notNull(),
+    ipa: varchar("ipa", { length: 191 }),
+    pos: varchar("pos", { length: 32 }),
+    meaningVi: text("meaning_vi"),
+    definitionEn: text("definition_en"),
+    context: text("context"),
+    example: text("example"),
+    note: text("note"),
+    mnemonic: text("mnemonic"), // personal memory hook
+    tags: jsonText<string[]>("tags"),
+    lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
+    lessonVocabId: int("lesson_vocab_id").references(() => lessonVocab.id, { onDelete: "set null" }),
+    // FSRS card state
+    due: ts("due").notNull().default(sql`CURRENT_TIMESTAMP(3)`),
+    stability: double("stability").notNull().default(0),
+    difficulty: double("difficulty").notNull().default(0),
+    elapsedDays: int("elapsed_days").notNull().default(0),
+    scheduledDays: int("scheduled_days").notNull().default(0),
+    reps: int("reps").notNull().default(0),
+    lapses: int("lapses").notNull().default(0),
+    state: tinyint("state").notNull().default(0), // 0 New, 1 Learning, 2 Review, 3 Relearning
+    lastReview: ts("last_review"),
+    suspended: boolean("suspended").notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("words_due").on(t.due), index("words_term").on(t.term)],
+);
+
+/** Uploaded / pasted files (images for words, original documents, audio recordings). */
+export const media = mysqlTable("media", {
+  id: pk(),
+  kind: mysqlEnum("kind", ["image", "audio", "document"]).notNull(),
+  path: varchar("path", { length: 500 }).notNull(), // relative to UPLOAD_DIR
+  mime: varchar("mime", { length: 100 }).notNull(),
+  bytes: int("bytes").notNull(),
+  width: int("width"),
+  height: int("height"),
+  source: mysqlEnum("source", ["paste", "upload", "url", "ai"]).notNull().default("upload"),
+  sourceUrl: varchar("source_url", { length: 1000 }),
+  createdAt: createdAt(),
+});
+
+export const wordMedia = mysqlTable(
+  "word_media",
+  {
+    wordId: int("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
+    mediaId: int("media_id").notNull().references(() => media.id, { onDelete: "cascade" }),
+    position: int("position").notNull().default(0),
+    caption: varchar("caption", { length: 500 }),
+  },
+  (t) => [primaryKey({ columns: [t.wordId, t.mediaId] })],
+);
+
+export const reviewLogs = mysqlTable(
+  "review_logs",
+  {
+    id: pk(),
+    wordId: int("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
+    rating: tinyint("rating").notNull(), // 1 Again, 2 Hard, 3 Good, 4 Easy
+    mode: mysqlEnum("mode", ["recognize", "recall", "cloze", "listen", "spell", "image"]).notNull(),
+    stateBefore: tinyint("state_before").notNull(),
+    durationMs: int("duration_ms"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("review_logs_created").on(t.createdAt)],
+);
+
+/* =====================================================================
+ * Learning history – the raw data for progress tracking
+ * ===================================================================== */
+export const attempts = mysqlTable(
+  "attempts",
+  {
+    id: pk(),
+    lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+    score: int("score").notNull(),
+    total: int("total").notNull(),
+    durationSec: int("duration_sec"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("attempts_created").on(t.createdAt)],
+);
+
+/** One row per answered question → accuracy per question type over time. */
+export const answerLogs = mysqlTable(
+  "answer_logs",
+  {
+    id: pk(),
+    attemptId: int("attempt_id").notNull().references(() => attempts.id, { onDelete: "cascade" }),
+    qtype: mysqlEnum("qtype", ["tfng", "ynng", "mcq", "gap", "matching", "heading", "short"]).notNull(),
+    correct: boolean("correct").notNull(),
+    given: varchar("given", { length: 500 }),
+    expected: varchar("expected", { length: 500 }),
+  },
+  (t) => [index("answer_logs_type").on(t.qtype)],
+);
+
+export const readingSessions = mysqlTable(
+  "reading_sessions",
+  {
+    id: pk(),
+    lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+    seconds: int("seconds").notNull(),
+    words: int("words").notNull(),
+    wpm: int("wpm").notNull(),
+    lookups: int("lookups").notNull().default(0), // words looked up while reading
+    createdAt: createdAt(),
+  },
+  (t) => [index("reading_sessions_created").on(t.createdAt)],
+);
+
+/** Writing & speaking with AI band scores per IELTS criterion. */
+export const writings = mysqlTable("writings", {
+  id: pk(),
+  lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
+  kind: mysqlEnum("kind", ["paraphrase", "speaking", "task1", "task2", "free"]).notNull(),
+  prompt: text("prompt"),
+  body: longtext("body").notNull(),
+  audioMediaId: int("audio_media_id").references(() => media.id, { onDelete: "set null" }),
+  wordCount: int("word_count").notNull().default(0),
+  bandOverall: double("band_overall"),
+  band1: double("band_1"), // TR/TA  or Fluency & Coherence
+  band2: double("band_2"), // CC     or Lexical Resource
+  band3: double("band_3"), // LR     or Grammar
+  band4: double("band_4"), // GRA    or Pronunciation
+  feedback: jsonText<Record<string, unknown>>("feedback"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Periodic benchmark tests – the objective "before vs. after" measurement. */
+export const assessments = mysqlTable(
+  "assessments",
+  {
+    id: pk(),
+    kind: mysqlEnum("kind", ["reading_test", "vocab_size", "writing_task2", "speaking"]).notNull(),
+    score: double("score").notNull(),
+    maxScore: double("max_score"),
+    band: double("band"),
+    detail: jsonText<Record<string, unknown>>("detail"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("assessments_kind").on(t.kind, t.createdAt)],
+);
+
+/* =====================================================================
+ * Motivation: daily activity, XP, goals, achievements
+ * ===================================================================== */
+/** One row per local day – streaks, heat map, daily goal. */
+export const activity = mysqlTable("activity", {
+  day: date("day", { mode: "string" }).primaryKey(), // YYYY-MM-DD in the user's time zone
+  minutes: int("minutes").notNull().default(0),
+  xp: int("xp").notNull().default(0),
+  reviews: int("reviews").notNull().default(0),
+  lessonsDone: int("lessons_done").notNull().default(0),
+  wordsAdded: int("words_added").notNull().default(0),
+  goalMet: boolean("goal_met").notNull().default(false),
+  freezeUsed: boolean("freeze_used").notNull().default(false), // streak freeze
+  mood: tinyint("mood"), // optional 1..5 self-rating
+  reflection: text("reflection"), // "What did I learn today?"
+});
+
+export const xpEvents = mysqlTable(
+  "xp_events",
+  {
+    id: pk(),
+    kind: varchar("kind", { length: 50 }).notNull(), // lesson_done, review, perfect_score, streak_bonus...
+    amount: int("amount").notNull(),
+    refType: varchar("ref_type", { length: 50 }),
+    refId: int("ref_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("xp_events_created").on(t.createdAt)],
+);
+
+export const goals = mysqlTable("goals", {
+  id: pk(),
+  kind: mysqlEnum("kind", [
+    "daily_minutes",
+    "daily_reviews",
+    "weekly_lessons",
+    "weekly_words",
+    "target_band",
+    "exam_date",
+  ]).notNull(),
+  target: double("target").notNull(),
+  dueDate: date("due_date", { mode: "string" }),
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+export const achievements = mysqlTable("achievements", {
+  code: varchar("code", { length: 64 }).primaryKey(), // e.g. streak_7, words_100, first_band_7
+  progress: int("progress").notNull().default(0),
+  unlockedAt: ts("unlocked_at"),
+});
+
+/* =====================================================================
+ * AI providers & usage
+ * ===================================================================== */
+export const aiProviders = mysqlTable("ai_providers", {
+  id: pk(),
+  name: varchar("name", { length: 32 }).notNull(), // deepseek | openai | gemini | xai | custom
+  label: varchar("label", { length: 100 }).notNull(),
+  baseUrl: varchar("base_url", { length: 500 }).notNull(),
+  apiKeyEnc: text("api_key_enc").notNull(), // AES-256-GCM
+  defaultModel: varchar("default_model", { length: 100 }).notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+export const aiCalls = mysqlTable(
+  "ai_calls",
+  {
+    id: pk(),
+    providerId: int("provider_id").references(() => aiProviders.id, { onDelete: "set null" }),
+    model: varchar("model", { length: 100 }).notNull(),
+    task: varchar("task", { length: 50 }).notNull(), // lesson | explain | grade_writing | chat ...
+    promptTokens: int("prompt_tokens"),
+    completionTokens: int("completion_tokens"),
+    costUsd: double("cost_usd"),
+    ok: boolean("ok").notNull(),
+    error: text("error"),
+    durationMs: int("duration_ms"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ai_calls_created").on(t.createdAt)],
+);
+
+/* =====================================================================
+ * Background job queue (processed by the worker)
+ * ===================================================================== */
+export const jobs = mysqlTable(
+  "jobs",
+  {
+    id: pk(),
+    type: varchar("type", { length: 50 }).notNull(),
+    payload: jsonText<Record<string, unknown>>("payload").notNull(),
+    status: mysqlEnum("status", ["queued", "running", "done", "failed"]).notNull().default("queued"),
+    attempts: int("attempts").notNull().default(0),
+    maxAttempts: int("max_attempts").notNull().default(3),
+    progress: varchar("progress", { length: 255 }), // e.g. "Generating lesson 3/12"
+    result: jsonText<unknown>("result"),
+    error: text("error"),
+    runAt: ts("run_at").notNull().default(sql`CURRENT_TIMESTAMP(3)`),
+    startedAt: ts("started_at"),
+    finishedAt: ts("finished_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("jobs_pick").on(t.status, t.runAt)],
+);
