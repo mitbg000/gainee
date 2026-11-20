@@ -358,7 +358,9 @@
       "ask": "Ask AI",
       "save": "Save",
       "close": "Close",
-      "allNotes": "Notes ({n})"
+      "allNotes": "Notes ({n})",
+      "unhighlight": "Remove highlight",
+      "unhighlightConfirm": "This highlight has a note. Delete both?"
     },
     "notes": {
       "placeholder": "Write a note…",
@@ -435,7 +437,8 @@
       "showInText": "Show in the text",
       "submit": "Check answers",
       "retry": "Try again",
-      "best": "Best score: {n}%"
+      "best": "Best score: {n}%",
+      "doneAt": "Submitted {date}"
     },
     "practice": {
       "structures": "Sentence structures worth learning",
@@ -466,7 +469,8 @@
       "mergeConfirm": "Merge with the next lesson and regenerate the exercises?",
       "failed": "Could not save, please try again"
     },
-    "askAssistant": "Ask the assistant about this text"
+    "askAssistant": "Ask the assistant about this text",
+    "resizeSplit": "Drag to resize · double-click to reset"
   },
   "editor": {
     "bold": "Bold",

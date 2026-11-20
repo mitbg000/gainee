@@ -10,7 +10,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
   const data = Number.isInteger(id) ? await getLessonData(id) : null;
   if (!data || data.lesson.status !== "ready") notFound();
   return (
-    <Shell wide>
+    <Shell full>
       <LessonReader data={JSON.parse(JSON.stringify(data))} />
     </Shell>
   );

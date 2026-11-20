@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import type { LessonContent } from "@/lib/lessons/generate";
 import Markdown from "./Markdown";
-import type { Vocab } from "./types";
+import type { LessonData, Vocab } from "./types";
 import { useAiAsk } from "./useAiAsk";
 import { speak } from "@/lib/speech";
 
@@ -123,6 +123,7 @@ export function VocabPane({
 }
 
 /* =================================================================== exercises */
+type Draft = { total: number; tf: Record<number, string>; mc: Record<number, number>; gp: Record<number, string>; result: { score: number; total: number; at: string } | null };
 type Answer = { qtype: "tfng" | "mcq" | "gap"; correct: boolean; given: string; expected: string };
 const norm = (s: string) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim().replace(/[.!,;]+$/, "");
 
@@ -131,6 +132,7 @@ export function ExercisesPane({
   content,
   vocab,
   bestScore,
+  lastAttempt,
   onLocate,
   onScored,
 }: {
@@ -138,16 +140,39 @@ export function ExercisesPane({
   content: LessonContent;
   vocab: Vocab[];
   bestScore: number | null;
+  lastAttempt: LessonData["lastAttempt"];
   onLocate: (quote: string) => void;
   onScored: (pct: number) => void;
 }) {
   const t = useTranslations("lesson.ex");
-  const [tf, setTf] = useState<Record<number, string>>({});
-  const [mc, setMc] = useState<Record<number, number>>({});
-  const [gp, setGp] = useState<Record<number, string>>({});
-  const [checked, setChecked] = useState(false);
-  const [result, setResult] = useState<{ score: number; total: number } | null>(null);
+  const total = content.tfng.length + content.mcq.length + content.gaps.length;
+  const draftKey = `ex_${lessonId}`;
+  // Restore: the draft in this browser first, else the last submitted attempt from the server.
+  const [init] = useState<Draft>(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(draftKey) ?? "null") as Draft | null;
+      if (d && d.total === total) return d; // shortcut: matched by question count only; a regenerated set of the same size keeps old answers until "Try again"
+    } catch {}
+    const empty: Draft = { total, tf: {}, mc: {}, gp: {}, result: null };
+    if (!lastAttempt || lastAttempt.total !== total) return empty; // questions were regenerated since
+    const g = lastAttempt.given;
+    const [nt, nm] = [content.tfng.length, content.mcq.length];
+    content.tfng.forEach((_, i) => g[i] && (empty.tf[i] = g[i]));
+    content.mcq.forEach((_, i) => g[nt + i] !== "" && g[nt + i] != null && (empty.mc[i] = Number(g[nt + i])));
+    content.gaps.forEach((_, i) => g[nt + nm + i] && (empty.gp[i] = g[nt + nm + i]));
+    return { ...empty, result: { score: lastAttempt.score, total, at: String(lastAttempt.createdAt) } };
+  });
+  const [tf, setTf] = useState<Record<number, string>>(init.tf);
+  const [mc, setMc] = useState<Record<number, number>>(init.mc);
+  const [gp, setGp] = useState<Record<number, string>>(init.gp);
+  const [result, setResult] = useState(init.result);
+  const checked = !!result;
   const [startedAt] = useState(Date.now());
+  useEffect(() => {
+    try {
+      localStorage.setItem(draftKey, JSON.stringify({ total, tf, mc, gp, result } satisfies Draft));
+    } catch {}
+  }, [draftKey, total, tf, mc, gp, result]);
 
   const answers = useMemo<Answer[]>(
     () => [
@@ -159,9 +184,8 @@ export function ExercisesPane({
   );
 
   async function submit() {
-    setChecked(true);
     const score = answers.filter((a) => a.correct).length;
-    setResult({ score, total: answers.length });
+    setResult({ score, total: answers.length, at: new Date().toISOString() });
     const r = await fetch(`/api/lessons/${lessonId}/attempt`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -173,7 +197,6 @@ export function ExercisesPane({
     setTf({});
     setMc({});
     setGp({});
-    setChecked(false);
     setResult(null);
   }
 
@@ -318,6 +341,7 @@ export function ExercisesPane({
             {result.score}/{result.total} {result.score === result.total ? "🎉" : result.score >= result.total * 0.7 ? "👍" : "💪"}
           </span>
         )}
+        {result && <span className="text-sm text-muted">{t("doneAt", { date: new Date(result.at).toLocaleString() })}</span>}
         {bestScore != null && <span className="ml-auto text-sm text-muted">{t("best", { n: bestScore })}</span>}
       </div>
     </div>

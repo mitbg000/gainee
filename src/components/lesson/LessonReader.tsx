@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseRich } from "@/lib/text/rich";
-import RichBlock from "./RichBlock";
 import LessonEditor from "./LessonEditor";
 import { locateQuote } from "./marks";
 import { ExercisesPane, PracticePane, VocabPane, type TermWord } from "./Panes";
 import ReadPane from "./ReadPane";
+import SplitPassage from "./SplitPassage";
 import type { AiMsg, Anchor, Annotation, HlColor, LessonData, WordCard } from "./types";
 
 type Tab = "read" | "vocab" | "ex" | "practice";
@@ -28,6 +28,23 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const [best, setBest] = useState<number | null>(lesson.bestScore);
   const [toast, setToast] = useState("");
   const [editing, setEditing] = useState(false);
+  const [split, setSplit] = useState(50); // % of the width given to the passage beside the exercises
+  const splitBox = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    try {
+      const v = Number(localStorage.getItem("rl_split"));
+      if (v >= 25 && v <= 75) setSplit(v);
+    } catch {}
+  }, []);
+  function dragSplit(e: React.PointerEvent<HTMLDivElement>) {
+    const box = splitBox.current?.getBoundingClientRect();
+    if (!box || !e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const v = Math.round(Math.min(75, Math.max(25, ((e.clientX - box.left) / box.width) * 100)));
+    setSplit(v);
+    try {
+      localStorage.setItem("rl_split", String(v));
+    } catch {}
+  }
 
   const say = (m: string) => {
     setToast(m);
@@ -181,7 +198,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const locate = (quote: string) => {
     const hit = locateQuote(plain, quote);
     if (!hit) return say(t("notFoundInText"));
-    setTab("read");
+    if (!window.matchMedia("(min-width: 1024px)").matches) setTab("read"); // wide screens show the passage beside the exercises
     setFlash(null);
     setTimeout(() => setFlash(hit), 30);
     setTimeout(() => setFlash(null), 4000);
@@ -192,6 +209,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
 
   return (
     <div>
+      <div className="mx-auto max-w-6xl">
       <Link href={`/library/${doc.id}`} className="text-sm text-muted hover:text-ink">
         ← {doc.title}
       </Link>
@@ -207,6 +225,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
         💬 {t("askAssistant")}
       </Link>
       {editing && <LessonEditor lessonId={lesson.id} paragraphs={lesson.paragraphs} hasNext={!!next} onClose={() => setEditing(false)} />}
+      </div>
 
       <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-5 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-0 md:mx-0 md:px-0">
         {tabs.map((k) => (
@@ -225,6 +244,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
 
       <div className="mt-5">
         {tab === "read" && (
+          <div className="mx-auto max-w-6xl">
           <ReadPane
             lessonId={lesson.id}
             paragraphs={plain}
@@ -248,25 +268,43 @@ export default function LessonReader({ data }: { data: LessonData }) {
             termWords={termWords}
             onSaveCard={saveCard}
           />
+          </div>
         )}
         {tab !== "read" && (
           // Desktop: keep the passage visible beside the vocab/exercises/practice pane.
-          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
-            <article className="sticky top-14 hidden max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-2xl border border-line bg-card p-5 font-serif leading-[1.8] text-ink lg:block">
-              {blocks.map((b, i) => (
-                <RichBlock key={i} block={b} />
-              ))}
-            </article>
+          <div ref={splitBox} className="lg:grid lg:grid-cols-[var(--split)_20px_minmax(0,1fr)] lg:items-start" style={{ "--split": `${split}%` } as React.CSSProperties}>
+            <div className="sticky top-14 hidden lg:block">
+              <SplitPassage
+                blocks={blocks}
+                plain={plain}
+                annotations={annotations}
+                flash={flash}
+                onHighlight={(a) => createAnnotation({ paragraph: a.paragraph, startOffset: a.start, endOffset: a.end, quote: a.quote, color: a.color, note: null })}
+                onDelete={deleteAnnotation}
+              />
+            </div>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label={t("resizeSplit")}
+              title={t("resizeSplit")}
+              onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
+              onPointerMove={dragSplit}
+              onDoubleClick={() => setSplit(50)}
+              className="sticky top-14 hidden h-[calc(100dvh-5rem)] cursor-col-resize touch-none select-none items-center justify-center lg:flex"
+            >
+              <span className="h-12 w-1 rounded-full bg-line" />
+            </div>
             <div className="min-w-0">
               {tab === "vocab" && <VocabPane vocab={vocab} saved={saved} onToggleSave={toggleSave} onSaveAll={saveAll} termWords={termWords} onRemoveTerm={(w) => toggleTerm(w.term, w.context ?? "")} />}
-              {tab === "ex" && content && <ExercisesPane lessonId={lesson.id} content={content} vocab={vocab} bestScore={best} onLocate={locate} onScored={setBest} />}
+              {tab === "ex" && content && <ExercisesPane lessonId={lesson.id} content={content} vocab={vocab} bestScore={best} lastAttempt={data.lastAttempt} onLocate={locate} onScored={setBest} />}
               {tab === "practice" && content && <PracticePane lessonId={lesson.id} content={content} writings={data.writings} notes={lesson.notes ?? ""} />}
             </div>
           </div>
         )}
       </div>
 
-      <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-line pt-5">
+      <div className="mx-auto mt-10 flex max-w-6xl flex-wrap items-center gap-2 border-t border-line pt-5">
         {prev && (
           <Link href={`/lessons/${prev.id}`} className="flex min-h-11 items-center rounded-xl border border-line px-4 text-sm">
             ← {t("prev")}

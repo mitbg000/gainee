@@ -358,7 +358,9 @@
       "ask": "Hỏi AI",
       "save": "Lưu",
       "close": "Đóng",
-      "allNotes": "Ghi chú ({n})"
+      "allNotes": "Ghi chú ({n})",
+      "unhighlight": "Bỏ tô sáng",
+      "unhighlightConfirm": "Tô sáng này có ghi chú. Xóa cả hai?"
     },
     "notes": {
       "placeholder": "Viết ghi chú…",
@@ -435,7 +437,8 @@
       "showInText": "Xem trong bài",
       "submit": "Kiểm tra",
       "retry": "Làm lại",
-      "best": "Điểm cao nhất: {n}%"
+      "best": "Điểm cao nhất: {n}%",
+      "doneAt": "Nộp lúc {date}"
     },
     "practice": {
       "structures": "Cấu trúc câu đáng học",
@@ -466,7 +469,8 @@
       "mergeConfirm": "Gộp với bài sau và tạo lại bài tập?",
       "failed": "Không lưu được, hãy thử lại"
     },
-    "askAssistant": "Hỏi trợ lý về bài này"
+    "askAssistant": "Hỏi trợ lý về bài này",
+    "resizeSplit": "Kéo để đổi độ rộng · bấm đúp để về mặc định"
   },
   "editor": {
     "bold": "In đậm",

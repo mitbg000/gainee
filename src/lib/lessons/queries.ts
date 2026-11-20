@@ -2,7 +2,7 @@ import { and, asc, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import type { LessonContent } from "./generate";
 
-const { lessons, documents, lessonVocab, annotations, aiMessages, words, writings } = schema;
+const { lessons, documents, lessonVocab, annotations, aiMessages, words, writings, attempts, answerLogs } = schema;
 
 export async function getLessonData(id: number) {
   const db = getDb();
@@ -27,6 +27,9 @@ export async function getLessonData(id: number) {
   const saved = vocab.length
     ? await db.select({ id: words.id, lessonVocabId: words.lessonVocabId }).from(words).where(inArray(words.lessonVocabId, vocab.map((v) => v.id)))
     : [];
+  // the latest exercise attempt, so answers and score are shown again on any device
+  const [last] = await db.select().from(attempts).where(eq(attempts.lessonId, id)).orderBy(desc(attempts.id)).limit(1);
+  const lastGiven = last ? await db.select({ given: answerLogs.given }).from(answerLogs).where(eq(answerLogs.attemptId, last.id)).orderBy(asc(answerLogs.id)) : [];
   const terms = await db.select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, example: words.example, note: words.note, context: words.context }).from(words).where(and(eq(words.lessonId, id), isNull(words.lessonVocabId))).orderBy(desc(words.id));
   return {
     lesson: { ...lesson, content: (lesson.content ?? null) as LessonContent | null },
@@ -37,6 +40,7 @@ export async function getLessonData(id: number) {
     aiMessages: ai,
     writings: writing,
     savedTermWords: terms,
+    lastAttempt: last ? { score: last.score, total: last.total, createdAt: last.createdAt, given: lastGiven.map((g) => g.given ?? "") } : null,
     savedVocab: Object.fromEntries(saved.map((s) => [s.lessonVocabId!, s.id])) as Record<number, number>,
   };
 }
