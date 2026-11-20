@@ -2,7 +2,11 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
-import { chat, parseJsonReply, type ChatOptions } from "@/lib/ai/client";
+import { chat, generateImage, parseJsonReply, type ChatOptions } from "@/lib/ai/client";
+import type { ImageSetting } from "@/lib/ai/tasks";
+import { imageUrl, sniff } from "@/lib/images";
+import { getSetting } from "@/lib/settings";
+import { saveUpload } from "@/lib/storage";
 import { getProfile } from "@/lib/profile";
 import { wordCount } from "@/lib/text/clean";
 
@@ -132,7 +136,38 @@ End with: Summarise the information by selecting and reporting the main features
       { role: "user", content: `Write one new ${TASK[kind]} question. ${extra}\n${vary}` },
     ],
   });
-  return r.text.trim();
+  return kind === "task1" ? withPicture(r.text.trim()) : r.text.trim();
+}
+
+/** Exam-style picture for a process, technical diagram or map (when turned on in Settings), placed above the drawn diagram. */
+async function withPicture(text: string) {
+  const cfg = await getSetting<ImageSetting>("ai.images");
+  if (!cfg?.enabled) return text;
+  const block = /```chart\s*\n([\s\S]*?)```/.exec(text);
+  let spec: { type?: string; title?: string; steps?: ({ label?: string } | string)[]; maps?: { name?: string; items?: { label?: string; kind?: string; x?: number; y?: number }[] }[] };
+  try {
+    spec = JSON.parse(block?.[1] ?? "");
+  } catch {
+    return text;
+  }
+  let what: string;
+  if (spec.type === "process") {
+    const steps = (spec.steps ?? []).map((x, i) => `${i + 1}. ${typeof x === "string" ? x : x.label}`).join("; ");
+    what = `a labelled process diagram titled "${spec.title ?? ""}" with simple illustrations of each stage connected by arrows: ${steps}`;
+  } else if (spec.type === "map") {
+    const maps = (spec.maps ?? []).map((m) => `${m.name}: ${(m.items ?? []).map((it) => `${it.label} (${it.kind}, ${(it.y ?? 50) < 40 ? "north" : (it.y ?? 50) > 60 ? "south" : "centre"}-${(it.x ?? 50) < 40 ? "west" : (it.x ?? 50) > 60 ? "east" : "middle"})`).join(", ")}`).join(" | ");
+    what = `${spec.maps?.length ?? 2} side-by-side top-down maps of the same place titled "${spec.title ?? ""}", each captioned with its year, with a north arrow: ${maps}`;
+  } else return text;
+  try {
+    const bytes = await generateImage(cfg.providerId, cfg.model, `IELTS Academic Writing Task 1 exam illustration: ${what}. Clean flat textbook style, white background, clear short English labels spelled exactly as given, no extra text, no numbers that are not given.`);
+    const ext = sniff(bytes);
+    if (!ext) return text;
+    const url = imageUrl(await saveUpload(bytes, "images", ext));
+    return text.replace(block![0], `![${spec.title ?? "Task 1"}](${url})\n\n${block![0]}`);
+  } catch (e) {
+    console.error("[writing] picture failed:", e);
+    return text; // the drawn diagram is still there
+  }
 }
 
 /** Band scores per IELTS criterion + Markdown feedback, saved on the writing. */

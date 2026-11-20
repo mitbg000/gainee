@@ -29,6 +29,13 @@ export function renderMarkdown(md: string): string {
       out.push(`<tr>${cells}</tr>`);
       continue;
     }
+    // pictures only from our own image store (AI-made Task 1 diagrams)
+    const img = line.match(/^!\[([^\]]*)\]\((\/api\/images\/[\w./-]+)\)$/);
+    if (img && !img[2].includes("..")) {
+      close();
+      out.push(`<p><img src="${img[2]}" alt="${img[1].replace(/"/g, "&quot;")}" loading="lazy" style="max-width:100%;border-radius:12px"></p>`);
+      continue;
+    }
     const ul = line.match(/^\s*[-*•]\s+(.*)$/);
     const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
     const h = line.match(/^#{1,4}\s+(.*)$/);

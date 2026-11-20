@@ -208,19 +208,19 @@
       "apiKey": "API key",
       "newKey": "New API key (leave empty to keep)",
       "baseUrl": "Base URL",
-      "modelNote": "Model names change often – press “Test” after saving to load the list of models your key can use.",
       "enabled": "Enabled",
       "test": "Test",
       "testing": "Testing…",
       "testOk": "Connected ✓ – the model replied “{reply}”.",
       "testFail": "Failed: {error}",
-      "modelsFound": "{n} models available – pick one with “Edit”.",
+      "modelsFound": "{n} models available.",
       "edit": "Edit",
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete",
       "confirmDelete": "Delete {name}?",
-      "invalid": "Please check the fields (the API key must be at least 8 characters)."
+      "invalid": "Please check the fields (the API key must be at least 8 characters).",
+      "modelAfterKey": "Enter the API key to load the model list."
     },
     "routing": {
       "title": "Model for each task",
@@ -247,7 +247,19 @@
           "title": "Chat about a text",
           "hint": "Free conversation with the assistant."
         }
-      }
+      },
+      "typeModel": "This provider has no model list – type the model name",
+      "chooseModel": "Choose a model…",
+      "loadingModels": "Loading models…"
+    },
+    "images": {
+      "title": "Pictures for Writing Task 1",
+      "hint": "For processes, technical diagrams and maps, AI also draws an exam-style picture (OpenAI GPT Image/DALL·E or xAI Grok Image).",
+      "enabled": "Make pictures",
+      "provider": "Provider",
+      "note": "Each picture takes about 10–60 seconds and is billed by the provider. Small labels can be wrong, so the drawn diagram stays below it.",
+      "saved": "Saved ✓",
+      "saveError": "Could not save"
     }
   },
   "import": {

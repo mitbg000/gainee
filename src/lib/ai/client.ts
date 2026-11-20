@@ -171,13 +171,47 @@ export function parseJsonReply<T = unknown>(text: string): T {
   }
 }
 
-/** Fetch the model list of a provider (used by "Test connection"). */
-export async function listModels(providerId: number): Promise<string[]> {
-  const p = await getProvider(providerId);
-  if (!p) throw new AiError("Provider not found", "not_configured");
-  const res = await fetch(`${p.baseUrl}/models`, { headers: { authorization: `Bearer ${p.apiKey}` }, signal: AbortSignal.timeout(20_000) });
+/** Model ids offered at an OpenAI-compatible endpoint (also used before a provider is saved). */
+export async function fetchModels(baseUrl: string, apiKey: string): Promise<string[]> {
+  const res = await fetch(`${baseUrl.replace(/\/+$/, "")}/models`, { headers: { authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(20_000) });
   if (!res.ok) throw new AiError(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`, "http", res.status);
   const data = (await res.json()) as { data?: { id: string }[]; models?: { name?: string; id?: string }[] };
   const ids = (data.data ?? data.models ?? []).map((m) => ("id" in m && m.id ? m.id : (m as { name?: string }).name ?? "")).filter(Boolean);
   return ids.map((id) => id.replace(/^models\//, "")).sort();
+}
+
+/** Fetch the model list of a provider (used by "Test connection" and the model lists). */
+export async function listModels(providerId: number): Promise<string[]> {
+  const p = await getProvider(providerId);
+  if (!p) throw new AiError("Provider not found", "not_configured");
+  return fetchModels(p.baseUrl, p.apiKey);
+}
+
+/** One picture from an OpenAI-compatible /images/generations endpoint (OpenAI gpt-image / DALL·E, xAI grok image). */
+export async function generateImage(providerId: number, model: string, prompt: string): Promise<Uint8Array> {
+  const p = await getProvider(providerId);
+  if (!p || !p.enabled) throw new AiError("Image provider not found or disabled", "not_configured");
+  const body: Record<string, unknown> = { model, prompt, n: 1 };
+  if (model.startsWith("gpt-image")) body.size = "1536x1024"; // gpt-image always answers in base64
+  else body.response_format = "b64_json";
+  const t0 = Date.now();
+  try {
+    const res = await fetch(`${p.baseUrl}/images/generations`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${p.apiKey}` },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(150_000),
+    });
+    if (!res.ok) throw new AiError(`HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`, "http", res.status);
+    const d = ((await res.json()) as { data?: { b64_json?: string; url?: string }[] }).data?.[0];
+    let bytes: Uint8Array | null = null;
+    if (d?.b64_json) bytes = new Uint8Array(Buffer.from(d.b64_json, "base64"));
+    else if (d?.url) bytes = new Uint8Array(await (await fetch(d.url, { signal: AbortSignal.timeout(60_000) })).arrayBuffer());
+    if (!bytes?.length) throw new AiError("No image in the reply", "bad_response");
+    await log({ providerId, model, task: "image", ok: true, durationMs: Date.now() - t0 });
+    return bytes;
+  } catch (e) {
+    await log({ providerId, model, task: "image", ok: false, durationMs: Date.now() - t0, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+    throw e;
+  }
 }

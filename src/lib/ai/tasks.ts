@@ -29,3 +29,6 @@ export const PROVIDER_PRESETS = {
   xai: { label: "xAI (Grok)", baseUrl: "https://api.x.ai/v1" },
   custom: { label: "Custom (OpenAI-compatible)", baseUrl: "" },
 } as const;
+
+/** Pictures for hard Writing Task 1 forms (processes, technical diagrams, maps). Stored in settings under "ai.images". */
+export type ImageSetting = { enabled: boolean; providerId: number; model: string };

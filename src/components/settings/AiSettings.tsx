@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import type { ProviderPublic } from "@/lib/ai/providers";
-import { AI_TASKS, PROVIDER_PRESETS, type AiRouting, type AiTask } from "@/lib/ai/tasks";
+import { AI_TASKS, PROVIDER_PRESETS, type AiRouting, type AiTask, type ImageSetting } from "@/lib/ai/tasks";
+import ModelSelect, { forgetModels } from "./ModelSelect";
 
 type PresetKey = keyof typeof PROVIDER_PRESETS;
 type TestResult = { ok: boolean; reply?: string; error?: string; models: string[]; modelsError?: string | null };
@@ -24,7 +25,6 @@ export default function AiSettings() {
   const t = useTranslations("settings");
   const [providers, setProviders] = useState<ProviderPublic[]>([]);
   const [routing, setRouting] = useState<AiRouting>({});
-  const [models, setModels] = useState<Record<number, string[]>>({});
   const [msg, setMsg] = useState("");
 
   const load = useCallback(async () => {
@@ -50,7 +50,7 @@ export default function AiSettings() {
         <p className="mb-3 text-sm text-muted">{t("providers.hint")}</p>
         <div className="space-y-3">
           {providers.map((p) => (
-            <ProviderCard key={p.id} p={p} onChange={load} onModels={(m) => setModels((x) => ({ ...x, [p.id]: m }))} />
+            <ProviderCard key={p.id} p={p} onChange={load} />
           ))}
           <AddProvider onAdded={load} />
         </div>
@@ -68,7 +68,6 @@ export default function AiSettings() {
                 key={task}
                 task={task}
                 providers={providers}
-                models={models}
                 value={routing[task]}
                 onChange={(v) => saveRouting({ ...routing, [task]: v ?? undefined })}
               />
@@ -77,11 +76,13 @@ export default function AiSettings() {
         )}
         {msg && <p className="mt-2 text-sm text-muted">{msg}</p>}
       </section>
+
+      {providers.length > 0 && <ImageSettings providers={providers} />}
     </div>
   );
 }
 
-function ProviderCard({ p, onChange, onModels }: { p: ProviderPublic; onChange: () => void; onModels: (m: string[]) => void }) {
+function ProviderCard({ p, onChange }: { p: ProviderPublic; onChange: () => void }) {
   const t = useTranslations("settings.providers");
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<TestResult | null>(null);
@@ -95,10 +96,10 @@ function ProviderCard({ p, onChange, onModels }: { p: ProviderPublic; onChange: 
     const r: TestResult = await fetch(`/api/ai/providers/${p.id}/test`, { method: "POST" }).then((x) => x.json());
     setTesting(false);
     setResult(r);
-    if (r.models?.length) onModels(r.models);
   }
   async function patch(body: Record<string, unknown>) {
     await fetch(`/api/ai/providers/${p.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    if (body.apiKey) forgetModels(p.id); // a new key may see other models
     onChange();
   }
 
@@ -119,9 +120,14 @@ function ProviderCard({ p, onChange, onModels }: { p: ProviderPublic; onChange: 
 
       {editing && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <input className={input} value={model} onChange={(e) => setModel(e.target.value)} placeholder={t("model")} list={`models-${p.id}`} />
-          <input className={input} type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder={t("newKey")} autoComplete="off" />
-          <datalist id={`models-${p.id}`}>{result?.models.map((m) => <option key={m} value={m} />)}</datalist>
+          <label className="flex flex-col text-sm">
+            <span className="text-muted">{t("model")}</span>
+            <ModelSelect providerId={p.id} value={model} onChange={setModel} />
+          </label>
+          <label className="flex flex-col text-sm">
+            <span className="text-muted">{t("apiKey")}</span>
+            <input className={input} type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder={t("newKey")} autoComplete="off" />
+          </label>
         </div>
       )}
 
@@ -180,7 +186,18 @@ function AddProvider({ onAdded }: { onAdded: () => void }) {
   const [baseUrl, setBaseUrl] = useState<string>(PROVIDER_PRESETS.deepseek.baseUrl);
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("");
+  const [list, setList] = useState<string[] | null>(null); // null = not loaded; [] = provider gave no list
   const [error, setError] = useState("");
+
+  async function loadList() {
+    if (apiKey.trim().length < 8 || !baseUrl) return;
+    setList(null);
+    const ids: string[] = await fetch("/api/ai/providers/models", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ baseUrl, apiKey }) })
+      .then((r) => (r.ok ? r.json() : []))
+      .catch(() => []);
+    setList(ids);
+    if (ids.length && !ids.includes(model)) setModel(ids.includes(MODEL_HINT[preset]) ? MODEL_HINT[preset] : ids[0]);
+  }
 
   if (!open)
     return (
@@ -215,6 +232,8 @@ function AddProvider({ onAdded }: { onAdded: () => void }) {
               setPreset(k);
               setLabel(PROVIDER_PRESETS[k].label);
               setBaseUrl(PROVIDER_PRESETS[k].baseUrl);
+              setList(null);
+              setModel("");
             }}
             className={`chip ${preset === k ? "chip-on" : ""}`}
           >
@@ -229,18 +248,29 @@ function AddProvider({ onAdded }: { onAdded: () => void }) {
         </label>
         <label className="text-sm">
           <span className="text-muted">{t("model")}</span>
-          <input className={input} value={model} onChange={(e) => setModel(e.target.value)} placeholder={`${t("eg")} ${MODEL_HINT[preset]}`} />
+          {list?.length ? (
+            <select className={input} value={model} onChange={(e) => setModel(e.target.value)}>
+              {list.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          ) : list ? (
+            <input className={input} value={model} onChange={(e) => setModel(e.target.value)} placeholder={`${t("eg")} ${MODEL_HINT[preset]}`} />
+          ) : (
+            <p className="py-2 text-sm text-muted">{t("modelAfterKey")}</p>
+          )}
         </label>
         <label className="text-sm sm:col-span-2">
           <span className="text-muted">{t("apiKey")}</span>
-          <input className={input} type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} required minLength={8} autoComplete="off" />
+          <input className={input} type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} onBlur={loadList} required minLength={8} autoComplete="off" />
         </label>
         <label className="text-sm sm:col-span-2">
           <span className="text-muted">{t("baseUrl")}</span>
-          <input className={input} value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} required type="url" />
+          <input className={input} value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} onBlur={loadList} required type="url" />
         </label>
       </div>
-      <p className="text-xs text-muted">{t("modelNote")}</p>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">
         <button className={btnPrimary}>{t("save")}</button>
@@ -255,23 +285,15 @@ function AddProvider({ onAdded }: { onAdded: () => void }) {
 function TaskRoute({
   task,
   providers,
-  models,
   value,
   onChange,
 }: {
   task: AiTask;
   providers: ProviderPublic[];
-  models: Record<number, string[]>;
   value: AiRouting[AiTask];
   onChange: (v: AiRouting[AiTask] | null) => void;
 }) {
   const t = useTranslations("settings.routing");
-  const [model, setModel] = useState(value?.model ?? "");
-  const [fbModel, setFbModel] = useState(value?.fallback?.model ?? "");
-  useEffect(() => {
-    setModel(value?.model ?? "");
-    setFbModel(value?.fallback?.model ?? "");
-  }, [value]);
 
   const providerOf = (id?: number) => providers.find((p) => p.id === id);
   const pick = (id: number) => {
@@ -295,17 +317,7 @@ function TaskRoute({
               </option>
             ))}
           </select>
-          {value && (
-            <input
-              className="field min-w-0 flex-1"
-              value={model}
-              list={`task-models-${task}`}
-              onChange={(e) => setModel(e.target.value)}
-              onBlur={() => model && model !== value.model && onChange({ ...value, model })}
-              aria-label={t("model")}
-            />
-          )}
-          <datalist id={`task-models-${task}`}>{(models[value?.providerId ?? 0] ?? []).map((m) => <option key={m} value={m} />)}</datalist>
+          {value && <ModelSelect providerId={value.providerId} value={value.model} onChange={(m) => onChange({ ...value, model: m })} />}
         </div>
         {value && (
           <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -328,17 +340,73 @@ function TaskRoute({
                 ))}
             </select>
             {value.fallback && (
-              <input
-                className="min-h-9 min-w-0 flex-1 rounded-lg border border-line bg-paper px-3 text-sm"
-                value={fbModel}
-                onChange={(e) => setFbModel(e.target.value)}
-                onBlur={() => fbModel && onChange({ ...value, fallback: { ...value.fallback!, model: fbModel } })}
-                aria-label={t("model")}
+              <ModelSelect
+                providerId={value.fallback.providerId}
+                value={value.fallback.model}
+                onChange={(m) => onChange({ ...value, fallback: { ...value.fallback!, model: m } })}
+                className="field-sm"
               />
             )}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+/** Pictures for hard Writing Task 1 forms, made by an image model (OpenAI gpt-image / DALL·E or xAI Grok image). */
+function ImageSettings({ providers }: { providers: ProviderPublic[] }) {
+  const t = useTranslations("settings.images");
+  const [cfg, setCfg] = useState<ImageSetting | null>(null);
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    fetch("/api/ai/images")
+      .then((r) => r.json())
+      .then(setCfg)
+      .catch(() => {});
+  }, []);
+  // OpenAI and xAI have an image API; others are listed too in case a custom endpoint has one
+  const usable = [...providers].sort((a, b) => Number(["openai", "xai"].includes(b.name)) - Number(["openai", "xai"].includes(a.name)));
+  const first = usable[0];
+  const cur: ImageSetting = cfg ?? { enabled: false, providerId: first.id, model: first.name === "xai" ? "grok-2-image" : "gpt-image-1" };
+
+  async function save(next: ImageSetting) {
+    setCfg(next);
+    const r = await fetch("/api/ai/images", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
+    setMsg(r.ok ? t("saved") : t("saveError"));
+    setTimeout(() => setMsg(""), 2000);
+  }
+
+  return (
+    <section>
+      <h2 className="font-serif text-xl font-bold">{t("title")}</h2>
+      <p className="mb-3 text-sm text-muted">{t("hint")}</p>
+      <div className="space-y-3 rounded-2xl border border-line bg-card p-4">
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <input type="checkbox" checked={cur.enabled} onChange={(e) => save({ ...cur, enabled: e.target.checked })} />
+          {t("enabled")}
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <select
+            className="field"
+            value={cur.providerId}
+            onChange={(e) => {
+              const p = providers.find((x) => x.id === Number(e.target.value));
+              if (p) save({ ...cur, providerId: p.id, model: p.name === "xai" ? "grok-2-image" : p.name === "openai" ? "gpt-image-1" : "" });
+            }}
+            aria-label={t("provider")}
+          >
+            {usable.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+          <ModelSelect providerId={cur.providerId} value={cur.model} onChange={(m) => save({ ...cur, model: m })} filter={(id) => /image|dall-e/i.test(id)} />
+        </div>
+        <p className="text-xs text-muted">{t("note")}</p>
+        {msg && <p className="text-sm text-muted">{msg}</p>}
+      </div>
+    </section>
   );
 }

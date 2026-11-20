@@ -208,19 +208,19 @@
       "apiKey": "API key",
       "newKey": "API key mới (để trống nếu giữ nguyên)",
       "baseUrl": "Base URL",
-      "modelNote": "Tên model thay đổi thường xuyên – sau khi lưu, bấm “Kiểm tra” để tải danh sách model mà key của bạn dùng được.",
       "enabled": "Bật",
       "test": "Kiểm tra",
       "testing": "Đang kiểm tra…",
       "testOk": "Kết nối được ✓ – model trả lời “{reply}”.",
       "testFail": "Lỗi: {error}",
-      "modelsFound": "Có {n} model – chọn bằng nút “Sửa”.",
+      "modelsFound": "Có {n} model.",
       "edit": "Sửa",
       "save": "Lưu",
       "cancel": "Huỷ",
       "delete": "Xoá",
       "confirmDelete": "Xoá {name}?",
-      "invalid": "Hãy kiểm tra lại (API key cần ít nhất 8 ký tự)."
+      "invalid": "Hãy kiểm tra lại (API key cần ít nhất 8 ký tự).",
+      "modelAfterKey": "Nhập API key để tải danh sách model."
     },
     "routing": {
       "title": "Model cho từng việc",
@@ -247,7 +247,19 @@
           "title": "Trò chuyện về bài đọc",
           "hint": "Hỏi đáp tự do với trợ lý."
         }
-      }
+      },
+      "typeModel": "Nhà cung cấp không có danh sách model – gõ tên model",
+      "chooseModel": "Chọn model…",
+      "loadingModels": "Đang tải danh sách model…"
+    },
+    "images": {
+      "title": "Tạo hình minh hoạ cho Writing Task 1",
+      "hint": "Với dạng quy trình, sơ đồ kỹ thuật và bản đồ, AI vẽ thêm một hình giống đề thi thật (dùng OpenAI GPT Image/DALL·E hoặc xAI Grok Image).",
+      "enabled": "Bật tạo hình",
+      "provider": "Nhà cung cấp",
+      "note": "Mỗi hình mất khoảng 10–60 giây và có tính phí theo nhà cung cấp. Hình có thể sai chữ nhỏ, nên sơ đồ vẽ sẵn vẫn được giữ bên dưới.",
+      "saved": "Đã lưu ✓",
+      "saveError": "Không lưu được"
     }
   },
   "import": {
