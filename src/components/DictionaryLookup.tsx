@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DictResult } from "@/lib/dictionary/lookup";
 import { speak } from "@/lib/speech";
+import * as I from "@/components/icons";
 
 /**
  * Offline dictionary viewer. Used on /dictionary and (Phase 1) in the reader side panel.
@@ -94,7 +95,7 @@ export default function DictionaryLookup({ initialQuery = "", autoFocus = false 
               <header className="mb-2 flex items-center gap-3">
                 <h2 className="font-serif text-2xl font-bold">{e.headword}</h2>
                 <button onClick={() => speak(e.headword)} aria-label={t("listen")} className="rounded-lg border border-line px-2 py-1 text-sm">
-                  🔊
+                  <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
                 </button>
                 {result.via !== "exact" && (
                   <span className="ml-auto text-xs text-muted">{t(`via.${result.via}`, { word: result.query })}</span>

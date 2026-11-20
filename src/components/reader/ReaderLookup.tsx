@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DictResult } from "@/lib/dictionary/lookup";
 import { speak } from "@/lib/speech";
+import * as I from "@/components/icons";
 
 /**
  * Kindle-style look-up for any reading text.
@@ -264,10 +265,10 @@ function LookupCard({
           </div>
         </div>
         <button onClick={() => speak(entry?.headword || hit.text)} aria-label={t("listen")} className="rounded-lg border border-line px-2 py-1 text-sm">
-          🔊
+          <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
         <button onClick={onClose} aria-label={t("close")} className="rounded-lg px-2 py-1 text-muted hover:text-ink">
-          ✕
+          <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
       </div>
 
@@ -296,10 +297,10 @@ function LookupCard({
           {t("openDictionary")}
         </Link>
         <button disabled title={t("soon")} className="rounded-lg border border-line px-3 py-1.5 text-muted/60">
-          ✨ {t("askAi")} <span className="text-[10px]">· {t("soon")}</span>
+          <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("askAi")} <span className="text-[10px]">· {t("soon")}</span>
         </button>
         <button disabled title={t("soon")} className="rounded-lg border border-line px-3 py-1.5 text-muted/60">
-          ☆ {t("saveWord")}
+          <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" /> {t("saveWord")}
         </button>
       </div>
     </>

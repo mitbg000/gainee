@@ -7,6 +7,7 @@ import Markdown from "./Markdown";
 import type { LessonData, Vocab } from "./types";
 import { useAiAsk } from "./useAiAsk";
 import { speak } from "@/lib/speech";
+import * as I from "@/components/icons";
 
 /* =================================================================== vocabulary */
 export type TermWord = {
@@ -43,10 +44,10 @@ export function VocabPane({
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <button onClick={() => (setHide(!hide), setShown(new Set()))} className={`min-h-10 rounded-xl border px-3 text-sm ${hide ? "border-ink bg-ink text-paper" : "border-line"}`}>
-          🙈 {t("hide")}
+          <I.IconEyeOff className="inline-block h-4 w-4 align-[-0.2em]" /> {t("hide")}
         </button>
         <button onClick={onSaveAll} className="min-h-10 rounded-xl border border-line px-3 text-sm">
-          ⭐ {t("saveAll")}
+          <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" /> {t("saveAll")}
         </button>
         <span className="ml-auto text-sm text-muted">{t("count", { n: vocab.length })}</span>
       </div>
@@ -73,19 +74,19 @@ export function VocabPane({
                   </button>
                 </div>
                 <button onClick={() => speak(v.headword)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
-                  🔊
+                  <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
                 </button>
                 <button
                   onClick={() => onToggleSave(v.id)}
                   className={`rounded-lg border px-2 py-1 ${saved[v.id] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
                   aria-label={t("save")}
                 >
-                  {saved[v.id] ? "★" : "☆"}
+                  <I.IconStar className={`h-4 w-4 ${saved[v.id] ? "fill-current text-amber-500" : ""}`} />
                 </button>
               </div>
               {v.context && <p className="mt-2 rounded-lg bg-paper px-3 py-2 font-serif text-[15px]">“{v.context}”</p>}
-              {v.example && <p className="mt-2 text-sm italic">✎ {v.example}</p>}
-              {v.note && <p className="mt-1 text-sm text-muted">💡 {v.note}</p>}
+              {v.example && <p className="mt-2 text-sm italic"><I.IconQuote className="inline-block h-4 w-4 align-[-0.2em] text-muted" /> {v.example}</p>}
+              {v.note && <p className="mt-1 text-sm text-muted"><I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {v.note}</p>}
             </li>
           );
         })}
@@ -108,10 +109,10 @@ export function VocabPane({
                   {w.context && <p className="mt-1 rounded-lg bg-paper px-3 py-2 font-serif text-[15px]">“{w.context}”</p>}
                 </div>
                 <button onClick={() => speak(w.term)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
-                  🔊
+                  <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
                 </button>
                 <button onClick={() => onRemoveTerm(w)} className="rounded-lg border border-amber-400 bg-amber-50 px-2 py-1 dark:bg-amber-950" aria-label={t("save")}>
-                  ★
+                  <I.IconStar className="inline-block h-4 w-4 align-[-0.2em] fill-current text-amber-500" />
                 </button>
               </li>
             ))}
@@ -204,7 +205,7 @@ export function ExercisesPane({
   const Evidence = ({ quote }: { quote?: string | null }) =>
     quote ? (
       <button onClick={() => onLocate(quote)} className="mt-1 block text-left text-sm text-accent underline decoration-dotted">
-        📍 {t("showInText")}
+        <I.IconMapPin className="inline-block h-4 w-4 align-[-0.2em]" /> {t("showInText")}
       </button>
     ) : null;
   let n = 0;
@@ -373,7 +374,7 @@ function Feedback({ lessonId, kind, prompt, answer }: { lessonId: number; kind: 
         onClick={() => ai.ask({ action: "feedback", selection: answer, prompt, feedbackKind: kind, lessonId })}
         className="min-h-10 rounded-xl border border-accent px-3 text-sm font-medium text-accent disabled:opacity-40"
       >
-        ✨ {ai.loading ? t("checking") : t("feedback")}
+        <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {ai.loading ? t("checking") : t("feedback")}
       </button>
       {ai.notConfigured && <p className="mt-2 text-sm text-muted">{t("notConfigured")}</p>}
       {ai.text && <Markdown text={ai.text} className="mt-2 rounded-xl border border-line bg-card p-3 text-[15px] leading-relaxed" />}
@@ -442,7 +443,7 @@ export function PracticePane({
           {para.el}
           <div className="mt-2 flex flex-wrap gap-2">
             <button onClick={() => setShowModel(!showModel)} className="min-h-10 rounded-xl border border-line px-3 text-sm">
-              👀 {t("model")}
+              <I.IconEye className="inline-block h-4 w-4 align-[-0.2em]" /> {t("model")}
             </button>
           </div>
           {showModel && <p className="mt-2 rounded-xl bg-green-50 p-3 text-[15px] dark:bg-green-950/40">{content.paraphrase.model}</p>}
@@ -457,7 +458,7 @@ export function PracticePane({
           {content.speaking.ideas.length > 0 && (
             <>
               <button onClick={() => setShowIdeas(!showIdeas)} className="mb-2 text-sm text-accent underline">
-                💡 {t("ideas")}
+                <I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {t("ideas")}
               </button>
               {showIdeas && (
                 <ul className="mb-2 list-disc space-y-1 rounded-xl bg-card p-3 pl-7 text-[15px]">

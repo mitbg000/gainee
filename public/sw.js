@@ -5,10 +5,10 @@
  *  - API calls: never cached (always fresh data)
  * Bump VERSION to force clients to drop old caches.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const STATIC = `rl-static-${VERSION}`;
 const PAGES = `rl-pages-${VERSION}`;
-const PRECACHE = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png"];
+const PRECACHE = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png", "/favicon.ico"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(STATIC).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));

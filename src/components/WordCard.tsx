@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { speak } from "@/lib/speech";
+import * as I from "@/components/icons";
 
 export type WordData = {
   id: number;
@@ -104,7 +105,7 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={im.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
                 <button onClick={() => removeImage(im.id)} aria-label={t("removeImage")} className="absolute -right-1.5 -top-1.5 h-6 w-6 rounded-full bg-ink text-xs text-paper">
-                  ✕
+                  <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" />
                 </button>
               </div>
             ))}
@@ -137,9 +138,9 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
         </div>
         {word.meaningVi && <div className="text-accent">{word.meaningVi}</div>}
         {word.definitionEn && <div className="text-sm text-muted">{word.definitionEn}</div>}
-        {word.example && <div className="mt-1 text-sm italic">✎ {word.example}</div>}
+        {word.example && <div className="mt-1 text-sm italic"><I.IconQuote className="inline-block h-4 w-4 align-[-0.2em] text-muted" /> {word.example}</div>}
         {word.context && <div className="mt-1 text-sm italic text-muted">“{word.context}”</div>}
-        {word.note && <div className="mt-1 text-sm text-muted">💡 {word.note}</div>}
+        {word.note && <div className="mt-1 text-sm text-muted"><I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {word.note}</div>}
         {images.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {images.map((im) => (
@@ -152,13 +153,13 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
       </div>
       <div className="flex flex-none gap-1">
         <button onClick={() => speak(word.term)} className="min-h-9 rounded-lg border border-line px-2" aria-label={t("listen")}>
-          🔊
+          <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
         <button onClick={start} className="min-h-9 rounded-lg border border-line px-2.5 text-sm">
-          ✎
+          <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
         <button onClick={remove} className="min-h-9 rounded-lg border border-line px-2.5 text-sm text-muted hover:text-ink" aria-label={t("remove")}>
-          🗑
+          <I.IconTrash className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
       </div>
     </li>

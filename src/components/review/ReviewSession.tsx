@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { speak } from "@/lib/speech";
+import * as I from "@/components/icons";
 
 type Card = {
   id: number;
@@ -119,7 +120,7 @@ export default function ReviewSession({ doc }: { doc?: number }) {
     cloze: <p className="text-center font-serif text-xl leading-relaxed">{cloze(card)}</p>,
     listen: (
       <button onClick={() => speak(card.term)} className="mx-auto block rounded-2xl border border-line px-6 py-4 text-3xl" aria-label={t("listen")}>
-        🔊
+        <I.IconSpeaker className="h-9 w-9" />
       </button>
     ),
   }[effective];
@@ -160,11 +161,11 @@ export default function ReviewSession({ doc }: { doc?: number }) {
               </div>
             )}
             {card.context && <p className="rounded-xl bg-paper px-4 py-3 font-serif text-[15px] italic">“{card.context}”</p>}
-            {card.example && <p className="text-sm italic">✎ {card.example}</p>}
-            {card.note && <p className="text-sm text-muted">💡 {card.note}</p>}
+            {card.example && <p className="text-sm italic"><I.IconQuote className="inline-block h-4 w-4 align-[-0.2em] text-muted" /> {card.example}</p>}
+            {card.note && <p className="text-sm text-muted"><I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {card.note}</p>}
             <div className="flex justify-center">
               <button onClick={() => speak(card.term)} className="rounded-lg border border-line px-3 py-1 text-sm">
-                🔊 {t("listen")}
+                <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" /> {t("listen")}
               </button>
             </div>
           </div>

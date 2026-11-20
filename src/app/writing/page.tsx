@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import WritingStudio from "@/components/writing/WritingStudio";
 import { getWriting, listWritings, type Grade } from "@/lib/writing";
+import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("history")}</h2>
             <Link href="/writing?new=1" className="text-sm text-accent underline">
-              ＋ {t("new")}
+              <I.IconPlus className="inline-block h-4 w-4 align-[-0.2em]" /> {t("new")}
             </Link>
           </div>
           {list.length === 0 && <p className="text-sm text-muted">{t("noHistory")}</p>}

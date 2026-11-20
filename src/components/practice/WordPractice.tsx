@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { speak } from "@/lib/speech";
 import { buildQuestions, isRight, MODES, type Mode, type PWord, type Question } from "./questions";
+import * as I from "@/components/icons";
 
 /** Quiz with saved words: choose the meaning, choose the word, spell what you hear, or fill the sentence. */
 export default function WordPractice({ words, all }: { words: PWord[]; all: { term: string; meaning: string }[] }) {
@@ -166,7 +167,7 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
             {w.pos && <span className="text-sm font-semibold text-accent2">{w.pos}</span>}
             {w.ipa && <span className="text-muted">{w.ipa}</span>}
             <button onClick={() => speak(w.term)} className="text-lg" aria-label={t("listen")}>
-              🔊
+              <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
             </button>
           </p>
         )}
@@ -174,7 +175,7 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
         {q.kind === "spell" && (
           <p className="flex items-center gap-3">
             <button onClick={() => speak(w.term)} className="flex h-14 w-14 items-center justify-center rounded-full border border-line text-2xl" aria-label={t("listen")}>
-              🔊
+              <I.IconSpeaker className="h-7 w-7" />
             </button>
             <span className="text-muted">{w.meaningVi || w.definitionEn}</span>
           </p>

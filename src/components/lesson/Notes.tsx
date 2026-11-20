@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "./Markdown";
 import { HL_COLORS, HL_DOT, type AiMsg, type Annotation, type HlColor } from "./types";
+import * as I from "@/components/icons";
 
 type CardProps = {
   a: Annotation;
@@ -71,7 +72,7 @@ export function NoteCard({ a, ai, active, autoFocus, onActivate, onPatch, onDele
       {ai.map((m) => (
         <div key={m.id} className="mt-2 rounded-lg border border-violet-200 bg-violet-50/60 p-2 dark:border-violet-900 dark:bg-violet-950/40">
           <div className="mb-1 flex items-center justify-between text-xs text-muted">
-            <span>✨ {t(`actions.${m.action}`)}</span>
+            <span><I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t(`actions.${m.action}`)}</span>
             {active && (
               <button onClick={() => onUnpin(m.id)} className="hover:text-ink">
                 {t("unpin")}

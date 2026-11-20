@@ -6,6 +6,7 @@ import { LABEL_COLORS } from "@/db/schema";
 import type { LabelWithCounts } from "@/lib/labels";
 import { DOT, type LabelColor } from "./colors";
 import LabelChip from "./LabelChip";
+import * as I from "@/components/icons";
 
 type Kind = "topic" | "source" | "custom";
 type Draft = { name: string; emoji: string; color: LabelColor; parentId: number | null; description: string };
@@ -60,7 +61,7 @@ export default function LabelManager() {
           extra={
             kind === "topic" && loaded && !hasTopics ? (
               <button onClick={() => call("/api/labels", "POST", { preset: "ielts_topics" })} className="min-h-10 rounded-xl border border-dashed border-accent px-3 text-sm text-accent">
-                ✨ {t("addIelts")}
+                <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("addIelts")}
               </button>
             ) : null
           }

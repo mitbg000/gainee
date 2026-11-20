@@ -10,6 +10,7 @@ import { ExercisesPane, PracticePane, VocabPane, type TermWord } from "./Panes";
 import ReadPane from "./ReadPane";
 import SplitPassage from "./SplitPassage";
 import type { AiMsg, Anchor, Annotation, HlColor, LessonData, WordCard } from "./types";
+import * as I from "@/components/icons";
 
 type Tab = "read" | "vocab" | "ex" | "practice";
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -219,10 +220,10 @@ export default function LessonReader({ data }: { data: LessonData }) {
       <h1 className="mt-1 font-serif text-3xl font-bold leading-tight md:text-4xl">{lesson.title}</h1>
       {lesson.titleVi && <p className="mt-1 text-muted">{lesson.titleVi}</p>}
       <button onClick={() => setEditing(true)} className="mt-2 text-sm text-accent underline">
-        ✎ {t("edit.open")}
+        <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> {t("edit.open")}
       </button>
       <Link href={`/assistant?lesson=${lesson.id}`} className="ml-4 mt-2 inline-block text-sm text-accent underline">
-        💬 {t("askAssistant")}
+        <I.IconChat className="inline-block h-4 w-4 align-[-0.2em]" /> {t("askAssistant")}
       </Link>
       {editing && <LessonEditor lessonId={lesson.id} paragraphs={lesson.paragraphs} hasNext={!!next} onClose={() => setEditing(false)} />}
       </div>

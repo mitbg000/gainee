@@ -4,6 +4,7 @@ import { sidebarTree } from "@/lib/documents/queries";
 import { getTheme } from "@/theme/server";
 import ChatBubble from "./ChatBubble";
 import CollapsibleSidebar from "./CollapsibleSidebar";
+import InstallApp from "./InstallApp";
 import LanguageSwitcher from "./LanguageSwitcher";
 import LogoutButton from "./LogoutButton";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
@@ -35,6 +36,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
         <SidebarNav tree={tree} />
         <div className="mt-auto flex flex-col gap-3 pt-4 group-data-[collapsed=true]/sb:hidden">
+          <InstallApp />
           {controls}
           <LogoutButton />
         </div>
@@ -60,6 +62,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
 
       <MobileTabBar>
         <div className="flex flex-col gap-4">
+          <InstallApp />
           <LanguageSwitcher />
           <LogoutButton />
         </div>

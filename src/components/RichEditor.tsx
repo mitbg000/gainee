@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { segments } from "@/components/lesson/marks";
 import { escapeMd, parseRich } from "@/lib/text/rich";
+import * as I from "@/components/icons";
 
 /* ---------- markdown ↔ HTML (the editor stores the lightweight markdown of lib/text/rich) ---------- */
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -169,7 +170,7 @@ export default function RichEditor({ value, onChange, placeholder, className = "
   }
 
   const btn = "min-h-9 min-w-9 rounded-lg border border-line bg-card px-2 text-sm hover:bg-paper";
-  const tool = (label: string, title: string, run: () => void, cls = "") => (
+  const tool = (label: React.ReactNode, title: string, run: () => void, cls = "") => (
     <button type="button" title={title} aria-label={title} onMouseDown={(e) => e.preventDefault()} onClick={run} className={`${btn} ${cls}`}>
       {label}
     </button>
@@ -183,10 +184,10 @@ export default function RichEditor({ value, onChange, placeholder, className = "
         {tool("AA", t("upper"), () => recase((s) => s.toUpperCase()))}
         {tool("aa", t("lower"), () => recase((s) => s.toLowerCase()))}
         {tool("H", t("heading"), heading, "font-bold")}
-        {tool("🖼", t("image"), () => fileInput.current?.click())}
-        {tool("✂ ---", t("split"), () => cmd("insertHTML", "<hr><p><br></p>"))}
-        {tool("↶", t("undo"), () => cmd("undo"))}
-        {tool("↷", t("redo"), () => cmd("redo"))}
+        {tool(<I.IconImage className="h-4 w-4" />, t("image"), () => fileInput.current?.click())}
+        {tool(<span className="flex items-center gap-1"><I.IconScissors className="h-4 w-4" />---</span>, t("split"), () => cmd("insertHTML", "<hr><p><br></p>"))}
+        {tool(<I.IconUndo className="h-4 w-4" />, t("undo"), () => cmd("undo"))}
+        {tool(<I.IconRedo className="h-4 w-4" />, t("redo"), () => cmd("redo"))}
         <input
           ref={fileInput}
           type="file"

@@ -10,6 +10,7 @@ import type { TermWord } from "./Panes";
 import type { AiMsg, Anchor, Tool, Vocab, WordCard } from "./types";
 import { useAiAsk, type AskInput } from "./useAiAsk";
 import { speak } from "@/lib/speech";
+import * as I from "@/components/icons";
 
 type Provider = { id: number; label: string; defaultModel: string; enabled: boolean };
 const ACTIONS: AskInput["action"][] = ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase", "vocab_card", "custom"];
@@ -50,7 +51,7 @@ export default function ToolPanel({
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-wider text-accent2">{tool.mode === "lookup" ? t("lookup") : t("ai")}</span>
         <button onClick={onClose} aria-label={t("close")} className="rounded-lg px-2 py-1 text-muted hover:text-ink">
-          ✕
+          <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
       </div>
       {tool.mode === "lookup" ? (
@@ -119,11 +120,11 @@ function Lookup({
           )}
         </div>
         <button onClick={() => speak(v?.headword ?? tool.text)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
-          🔊
+          <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
         {v ? (
           <button onClick={() => onToggleSave(v.id)} className={`rounded-lg border px-2 py-1 ${saved[v.id] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`} aria-label={t("save")}>
-            {saved[v.id] ? "★" : "☆"}
+            <I.IconStar className={`h-4 w-4 ${saved[v.id] ? "fill-current text-amber-500" : ""}`} />
           </button>
         ) : (
           <button
@@ -131,7 +132,7 @@ function Lookup({
             className={`rounded-lg border px-2 py-1 ${savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
             aria-label={t("save")}
           >
-            {savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "★" : "☆"}
+            <I.IconStar className={`h-4 w-4 ${savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "fill-current text-amber-500" : ""}`} />
           </button>
         )}
       </div>
@@ -140,8 +141,8 @@ function Lookup({
         <div className="rounded-xl bg-paper p-3 text-sm">
           <div className="font-semibold text-accent">{v.meaningVi}</div>
           {v.definitionEn && <div className="mt-0.5 text-muted">{v.definitionEn}</div>}
-          {v.example && <div className="mt-1.5 italic">✎ {v.example}</div>}
-          {v.note && <div className="mt-1.5 text-muted">💡 {v.note}</div>}
+          {v.example && <div className="mt-1.5 italic"><I.IconQuote className="inline-block h-4 w-4 align-[-0.2em] text-muted" /> {v.example}</div>}
+          {v.note && <div className="mt-1.5 text-muted"><I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {v.note}</div>}
         </div>
       )}
 
@@ -155,8 +156,8 @@ function Lookup({
           )}
           {mine.meaningVi && <div className="font-semibold text-accent">{mine.meaningVi}</div>}
           {mine.definitionEn && <div className="mt-0.5 text-muted">{mine.definitionEn}</div>}
-          {mine.example && <div className="mt-1.5 italic">✎ {mine.example}</div>}
-          {mine.note && <div className="mt-1.5 text-muted">💡 {mine.note}</div>}
+          {mine.example && <div className="mt-1.5 italic"><I.IconQuote className="inline-block h-4 w-4 align-[-0.2em] text-muted" /> {mine.example}</div>}
+          {mine.note && <div className="mt-1.5 text-muted"><I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {mine.note}</div>}
         </div>
       )}
 
@@ -180,7 +181,7 @@ function Lookup({
           onClick={() => onAskAi({ mode: "ai", action: "explain_word", selection: tool.text, context, anchor: tool.anchor })}
           className="min-h-10 rounded-xl bg-accent px-3 text-sm font-medium text-on-accent"
         >
-          ✨ {t("askMore")}
+          <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("askMore")}
         </button>
         <Link href={`/dictionary?q=${encodeURIComponent(tool.text)}`} className="flex min-h-10 items-center rounded-xl border border-line px-3 text-sm">
           {t("openDictionary")}
@@ -234,7 +235,7 @@ function CardForm({ initial, onSave }: { initial: WordCard; onSave: (c: WordCard
         }}
         className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50"
       >
-        {state === "saved" ? `★ ${t("saved")}` : `☆ ${t("saveWord")}`}
+        <I.IconStar className={`inline-block h-4 w-4 align-[-0.2em] ${state === "saved" ? "fill-current" : ""}`} /> {state === "saved" ? t("saved") : t("saveWord")}
       </button>
     </div>
   );
@@ -315,7 +316,7 @@ function AiAsk({
           disabled={ai.loading || (action === "custom" && !question.trim())}
           className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50"
         >
-          ✨ {t("generate")}
+          <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("generate")}
         </button>
         {providers.length > 1 && (
           <select value={override} onChange={(e) => setOverride(e.target.value)} className="min-h-9 max-w-[11rem] rounded-lg border border-line bg-paper px-2 text-xs" aria-label={t("model")}>
@@ -329,7 +330,7 @@ function AiAsk({
         )}
         {ai.loading && (
           <button onClick={ai.stop} className="min-h-9 rounded-xl border border-line px-3 text-sm">
-            ■ {t("stop")}
+            <I.IconStop className="inline-block h-4 w-4 align-[-0.2em]" /> {t("stop")}
           </button>
         )}
       </div>
@@ -363,7 +364,7 @@ function AiAsk({
             }}
             className="min-h-9 rounded-xl border border-line px-3 text-sm disabled:opacity-60"
           >
-            {pinned ? `📌 ${t("pinned")}` : `📌 ${t("pin")}`}
+            <I.IconPin className="inline-block h-4 w-4 align-[-0.2em]" /> {pinned ? t("pinned") : t("pin")}
           </button>
         </div>
       )}

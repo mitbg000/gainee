@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import Markdown from "@/components/lesson/Markdown";
 import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/ModelPicker";
 import type { TreeDoc } from "@/lib/documents/queries";
+import * as I from "@/components/icons";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type ChatInfo = { id: string; title: string; lessonId: number | null; updatedAt: string };
@@ -116,7 +117,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
   const list = (
     <div className="flex min-h-0 flex-1 flex-col gap-1">
       <button onClick={startNew} className="mb-2 flex min-h-10 items-center gap-2 rounded-xl border border-line px-3 text-sm font-medium hover:bg-card">
-        ＋ {t("newChat")}
+        <I.IconPlus className="inline-block h-4 w-4 align-[-0.2em]" /> {t("newChat")}
       </button>
       <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted">{t("history")}</p>
       <ul className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
@@ -126,7 +127,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
               {c.title || "…"}
             </button>
             <button onClick={() => remove(c.id)} aria-label={t("delete")} className="px-2 text-xs text-muted opacity-0 hover:text-red-600 group-hover/c:opacity-100 focus:opacity-100">
-              🗑
+              <I.IconTrash className="inline-block h-4 w-4 align-[-0.2em]" />
             </button>
           </li>
         ))}
@@ -165,17 +166,17 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
         {/* top bar */}
         <div className="flex flex-wrap items-center gap-1.5 border-b border-line px-3 py-2">
           <button onClick={() => setListOpen(true)} className={`${btn} ${compact ? "" : "md:hidden"}`} aria-label={t("history")}>
-            ☰
+            <I.IconMenu className="inline-block h-4 w-4 align-[-0.2em]" />
           </button>
           <ModelPicker value={model} onChange={setModel} />
           {!compact && contextSelect}
           <span className="ml-auto flex items-center">
             <button onClick={startNew} className={btn} title={t("newChat")} aria-label={t("newChat")}>
-              ✎
+              <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" />
             </button>
             {compact && (
               <Link href={lessonId ? `/assistant?lesson=${lessonId}` : "/assistant"} className={btn} title={t("openFull")} aria-label={t("openFull")}>
-                ⤢
+                <I.IconExpand className="inline-block h-4 w-4 align-[-0.2em]" />
               </Link>
             )}
           </span>
@@ -187,7 +188,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
           <div className={`mx-auto w-full ${compact ? "px-3" : "max-w-3xl px-4"} py-5`}>
             {msgs.length === 0 ? (
               <div className={`flex flex-col items-center text-center ${compact ? "pt-6" : "pt-[12vh]"}`}>
-                <div className="text-4xl">✨</div>
+                <I.IconSpark className="h-10 w-10 text-accent" />
                 <h2 className={`mt-2 font-serif font-bold ${compact ? "text-xl" : "text-3xl"}`}>{t("hello")}</h2>
                 <p className="mt-1 max-w-md text-sm text-muted">{t("intro")}</p>
                 <div className={`mt-6 grid w-full gap-2 ${compact ? "" : "sm:grid-cols-3"}`}>
@@ -207,7 +208,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
                     </div>
                   ) : (
                     <div key={i} className="flex gap-3 text-[15px] leading-relaxed">
-                      <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full border border-line text-sm">✨</span>
+                      <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full border border-line text-sm"><I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /></span>
                       <div className="min-w-0 flex-1">{m.content ? <Markdown text={m.content} /> : <span className="animate-pulse text-muted">{t("thinking")}</span>}</div>
                     </div>
                   ),
@@ -249,11 +250,11 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
             />
             {busy ? (
               <button type="button" onClick={() => ctrl.current?.abort()} aria-label={t("stop")} className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-ink text-paper">
-                ■
+                <I.IconStop className="inline-block h-4 w-4 align-[-0.2em]" />
               </button>
             ) : (
               <button disabled={!input.trim()} aria-label={t("send")} className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-accent text-lg text-on-accent disabled:opacity-40">
-                ↑
+                <I.IconSend className="inline-block h-4 w-4 align-[-0.2em]" />
               </button>
             )}
           </div>

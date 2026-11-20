@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import Markdown from "@/components/lesson/Markdown";
 import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/ModelPicker";
 import type { Grade, WritingKind } from "@/lib/writing";
+import * as I from "@/components/icons";
 
 const KINDS: WritingKind[] = ["task2", "task1", "free"];
 const MIN_WORDS: Record<WritingKind, number> = { task1: 150, task2: 250, free: 0 };
@@ -176,11 +177,11 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("question")}</h2>
           <span className="ml-auto flex gap-2">
             <button onClick={newPrompt} disabled={!!busy || !!grade} className="min-h-9 rounded-lg border border-accent px-3 text-sm text-accent disabled:opacity-40">
-              🎲 {busy === "prompt" ? t("generating") : t("aiPrompt")}
+              <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {busy === "prompt" ? t("generating") : t("aiPrompt")}
             </button>
             {!grade && (
               <button onClick={() => setEditPrompt(!editPrompt)} className="min-h-9 rounded-lg border border-line px-3 text-sm">
-                {editPrompt ? t("done") : `✎ ${t("editPrompt")}`}
+                {editPrompt ? t("done") : <><I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> {t("editPrompt")}</>}
               </button>
             )}
           </span>
@@ -222,16 +223,16 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
         />
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <button onClick={doGrade} disabled={!!busy || !body.trim() || !prompt.trim()} className="min-h-11 rounded-xl bg-accent px-5 font-medium text-on-accent disabled:opacity-40">
-            ✨ {busy === "grade" ? t("grading") : grade ? t("regrade") : t("grade")}
+            <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {busy === "grade" ? t("grading") : grade ? t("regrade") : t("grade")}
           </button>
           {grade && (
             <Link href="/writing?new=1" className="min-h-11 rounded-xl border border-line px-4 py-2.5 text-sm">
-              ＋ {t("new")}
+              <I.IconPlus className="inline-block h-4 w-4 align-[-0.2em]" /> {t("new")}
             </Link>
           )}
           {id && (
             <button onClick={remove} className="ml-auto min-h-11 rounded-xl px-3 text-sm text-muted hover:text-red-600">
-              🗑 {t("delete")}
+              <I.IconTrash className="inline-block h-4 w-4 align-[-0.2em]" /> {t("delete")}
             </button>
           )}
         </div>

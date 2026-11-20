@@ -8,6 +8,7 @@ import { MarginNotes, NoteCard } from "./Notes";
 import type { TermWord } from "./Panes";
 import ToolPanel from "./ToolPanel";
 import { HL_COLORS, HL_DOT, type AiMsg, type Anchor, type Annotation, type HlColor, type Tool, type Vocab, type WordCard } from "./types";
+import * as I from "@/components/icons";
 
 type Props = {
   lessonId: number;
@@ -287,7 +288,7 @@ export default function ReadPane(props: Props) {
           </button>
           {!desktop && (
             <button onClick={() => setNotesOpen(true)} className="min-h-9 rounded-lg border border-line px-2.5">
-              ✎ {noteCount}
+              <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> {noteCount}
             </button>
           )}
         </span>
@@ -401,7 +402,7 @@ export default function ReadPane(props: Props) {
           ))}
           <span className="mx-1 h-6 w-px bg-line" />
           <button onClick={() => highlight("yellow", true)} className="min-h-9 rounded-lg px-2 text-sm hover:bg-paper">
-            ✎ <span className="hidden sm:inline">{t("note")}</span>
+            <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> <span className="hidden sm:inline">{t("note")}</span>
           </button>
           <button
             onClick={() => {
@@ -411,7 +412,7 @@ export default function ReadPane(props: Props) {
             }}
             className="min-h-9 rounded-lg px-2 text-sm hover:bg-paper"
           >
-            📖 <span className="hidden sm:inline">{t("lookup")}</span>
+            <I.IconDict className="inline-block h-4 w-4 align-[-0.2em]" /> <span className="hidden sm:inline">{t("lookup")}</span>
           </button>
           <button
             onClick={() => {
@@ -422,7 +423,7 @@ export default function ReadPane(props: Props) {
             }}
             className="min-h-9 rounded-lg px-2 text-sm font-medium text-accent hover:bg-paper"
           >
-            ✨ <span className="hidden sm:inline">{t("ask")}</span>
+            <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> <span className="hidden sm:inline">{t("ask")}</span>
           </button>
           {sel.quote.split(/\s+/).length <= 4 && (
             <button
@@ -432,7 +433,7 @@ export default function ReadPane(props: Props) {
               }}
               className="min-h-9 rounded-lg px-2 text-sm hover:bg-paper"
             >
-              ☆ <span className="hidden sm:inline">{t("save")}</span>
+              <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" /> <span className="hidden sm:inline">{t("save")}</span>
             </button>
           )}
         </div>

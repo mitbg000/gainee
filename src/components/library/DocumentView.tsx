@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { DocumentDetail } from "@/lib/documents/queries";
 import LabelChip from "@/components/labels/LabelChip";
 import LabelPicker from "@/components/labels/LabelPicker";
+import * as I from "@/components/icons";
 
 export default function DocumentView({ initial }: { initial: DocumentDetail }) {
   const t = useTranslations("document");
@@ -82,7 +83,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
 
       {suggestions ? (
         <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/5 p-4 text-sm">
-          <p className="font-medium">✨ {t("suggestTitle")}</p>
+          <p className="font-medium"><I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("suggestTitle")}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {doc.meta?.suggestedTopics?.map((s) => (
               <span key={s} className="rounded-full border border-line bg-card px-3 py-0.5">

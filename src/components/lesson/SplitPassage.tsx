@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { RichPara } from "@/lib/text/rich";
 import { offsetIn, segments, type Mark } from "./marks";
 import { HL_COLORS, HL_DOT, type Annotation, type HlColor } from "./types";
+import * as I from "@/components/icons";
 
 type Sel = { paragraph: number; start: number; end: number; quote: string; x: number; y: number };
 
@@ -154,7 +155,7 @@ export default function SplitPassage({
             }}
             className="min-h-8 rounded-lg px-2 text-sm hover:bg-paper"
           >
-            ✕ {t("unhighlight")}
+            <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" /> {t("unhighlight")}
           </button>
         </div>
       )}

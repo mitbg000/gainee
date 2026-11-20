@@ -35,6 +35,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={locale} className={theme === "dark" ? "dark" : undefined} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* keep the browser's install prompt even if it fires before React has loaded (see InstallApp) */}
+        <script dangerouslySetInnerHTML={{ __html: "addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e})" }} />
       </head>
       <body className="font-sans antialiased">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>

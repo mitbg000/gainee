@@ -6,6 +6,7 @@ import Shell from "@/components/Shell";
 import WordCard from "@/components/WordCard";
 import { getDb, schema } from "@/db";
 import { imagesForWords } from "@/lib/images";
+import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,7 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
         {t("total", { n: rows.length })}
         {rows.length > 0 && (
           <Link href="/practice" className="rounded-lg border border-accent px-2.5 py-1 text-accent">
-            🎯 {t("practice")}
+            <I.IconTarget className="inline-block h-4 w-4 align-[-0.2em]" /> {t("practice")}
           </Link>
         )}
       </p>
