@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { parseDictEntry } from "@/lib/dictionary/parse";
 import type { DictResult } from "@/lib/dictionary/lookup";
 import Markdown from "./Markdown";
+import type { TermWord } from "./Panes";
 import type { AiMsg, Anchor, Tool, Vocab, WordCard } from "./types";
 import { useAiAsk, type AskInput } from "./useAiAsk";
 import { speak } from "@/lib/speech";
@@ -22,6 +23,7 @@ export default function ToolPanel({
   vocab,
   saved,
   savedTerms,
+  termWords,
   onToggleSave,
   onSaveTerm,
   onClose,
@@ -34,6 +36,7 @@ export default function ToolPanel({
   vocab: Vocab[];
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
+  termWords: TermWord[];
   onToggleSave: (vocabId: number) => void;
   onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
   onClose: () => void;
@@ -51,7 +54,7 @@ export default function ToolPanel({
         </button>
       </div>
       {tool.mode === "lookup" ? (
-        <Lookup tool={tool} vocab={vocab} saved={saved} savedTerms={savedTerms} onToggleSave={onToggleSave} onSaveTerm={onSaveTerm} onAskAi={onAskAi} />
+        <Lookup tool={tool} vocab={vocab} saved={saved} savedTerms={savedTerms} termWords={termWords} onToggleSave={onToggleSave} onSaveTerm={onSaveTerm} onAskAi={onAskAi} />
       ) : (
         <AiAsk key={`${tool.selection}-${tool.action}`} tool={tool} lessonId={lessonId} onPin={onPin} onSaveCard={onSaveCard} />
       )}
@@ -64,6 +67,7 @@ function Lookup({
   vocab,
   saved,
   savedTerms,
+  termWords,
   onToggleSave,
   onSaveTerm,
   onAskAi,
@@ -72,6 +76,7 @@ function Lookup({
   vocab: Vocab[];
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
+  termWords: TermWord[];
   onToggleSave: (id: number) => void;
   onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
@@ -97,13 +102,16 @@ function Lookup({
   }, [tool.text]);
 
   const entry = dict?.entries[0];
+  // a word the learner saved (e.g. an AI vocabulary card): match the clicked form, the dictionary headword or its lemma
+  const keys = [tool.text, entry?.headword, dict?.matched].filter(Boolean).map((k) => k!.toLowerCase());
+  const mine = v ? undefined : termWords.find((w) => keys.includes(w.term.toLowerCase()));
   const context = tool.anchor?.context ?? v?.context ?? "";
 
   return (
     <div className="space-y-3">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <div className="font-serif text-2xl font-bold leading-tight">{v?.headword ?? entry?.headword ?? tool.text}</div>
+          <div className="font-serif text-2xl font-bold leading-tight">{v?.headword ?? mine?.term ?? entry?.headword ?? tool.text}</div>
           {(v?.ipa || v?.pos) && (
             <div className="text-sm text-muted">
               {v?.ipa} {v?.pos && <span className="font-semibold text-accent2">{v.pos}</span>}
@@ -119,11 +127,11 @@ function Lookup({
           </button>
         ) : (
           <button
-            onClick={() => onSaveTerm(entry?.headword ?? tool.text, context, entry ? parseDictEntry(entry.html, entry.headword) : undefined)}
-            className={`rounded-lg border px-2 py-1 ${savedTerms[(entry?.headword ?? tool.text).toLowerCase()] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
+            onClick={() => onSaveTerm(mine?.term ?? entry?.headword ?? tool.text, context, entry ? parseDictEntry(entry.html, entry.headword) : undefined)}
+            className={`rounded-lg border px-2 py-1 ${savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
             aria-label={t("save")}
           >
-            {savedTerms[(entry?.headword ?? tool.text).toLowerCase()] ? "★" : "☆"}
+            {savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "★" : "☆"}
           </button>
         )}
       </div>
@@ -134,6 +142,21 @@ function Lookup({
           {v.definitionEn && <div className="mt-0.5 text-muted">{v.definitionEn}</div>}
           {v.example && <div className="mt-1.5 italic">✎ {v.example}</div>}
           {v.note && <div className="mt-1.5 text-muted">💡 {v.note}</div>}
+        </div>
+      )}
+
+      {mine && (mine.meaningVi || mine.definitionEn || mine.ipa) && (
+        <div className="rounded-xl bg-paper p-3 text-sm">
+          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">{t("mySaved")}</div>
+          {(mine.ipa || mine.pos) && (
+            <div className="text-muted">
+              {mine.ipa} {mine.pos && <span className="font-semibold text-accent2">{mine.pos}</span>}
+            </div>
+          )}
+          {mine.meaningVi && <div className="font-semibold text-accent">{mine.meaningVi}</div>}
+          {mine.definitionEn && <div className="mt-0.5 text-muted">{mine.definitionEn}</div>}
+          {mine.example && <div className="mt-1.5 italic">✎ {mine.example}</div>}
+          {mine.note && <div className="mt-1.5 text-muted">💡 {mine.note}</div>}
         </div>
       )}
 

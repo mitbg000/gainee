@@ -407,7 +407,8 @@
       "modelDefault": "Model: theo cài đặt",
       "choose": "Bạn muốn AI làm gì?",
       "generate": "Tạo",
-      "cardFailed": "Không đọc được câu trả lời của AI thành thẻ từ. Bấm Tạo để thử lại."
+      "cardFailed": "Không đọc được câu trả lời của AI thành thẻ từ. Bấm Tạo để thử lại.",
+      "mySaved": "Từ bạn đã lưu"
     },
     "vocab": {
       "hide": "Che nghĩa",

@@ -407,7 +407,8 @@
       "modelDefault": "Model: from settings",
       "choose": "What do you want from the AI?",
       "generate": "Generate",
-      "cardFailed": "The AI reply could not be read as a card. Press Generate to try again."
+      "cardFailed": "The AI reply could not be read as a card. Press Generate to try again.",
+      "mySaved": "Your saved word"
     },
     "vocab": {
       "hide": "Hide meanings",

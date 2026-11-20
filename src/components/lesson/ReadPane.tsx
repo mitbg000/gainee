@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RichPara } from "@/lib/text/rich";
 import { findAll, offsetIn, segments, sentenceAt, type Mark } from "./marks";
 import { MarginNotes, NoteCard } from "./Notes";
+import type { TermWord } from "./Panes";
 import ToolPanel from "./ToolPanel";
 import { HL_COLORS, HL_DOT, type AiMsg, type Anchor, type Annotation, type HlColor, type Tool, type Vocab, type WordCard } from "./types";
 
@@ -22,6 +23,7 @@ type Props = {
   aiMessages: AiMsg[];
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
+  termWords: TermWord[];
   onSaveCard: (card: WordCard, context: string) => Promise<void>;
   flash: { p: number; start: number; end: number } | null;
   onCreateAnnotation: (a: Omit<Annotation, "id" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix">) => Promise<number | null>;
@@ -249,6 +251,7 @@ export default function ReadPane(props: Props) {
       vocab={vocab}
       saved={props.saved}
       savedTerms={props.savedTerms}
+      termWords={props.termWords}
       onToggleSave={props.onToggleSave}
       onSaveTerm={props.onSaveTerm}
       onClose={() => setTool(null)}

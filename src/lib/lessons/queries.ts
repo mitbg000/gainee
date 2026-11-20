@@ -27,7 +27,7 @@ export async function getLessonData(id: number) {
   const saved = vocab.length
     ? await db.select({ id: words.id, lessonVocabId: words.lessonVocabId }).from(words).where(inArray(words.lessonVocabId, vocab.map((v) => v.id)))
     : [];
-  const terms = await db.select({ id: words.id, term: words.term, meaningVi: words.meaningVi, context: words.context }).from(words).where(and(eq(words.lessonId, id), isNull(words.lessonVocabId))).orderBy(desc(words.id));
+  const terms = await db.select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, example: words.example, note: words.note, context: words.context }).from(words).where(and(eq(words.lessonId, id), isNull(words.lessonVocabId))).orderBy(desc(words.id));
   return {
     lesson: { ...lesson, content: (lesson.content ?? null) as LessonContent | null },
     document: doc,

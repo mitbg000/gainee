@@ -144,7 +144,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
       const r = await fetch("/api/words", { method: "POST", ...json({ term: term.slice(0, 191), context, lessonId: lesson.id, ipa: extra?.ipa ?? undefined, pos: extra?.pos ?? undefined, meaningVi: extra?.meaningVi ?? undefined }) });
       if (!r.ok) return say(t("error"));
       const { id: newId } = await r.json();
-      setTermWords((ws) => [{ id: newId, term: term.slice(0, 191), meaningVi: extra?.meaningVi ?? null, context }, ...ws]);
+      setTermWords((ws) => [{ id: newId, term: term.slice(0, 191), ipa: extra?.ipa ?? null, pos: extra?.pos ?? null, meaningVi: extra?.meaningVi ?? null, definitionEn: null, example: null, note: null, context }, ...ws]);
       say(t("saved"));
     },
     [savedTerms, lesson.id, t],
@@ -154,17 +154,18 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const saveCard = useCallback(
     async (c: WordCard, context: string) => {
       const key = c.term.toLowerCase().slice(0, 191);
+      const local: Omit<TermWord, "id"> = { term: c.term.slice(0, 191), ipa: c.ipa || null, pos: c.pos || null, meaningVi: c.meaningVi || null, definitionEn: c.definitionEn || null, example: c.example || null, note: c.note || null, context };
       const fields = { term: c.term.slice(0, 191), ipa: c.ipa, pos: c.pos.slice(0, 32), meaningVi: c.meaningVi, definitionEn: c.definitionEn, example: c.example, note: c.note, context };
       const id = savedTerms[key];
       if (id) {
         const r = await fetch(`/api/words/${id}`, { method: "PATCH", ...json(fields) });
-        if (r.ok) setTermWords((ws) => ws.map((w) => (w.id === id ? { ...w, meaningVi: c.meaningVi || null } : w)));
+        if (r.ok) setTermWords((ws) => ws.map((w) => (w.id === id ? { id, ...local } : w)));
         return say(r.ok ? t("saved") : t("error"));
       }
       const r = await fetch("/api/words", { method: "POST", ...json({ ...fields, lessonId: lesson.id }) });
       if (!r.ok) return say(t("error"));
       const { id: newId } = await r.json();
-      setTermWords((ws) => [{ id: newId, term: fields.term, meaningVi: c.meaningVi || null, context }, ...ws]);
+      setTermWords((ws) => [{ id: newId, ...local }, ...ws]);
       say(t("saved"));
     },
     [savedTerms, lesson.id, t],
@@ -241,6 +242,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
             onToggleSave={toggleSave}
             onSaveTerm={toggleTerm}
             savedTerms={savedTerms}
+            termWords={termWords}
             onSaveCard={saveCard}
           />
         )}

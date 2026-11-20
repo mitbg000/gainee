@@ -9,7 +9,17 @@ import { useAiAsk } from "./useAiAsk";
 import { speak } from "@/lib/speech";
 
 /* =================================================================== vocabulary */
-export type TermWord = { id: number; term: string; meaningVi: string | null; context: string | null };
+export type TermWord = {
+  id: number;
+  term: string;
+  ipa: string | null;
+  pos: string | null;
+  meaningVi: string | null;
+  definitionEn: string | null;
+  example: string | null;
+  note: string | null;
+  context: string | null;
+};
 
 export function VocabPane({
   vocab,
@@ -88,8 +98,13 @@ export function VocabPane({
             {termWords.map((w) => (
               <li key={w.id} className="flex items-start gap-2 rounded-2xl border border-line bg-card p-4">
                 <div className="min-w-0 flex-1">
-                  <span className="font-serif text-xl font-bold">{w.term}</span>
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-serif text-xl font-bold">{w.term}</span>
+                    {w.pos && <span className="text-sm font-semibold text-accent2">{w.pos}</span>}
+                    {w.ipa && <span className="text-sm text-muted">{w.ipa}</span>}
+                  </div>
                   {w.meaningVi && <div className="font-semibold text-accent">{w.meaningVi}</div>}
+                  {w.definitionEn && <div className="text-sm text-muted">{w.definitionEn}</div>}
                   {w.context && <p className="mt-1 rounded-lg bg-paper px-3 py-2 font-serif text-[15px]">“{w.context}”</p>}
                 </div>
                 <button onClick={() => speak(w.term)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
