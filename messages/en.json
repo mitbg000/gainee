@@ -30,7 +30,8 @@
     },
     "labels": "Categories",
     "collapse": "Collapse",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "tree": "Texts"
   },
   "login": {
     "username": "Username",

@@ -143,3 +143,21 @@ export async function deleteDocument(id: number) {
   await db.delete(documents).where(eq(documents.id, id));
   await removeUpload(doc.filePath);
 }
+
+export type TreeDoc = { id: number; title: string; lessons: { id: number; position: number; title: string; done: boolean }[] };
+
+/** Texts and their lessons for the sidebar tree (newest 60 texts). */
+export async function sidebarTree(): Promise<TreeDoc[]> {
+  const db = getDb();
+  const docs = await db.select({ id: documents.id, title: documents.title }).from(documents).orderBy(desc(documents.id)).limit(60);
+  if (!docs.length) return [];
+  const ls = await db
+    .select({ id: lessons.id, documentId: lessons.documentId, position: lessons.position, title: lessons.title, completedAt: lessons.completedAt })
+    .from(lessons)
+    .where(inArray(lessons.documentId, docs.map((d) => d.id)))
+    .orderBy(lessons.position);
+  return docs.map((d) => ({
+    ...d,
+    lessons: ls.filter((l) => l.documentId === d.id).map((l) => ({ id: l.id, position: l.position, title: l.title, done: !!l.completedAt })),
+  }));
+}

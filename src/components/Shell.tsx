@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { sidebarTree } from "@/lib/documents/queries";
 import { getTheme } from "@/theme/server";
 import CollapsibleSidebar from "./CollapsibleSidebar";
+import LessonTree from "./LessonTree";
 import LanguageSwitcher from "./LanguageSwitcher";
 import LogoutButton from "./LogoutButton";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
@@ -13,7 +15,7 @@ import ThemeSwitcher from "./ThemeSwitcher";
  *  - Mobile: compact top bar + bottom tab bar; respects iPhone safe areas (notch / home indicator).
  */
 export default async function Shell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
-  const [t, theme] = await Promise.all([getTranslations(), getTheme()]);
+  const [t, theme, tree] = await Promise.all([getTranslations(), getTheme(), sidebarTree().catch(() => [])]);
 
   const controls = (
     <div className="flex items-center justify-between gap-3">
@@ -32,7 +34,8 @@ export default async function Shell({ children, wide = false }: { children: Reac
         </Link>
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
         <SidebarNav />
-        <div className="mt-auto flex flex-col gap-3 pt-6 group-data-[collapsed=true]/sb:hidden">
+        <LessonTree docs={tree} />
+        <div className="mt-auto flex flex-col gap-3 pt-4 group-data-[collapsed=true]/sb:hidden">
           {controls}
           <LogoutButton />
         </div>

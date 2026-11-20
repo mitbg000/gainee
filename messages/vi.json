@@ -30,7 +30,8 @@
     },
     "labels": "Phân loại",
     "collapse": "Thu nhỏ",
-    "expand": "Mở rộng thanh bên"
+    "expand": "Mở rộng thanh bên",
+    "tree": "Bài đọc"
   },
   "login": {
     "username": "Tên đăng nhập",
