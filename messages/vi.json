@@ -730,6 +730,10 @@
     "source": "Bài tiếng Việt",
     "sourcePlaceholder": "Dán đoạn văn hoặc các câu tiếng Việt cần dịch…",
     "translatePlaceholder": "Viết bản dịch tiếng Anh… Dùng các từ vựng gợi ý ở trên.",
-    "sentencePlaceholder": "Mỗi câu dịch một dòng, theo đúng thứ tự 1, 2, 3…"
+    "sentencePlaceholder": "Mỗi câu dịch một dòng, theo đúng thứ tự 1, 2, 3…",
+    "drawing": "Đang vẽ hình minh hoạ… (10–60 giây)",
+    "pictureError": "Không vẽ được hình: {error}",
+    "retry": "Thử lại",
+    "network": "mất kết nối hoặc máy chủ ngắt yêu cầu"
   }
 }

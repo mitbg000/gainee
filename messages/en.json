@@ -730,6 +730,10 @@
     "source": "Vietnamese text",
     "sourcePlaceholder": "Paste the Vietnamese paragraph or sentences to translate…",
     "translatePlaceholder": "Write your English translation… Try the suggested words above.",
-    "sentencePlaceholder": "One translated sentence per line, in order 1, 2, 3…"
+    "sentencePlaceholder": "One translated sentence per line, in order 1, 2, 3…",
+    "drawing": "Drawing the picture… (10–60 seconds)",
+    "pictureError": "Could not draw the picture: {error}",
+    "retry": "Try again",
+    "network": "connection lost or the server cut the request"
   }
 }

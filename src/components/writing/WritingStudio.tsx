@@ -30,8 +30,9 @@ export default function WritingStudio({ initial, kind: startKind }: { initial: I
   const [body, setBody] = useState(initial?.body ?? "");
   const [grade, setGrade] = useState<Grade | null>(initial?.grade ?? null);
   const [model, setModel] = useState<ModelChoice>(null);
-  const [busy, setBusy] = useState<"" | "prompt" | "grade">("");
+  const [busy, setBusy] = useState<"" | "prompt" | "picture" | "grade">("");
   const [error, setError] = useState("");
+  const [picError, setPicError] = useState("");
   const [saved, setSaved] = useState(true);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
@@ -119,8 +120,21 @@ export default function WritingStudio({ initial, kind: startKind }: { initial: I
     const r = await fetch("/api/writings/prompt", { method: "POST", ...json({ kind, override: model ?? undefined }) });
     setBusy("");
     if (!r.ok) return setError((await r.json().catch(() => ({}))).error === "ai_not_configured" ? t("notConfigured") : t("aiError"));
-    setPrompt((await r.json()).prompt);
+    const text: string = (await r.json()).prompt;
+    setPrompt(text);
     setEditPrompt(false);
+    if (kind === "task1") drawPicture(text);
+  }
+
+  /** Task 1: ask for the AI picture separately (only drawn for processes, technical diagrams and maps when turned on in Settings). */
+  async function drawPicture(text: string) {
+    setBusy("picture");
+    setPicError("");
+    const r = await fetch("/api/writings/picture", { method: "POST", ...json({ prompt: text }) }).catch(() => null);
+    setBusy("");
+    if (!r?.ok) return setPicError(r ? ((await r.json().catch(() => ({}))).error ?? `HTTP ${r.status}`) : t("network"));
+    const next: string | null = (await r.json()).prompt;
+    if (next) setPrompt((cur) => (cur === text ? next : cur)); // keep edits made while drawing
   }
 
   async function doGrade() {
@@ -197,6 +211,15 @@ export default function WritingStudio({ initial, kind: startKind }: { initial: I
           <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={isTranslation(kind) ? t("sourcePlaceholder") : t("promptPlaceholder")} className="field w-full p-3 text-base" />
         ) : (
           <PromptView text={prompt} className="text-[15px] leading-relaxed" />
+        )}
+        {busy === "picture" && <p className="mt-2 animate-pulse text-sm text-muted">{t("drawing")}</p>}
+        {picError && (
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-red-600">
+            {t("pictureError", { error: picError })}
+            <button onClick={() => drawPicture(prompt)} className="btn btn-sm btn-outline">
+              {t("retry")}
+            </button>
+          </p>
         )}
       </section>
 

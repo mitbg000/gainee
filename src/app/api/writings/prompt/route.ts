@@ -5,7 +5,7 @@ import { AiError } from "@/lib/ai/client";
 import { generatePrompt, Override, WRITING_KINDS } from "@/lib/writing";
 
 export const runtime = "nodejs";
-export const maxDuration = 240;
+export const maxDuration = 90;
 
 export async function POST(req: Request) {
   const [data, err] = await parseBody(req, z.object({ kind: z.enum(WRITING_KINDS), override: Override }));

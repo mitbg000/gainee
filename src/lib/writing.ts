@@ -136,19 +136,23 @@ End with: Summarise the information by selecting and reporting the main features
       { role: "user", content: `Write one new ${TASK[kind]} question. ${extra}\n${vary}` },
     ],
   });
-  return kind === "task1" ? withPicture(r.text.trim()) : r.text.trim();
+  return r.text.trim();
 }
 
-/** Exam-style picture for a process, technical diagram or map (when turned on in Settings), placed above the drawn diagram. */
-async function withPicture(text: string) {
+/**
+ * Exam-style picture for a process, technical diagram or map, placed above the drawn diagram.
+ * Asked for separately after the question, so the two slow AI calls never share one request (Cloudflare cuts requests at 100 s).
+ * Returns null when pictures are off or the question has no such diagram; throws when the image API fails.
+ */
+export async function addPicture(text: string): Promise<string | null> {
   const cfg = await getSetting<ImageSetting>("ai.images");
-  if (!cfg?.enabled) return text;
+  if (!cfg?.enabled || text.includes("](/api/images/")) return null;
   const block = /```chart\s*\n([\s\S]*?)```/.exec(text);
   let spec: { type?: string; title?: string; steps?: ({ label?: string } | string)[]; maps?: { name?: string; items?: { label?: string; kind?: string; x?: number; y?: number }[] }[] };
   try {
     spec = JSON.parse(block?.[1] ?? "");
   } catch {
-    return text;
+    return null;
   }
   let what: string;
   if (spec.type === "process") {
@@ -157,17 +161,12 @@ async function withPicture(text: string) {
   } else if (spec.type === "map") {
     const maps = (spec.maps ?? []).map((m) => `${m.name}: ${(m.items ?? []).map((it) => `${it.label} (${it.kind}, ${(it.y ?? 50) < 40 ? "north" : (it.y ?? 50) > 60 ? "south" : "centre"}-${(it.x ?? 50) < 40 ? "west" : (it.x ?? 50) > 60 ? "east" : "middle"})`).join(", ")}`).join(" | ");
     what = `${spec.maps?.length ?? 2} side-by-side top-down maps of the same place titled "${spec.title ?? ""}", each captioned with its year, with a north arrow: ${maps}`;
-  } else return text;
-  try {
-    const bytes = await generateImage(cfg.providerId, cfg.model, `IELTS Academic Writing Task 1 exam illustration: ${what}. Clean flat textbook style, white background, clear short English labels spelled exactly as given, no extra text, no numbers that are not given.`);
-    const ext = sniff(bytes);
-    if (!ext) return text;
-    const url = imageUrl(await saveUpload(bytes, "images", ext));
-    return text.replace(block![0], `![${spec.title ?? "Task 1"}](${url})\n\n${block![0]}`);
-  } catch (e) {
-    console.error("[writing] picture failed:", e);
-    return text; // the drawn diagram is still there
-  }
+  } else return null;
+  const bytes = await generateImage(cfg.providerId, cfg.model, `IELTS Academic Writing Task 1 exam illustration: ${what}. Clean flat textbook style, white background, clear short English labels spelled exactly as given, no extra text, no numbers that are not given.`);
+  const ext = sniff(bytes);
+  if (!ext) throw new Error("The image API did not return a PNG, JPEG, GIF or WebP picture");
+  const url = imageUrl(await saveUpload(bytes, "images", ext));
+  return text.replace(block![0], `![${spec.title ?? "Task 1"}](${url})\n\n${block![0]}`);
 }
 
 /** Band scores per IELTS criterion + Markdown feedback, saved on the writing. */
