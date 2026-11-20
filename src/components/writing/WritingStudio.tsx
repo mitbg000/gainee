@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "@/components/lesson/Markdown";
+import PromptView from "@/components/writing/Chart";
 import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/ModelPicker";
 import type { Grade, WritingKind } from "@/lib/writing";
 import * as I from "@/components/icons";
@@ -195,7 +196,7 @@ export default function WritingStudio({ initial, kind: startKind }: { initial: I
         {editPrompt ? (
           <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={isTranslation(kind) ? t("sourcePlaceholder") : t("promptPlaceholder")} className="field w-full p-3 text-base" />
         ) : (
-          <Markdown text={prompt} className="text-[15px] leading-relaxed" />
+          <PromptView text={prompt} className="text-[15px] leading-relaxed" />
         )}
       </section>
 

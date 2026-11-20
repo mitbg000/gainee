@@ -113,7 +113,12 @@ Then a line "### Từ vựng gợi ý" and a bulleted list of ${kind === "transl
   }
   const extra =
     kind === "task1"
-      ? "Include the data as a compact Markdown table (or numbered steps for a process) after the instruction line. End with: Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
+      ? `After the instruction line, give the visual in the form below. Use realistic, varied numbers with clear trends and contrasts.
+- line graph, bar chart or pie charts: a fenced code block with language "chart" holding JSON {"type": "line"|"bar"|"pie", "title": string, "unit": string (e.g. "%", "million tonnes"), "labels": string[], "series": [{"name": string, "values": number[]}]}. line/bar: labels are the x-axis (years, countries…), one series per line or bar group, 2–4 series, 4–8 labels. pie: labels are the slices (3–6), one series per pie (1–2 pies, e.g. two years), values add up to 100. For a bar chart and a pie chart together give two chart blocks.
+- table: a compact Markdown table.
+- process: numbered steps (7–10).
+- two maps: two bulleted lists headed "**Year …**" listing what is where.
+End with: Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.`
       : kind === "task2"
         ? "End with: Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words."
         : "One or two sentences only.";
@@ -121,7 +126,7 @@ Then a line "### Từ vựng gợi ý" and a bulleted list of ${kind === "transl
     task: "reader_quick",
     override,
     temperature: 1,
-    maxTokens: 600,
+    maxTokens: 1200,
     messages: [
       { role: "system", content: `You write realistic exam questions for a learner aiming at IELTS band ${p.targetBand}. Reply with the question only, in English, no title or commentary.` },
       { role: "user", content: `Write one new ${TASK[kind]} question. ${extra}\n${vary}` },
