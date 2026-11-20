@@ -1,5 +1,5 @@
 /** Split a paragraph into segments so highlights, vocabulary and "flash" marks never nest. */
-export type MarkKind = "ann" | "vocab" | "flash";
+export type MarkKind = "ann" | "vocab" | "flash" | "fmt"; // fmt: color "b" = bold, "i" = italic
 export type Mark = { start: number; end: number; kind: MarkKind; id: number; color?: string };
 export type Segment = { text: string; start: number; end: number; marks: Mark[] };
 

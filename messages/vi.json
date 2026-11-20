@@ -447,7 +447,7 @@
     "edit": {
       "open": "Sửa nội dung / chia / gộp bài",
       "title": "Sửa nội dung bài đọc",
-      "help": "Xóa các phần không liên quan (tác giả, ngày, link…) và sửa lại văn bản. Dòng trống ngăn cách các đoạn. Đặt một dòng chỉ gồm --- tại chỗ muốn bắt đầu bài mới.",
+      "help": "Xóa các phần không liên quan (tác giả, ngày, link…), sửa văn bản, in đậm/nghiêng/IN HOA, chèn ảnh. Bấm nút ✂ tại chỗ muốn bắt đầu bài mới.",
       "regenerate": "Tạo lại từ vựng và bài tập từ nội dung mới",
       "save": "Lưu",
       "cancel": "Hủy",
@@ -455,5 +455,17 @@
       "mergeConfirm": "Gộp với bài sau và tạo lại bài tập?",
       "failed": "Không lưu được, hãy thử lại"
     }
+  },
+  "editor": {
+    "bold": "In đậm",
+    "italic": "In nghiêng",
+    "upper": "IN HOA phần chọn",
+    "lower": "in thường phần chọn",
+    "heading": "Tiêu đề",
+    "image": "Chèn ảnh",
+    "split": "Bắt đầu bài mới tại đây",
+    "undo": "Hoàn tác",
+    "redo": "Làm lại",
+    "uploadFailed": "Không tải được ảnh (PNG, JPG, GIF hoặc WebP, tối đa 8 MB)"
   }
 }

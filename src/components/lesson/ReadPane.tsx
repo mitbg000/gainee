@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { RichPara } from "@/lib/text/rich";
 import { findAll, offsetIn, segments, sentenceAt, type Mark } from "./marks";
 import { MarginNotes, NoteCard } from "./Notes";
 import ToolPanel from "./ToolPanel";
@@ -9,7 +10,10 @@ import { HL_COLORS, HL_DOT, type AiMsg, type Anchor, type Annotation, type HlCol
 
 type Props = {
   lessonId: number;
+  /** Plain text of each paragraph: all offsets refer to it. */
   paragraphs: string[];
+  /** Same length as `paragraphs`: formatting, headings and images. */
+  blocks: RichPara[];
   wordCount: number;
   summary: string | null;
   warmup: string | null;
@@ -114,10 +118,11 @@ export default function ReadPane(props: Props) {
         for (const [s, e] of findAll(p, v.match)) out[i].push({ start: s, end: e, kind: "vocab", id: v.id });
       });
     }
+    props.blocks.forEach((b, i) => b.styles.forEach((st) => out[i]?.push({ start: st.start, end: st.end, kind: "fmt", id: 0, color: st.kind })));
     for (const a of annotations) if (out[a.paragraph]) out[a.paragraph].push({ start: a.startOffset, end: a.endOffset, kind: "ann", id: a.id, color: a.color });
     if (props.flash) out[props.flash.p]?.push({ start: props.flash.start, end: props.flash.end, kind: "flash", id: 0 });
     return out;
-  }, [paragraphs, vocab, annotations, props.flash]);
+  }, [paragraphs, props.blocks, vocab, annotations, props.flash]);
 
   useEffect(() => {
     if (!props.flash) return;
@@ -278,8 +283,12 @@ export default function ReadPane(props: Props) {
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-8">
         {/* text */}
         <div ref={article} onClick={onArticleClick} className="font-serif leading-[1.8] text-ink" style={{ fontSize }}>
-          {paragraphs.map((p, i) => (
-            <p key={i} data-p={i} className="mb-[1.1em]">
+          {paragraphs.map((p, i) =>
+            props.blocks[i].kind === "img" ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={props.blocks[i].src} alt={props.blocks[i].alt ?? ""} loading="lazy" className="mx-auto my-4 max-h-[32rem] max-w-full rounded-xl" />
+            ) : (
+            <p key={i} data-p={i} className={props.blocks[i].kind === "h" ? "mb-[0.7em] mt-[1.4em] font-sans text-[1.15em] font-bold leading-snug" : "mb-[1.1em]"}>
               {segments(p, marks[i]).map((seg) => {
                 if (!seg.marks.length) return seg.text;
                 const ann = [...seg.marks].reverse().find((m) => m.kind === "ann");
@@ -287,7 +296,9 @@ export default function ReadPane(props: Props) {
                 const flash = seg.marks.some((m) => m.kind === "flash");
                 const a = ann ? annById.get(ann.id) : undefined;
                 const noteEnd = a && (a.note || aiByAnn.get(a.id)?.length) && seg.end === a.endOffset;
-                const cls = [ann ? `hl hl-${ann.color}` : "", ann && ann.id === activeAnn ? "active" : "", voc ? "vw" : "", flash ? "flash" : ""].join(" ").trim();
+                const bold = seg.marks.some((m) => m.kind === "fmt" && m.color === "b");
+                const ital = seg.marks.some((m) => m.kind === "fmt" && m.color === "i");
+                const cls = [ann ? `hl hl-${ann.color}` : "", ann && ann.id === activeAnn ? "active" : "", voc ? "vw" : "", flash ? "flash" : "", bold ? "font-bold" : "", ital ? "italic" : ""].join(" ").trim();
                 return (
                   <span
                     key={seg.start}
@@ -302,7 +313,8 @@ export default function ReadPane(props: Props) {
                 );
               })}
             </p>
-          ))}
+            ),
+          )}
 
           <div className="mt-6 rounded-2xl border border-line bg-card p-4 font-sans text-base">
             {timer.done ? (

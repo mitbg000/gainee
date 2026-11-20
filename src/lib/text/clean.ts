@@ -1,3 +1,5 @@
+import { toPlain } from "./rich";
+
 /**
  * Clean extracted text into paragraphs:
  *  - drop page numbers and running headers/footers that repeat on many pages
@@ -91,4 +93,4 @@ export function cleanToParagraphs(pagesRaw: string[]): string[] {
   return merged.filter((p) => !/^https?:\/\/\S+$/.test(p) && (p.split(/\s+/).length >= 3 || /[.!?]$/.test(p)));
 }
 
-export const wordCount = (s: string) => (s.match(/[\p{L}\p{N}’'-]+/gu) || []).length;
+export const wordCount = (s: string) => (toPlain(s).match(/[\p{L}\p{N}’'-]+/gu) || []).length;

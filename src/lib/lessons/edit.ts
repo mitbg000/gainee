@@ -3,33 +3,20 @@ import { and, asc, eq, gt, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { regenerate } from "@/lib/documents/queries";
 import { wordCount } from "@/lib/text/clean";
+import { toPlain } from "@/lib/text/rich";
 import { locateQuote } from "@/components/lesson/marks";
 
 const { lessons, annotations } = schema;
-export const MAX_PARTS = 20;
-
-/** Blank line = new paragraph; a line of "---" = start of a new lesson. */
-export function parseEditedText(text: string): string[][] {
-  return text
-    .split(/^\s*-{3,}\s*$/m)
-    .map((part) =>
-      part
-        .split(/\n\s*\n/)
-        .map((p) => p.replace(/\s+/g, " ").trim())
-        .filter(Boolean),
-    )
-    .filter((ps) => ps.length > 0)
-    .slice(0, MAX_PARTS);
-}
 
 const words = (ps: string[]) => ps.reduce((a, p) => a + wordCount(p), 0);
 
 /** Keep highlights/notes whose quote still exists in the new text; drop the others. */
 async function relocateAnnotations(tx: Pick<ReturnType<typeof getDb>, "select" | "update" | "delete">, lessonId: number, paragraphs: string[]) {
   const rows = await tx.select().from(annotations).where(eq(annotations.lessonId, lessonId));
+  const plain = paragraphs.map(toPlain);
   for (const a of rows) {
-    if (paragraphs[a.paragraph]?.slice(a.startOffset, a.endOffset) === a.quote) continue;
-    const hit = locateQuote(paragraphs, a.quote);
+    if (plain[a.paragraph]?.slice(a.startOffset, a.endOffset) === a.quote) continue;
+    const hit = locateQuote(plain, a.quote);
     if (hit) await tx.update(annotations).set({ paragraph: hit.p, startOffset: hit.start, endOffset: hit.end }).where(eq(annotations.id, a.id));
     else await tx.delete(annotations).where(eq(annotations.id, a.id));
   }

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { bad, idParam, parseBody } from "@/lib/api";
-import { editLessonText, parseEditedText } from "@/lib/lessons/edit";
+import { editLessonText } from "@/lib/lessons/edit";
+import { parseEditedText } from "@/lib/text/rich";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };

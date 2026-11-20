@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/profile";
 import { saveUpload } from "@/lib/storage";
 import { cleanToParagraphs, wordCount } from "@/lib/text/clean";
 import { detectKind, extractFile } from "@/lib/text/extract";
+import { escapeMd, parseEditedText, toPlain } from "@/lib/text/rich";
 import { splitLessons } from "@/lib/text/split";
 
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
@@ -29,7 +30,8 @@ function clip(s: FormDataEntryValue | null, max: number) {
 export async function parseImportForm(form: FormData): Promise<ParsedInput> {
   const profile = await getProfile();
   const file = form.get("file");
-  let pages: string[];
+  let pages: string[] = [];
+  let richParts: string[][] | null = null;
   let sourceType: ParsedInput["sourceType"] = "paste";
   let metaTitle: string | undefined;
   let metaAuthor: string | undefined;
@@ -55,10 +57,12 @@ export async function parseImportForm(form: FormData): Promise<ParsedInput> {
   } else {
     const text = clip(form.get("text"), 400_000);
     if (!text) throw new ImportError("empty");
-    pages = [text];
+    // text from the rich editor already has explicit paragraphs, formatting, images and "---" lesson breaks
+    if (form.get("rich") === "1") richParts = parseEditedText(text);
+    else pages = [text];
   }
 
-  const paragraphs = cleanToParagraphs(pages);
+  const paragraphs = richParts ? richParts.flat() : cleanToParagraphs(pages).map(escapeMd);
   const words = paragraphs.reduce((a, p) => a + wordCount(p), 0);
   if (words < 80) throw new ImportError(sourceType === "pdf" ? "no_text_in_pdf" : "too_short");
 
@@ -78,7 +82,7 @@ export async function parseImportForm(form: FormData): Promise<ParsedInput> {
     source: clip(form.get("source"), 1000) || null,
     labelIds,
     paragraphs,
-    lessons: splitLessons(paragraphs, profile.lessonWords),
+    lessons: richParts && richParts.length > 1 ? richParts : splitLessons(paragraphs, profile.lessonWords),
     file: saved,
   };
 }
@@ -87,7 +91,7 @@ export async function createDocument(input: ParsedInput): Promise<number> {
   const db = getDb();
   const filePath = input.file ? await saveUpload(input.file.bytes, "documents", input.file.ext) : null;
   const words = input.paragraphs.reduce((a, p) => a + wordCount(p), 0);
-  const firstLine = input.paragraphs.find((p) => wordCount(p) >= 3) ?? "Untitled";
+  const firstLine = input.paragraphs.map(toPlain).find((p) => wordCount(p) >= 3) ?? "Untitled";
   const title = input.title || (firstLine.length > 80 ? firstLine.slice(0, 77) + "…" : firstLine);
 
   const id = await db.transaction(async (tx) => {
@@ -99,7 +103,7 @@ export async function createDocument(input: ParsedInput): Promise<number> {
         source: input.source,
         sourceType: input.sourceType,
         filePath,
-        rawText: input.paragraphs.join("\n\n"),
+        rawText: input.paragraphs.map(toPlain).filter(Boolean).join("\n\n"),
         wordCount: words,
         status: "processing",
         meta: { userTitle: !!input.title },

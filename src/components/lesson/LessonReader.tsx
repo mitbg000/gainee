@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { parseRich } from "@/lib/text/rich";
+import RichBlock from "./RichBlock";
 import LessonEditor from "./LessonEditor";
 import { locateQuote } from "./marks";
 import { ExercisesPane, PracticePane, VocabPane } from "./Panes";
@@ -29,6 +31,8 @@ export default function LessonReader({ data }: { data: LessonData }) {
     setToast(m);
     setTimeout(() => setToast(""), 1800);
   };
+  const blocks = useMemo(() => lesson.paragraphs.map(parseRich), [lesson.paragraphs]);
+  const plain = useMemo(() => blocks.map((b) => b.text), [blocks]);
   const idx = siblings.findIndex((s) => s.id === lesson.id);
   const prev = siblings[idx - 1];
   const next = siblings[idx + 1];
@@ -36,7 +40,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
   /* ---------- annotations ---------- */
   const createAnnotation = useCallback(
     async (a: Omit<Annotation, "id" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix">) => {
-      const p = lesson.paragraphs[a.paragraph];
+      const p = plain[a.paragraph];
       const body = { ...a, prefix: p.slice(Math.max(0, a.startOffset - 32), a.startOffset), suffix: p.slice(a.endOffset, a.endOffset + 32) };
       const r = await fetch(`/api/lessons/${lesson.id}/annotations`, { method: "POST", ...json(body) });
       if (!r.ok) return null;
@@ -45,7 +49,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
       setAnnotations((xs) => [...xs, { ...body, note: a.note ?? null, id, lessonId: lesson.id, createdAt: now, updatedAt: now }]);
       return id as number;
     },
-    [lesson.id, lesson.paragraphs],
+    [lesson.id, plain],
   );
   const patchAnnotation = useCallback((id: number, patch: { note?: string | null; color?: HlColor }) => {
     setAnnotations((xs) => xs.map((a) => (a.id === id ? { ...a, ...patch } : a)));
@@ -118,7 +122,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
   }
 
   const locate = (quote: string) => {
-    const hit = locateQuote(lesson.paragraphs, quote);
+    const hit = locateQuote(plain, quote);
     if (!hit) return say(t("notFoundInText"));
     setTab("read");
     setFlash(null);
@@ -163,7 +167,8 @@ export default function LessonReader({ data }: { data: LessonData }) {
         {tab === "read" && (
           <ReadPane
             lessonId={lesson.id}
-            paragraphs={lesson.paragraphs}
+            paragraphs={plain}
+            blocks={blocks}
             wordCount={lesson.wordCount}
             summary={lesson.summary}
             warmup={lesson.warmup}
@@ -185,10 +190,8 @@ export default function LessonReader({ data }: { data: LessonData }) {
           // Desktop: keep the passage visible beside the vocab/exercises/practice pane.
           <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
             <article className="sticky top-14 hidden max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-2xl border border-line bg-card p-5 font-serif leading-[1.8] text-ink lg:block">
-              {lesson.paragraphs.map((p, i) => (
-                <p key={i} className="mb-[1.1em]">
-                  {p}
-                </p>
+              {blocks.map((b, i) => (
+                <RichBlock key={i} block={b} />
               ))}
             </article>
             <div className="min-w-0">

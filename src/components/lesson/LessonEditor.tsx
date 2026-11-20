@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import RichEditor from "@/components/RichEditor";
 
 const post = (url: string, method: string, body?: unknown) =>
   fetch(url, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
@@ -33,12 +34,7 @@ export default function LessonEditor({ lessonId, paragraphs, hasNext, onClose }:
       <div className="flex max-h-[92dvh] w-full max-w-3xl flex-col gap-3 rounded-t-2xl bg-paper p-4 shadow-xl md:rounded-2xl md:p-5">
         <h2 className="font-serif text-xl font-bold">{t("title")}</h2>
         <p className="text-sm text-muted">{t("help")}</p>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          className="min-h-[40dvh] flex-1 resize-y rounded-xl border border-line bg-card p-3 font-serif text-[15px] leading-relaxed"
-          spellCheck={false}
-        />
+        <RichEditor className="min-h-0 flex-1 overflow-y-auto" value={text} onChange={setText} />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={regen} onChange={(e) => setRegen(e.target.checked)} />
           {t("regenerate")}

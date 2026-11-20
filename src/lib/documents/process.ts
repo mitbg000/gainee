@@ -4,6 +4,7 @@ import { getDb, schema } from "@/db";
 import { setProgress, type Job } from "@/lib/jobs";
 import { generateLesson, generateMeta } from "@/lib/lessons/generate";
 import { getProfile } from "@/lib/profile";
+import { toPlain } from "@/lib/text/rich";
 
 const { documents, lessons, lessonVocab, labels } = schema;
 
@@ -46,7 +47,7 @@ export async function processDocument(job: Job) {
     await setProgress(job.id, `lesson ${i + 1}/${todo.length}`);
     await db.update(lessons).set({ status: "generating", error: null }).where(eq(lessons.id, l.id));
     try {
-      const g = await generateLesson(l.paragraphs, { documentTitle: fresh.title, part: l.position, parts: all.length, profile });
+      const g = await generateLesson(l.paragraphs.map(toPlain).filter(Boolean), { documentTitle: fresh.title, part: l.position, parts: all.length, profile });
       await db.transaction(async (tx) => {
         await tx.delete(lessonVocab).where(eq(lessonVocab.lessonId, l.id));
         if (g.vocab.length) {

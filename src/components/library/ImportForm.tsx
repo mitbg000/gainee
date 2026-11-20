@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import LabelPicker from "@/components/labels/LabelPicker";
+import RichEditor from "@/components/RichEditor";
 
 type Preview = {
   title: string;
@@ -33,7 +34,10 @@ export default function ImportForm({ sources }: { sources: string[] }) {
   function form() {
     const f = new FormData();
     if (mode === "file" && file) f.set("file", file);
-    else f.set("text", text);
+    else {
+      f.set("text", text);
+      f.set("rich", "1"); // paragraphs, formatting, images and "---" lesson breaks come from the editor
+    }
     f.set("title", title);
     f.set("author", author);
     f.set("source", source);
@@ -111,14 +115,13 @@ export default function ImportForm({ sources }: { sources: string[] }) {
           <p className="text-sm text-muted">{file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : t("formats")}</p>
         </div>
       ) : (
-        <textarea
+        <RichEditor
           value={text}
-          onChange={(e) => {
-            setText(e.target.value);
+          onChange={(md) => {
+            setText(md);
             setPreview(null);
           }}
           placeholder={t("pastePlaceholder")}
-          className={`${field} min-h-56 font-serif leading-relaxed`}
         />
       )}
 
