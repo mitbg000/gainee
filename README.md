@@ -1,4 +1,4 @@
-# ReadLearn
+# Gainee
 
 A personal (single-user) web app for learning English through reading. It turns articles into IELTS-style lessons with vocabulary, exercises and spaced repetition, tracks your progress and keeps you motivated. It works with DeepSeek, ChatGPT, Gemini and Grok.
 
@@ -32,9 +32,9 @@ A personal (single-user) web app for learning English through reading. It turns 
 ## Architecture
 
 ```
-Browser ─► Nginx (aaPanel, HTTPS) ─► readlearn-web  (Next.js, PM2) ─┐
+Browser ─► Nginx (aaPanel, HTTPS) ─► gainee-web  (Next.js, PM2) ─┐
                                                                      ├─► MySQL (aaPanel)
-                                     readlearn-worker (PM2) ─────────┘
+                                     gainee-worker (PM2) ─────────┘
                                      └─ background jobs: AI lesson generation, reminders, reports
 Files (word images, PDFs, audio) ─► UPLOAD_DIR (outside the app folder)
 ```
@@ -95,8 +95,8 @@ Every string the user sees lives in `messages/en.json` and `messages/vi.json`, a
 ### 1. Prepare aaPanel
 1. **App Store:** install **Nginx**, **MySQL 8.0** (5.7 and MariaDB 10.4+ also work), and the **Node.js version manager**. In the Node.js version manager, install **Node 22 LTS** and set it as the command-line version.
 2. **Databases → Add database:**
-   - name: `readlearn`
-   - user: `readlearn`
+   - name: `gainee`
+   - user: `gainee`
    - a strong password
    - charset **utf8mb4**
 3. **Website → Add site:** enter your domain (e.g. `learn.example.com`) and choose *Static / no database*. Then open the site's **SSL** tab, request a **Let's Encrypt** certificate, and turn on *Force HTTPS*.
@@ -108,9 +108,9 @@ Every string the user sees lives in `messages/en.json` and `messages/vi.json`, a
 Push this project to a **private GitHub repo**. Then connect to the server via SSH (or the aaPanel Terminal):
 
 ```bash
-ssh-keygen -t ed25519 -C readlearn-server      # add ~/.ssh/id_ed25519.pub to GitHub → repo → Settings → Deploy keys
-git clone git@github.com:<you>/readlearn.git /www/wwwroot/readlearn
-cd /www/wwwroot/readlearn
+ssh-keygen -t ed25519 -C gainee-server      # add ~/.ssh/id_ed25519.pub to GitHub → repo → Settings → Deploy keys
+git clone git@github.com:<you>/gainee.git /www/wwwroot/gainee
+cd /www/wwwroot/gainee
 bash scripts/init-env.sh                       # asks for DB details + login password, generates secrets
 ```
 
@@ -137,7 +137,7 @@ In GitHub, open **Settings → Secrets and variables → Actions** and add:
 | `SERVER_USER` | SSH user (e.g. `root`) |
 | `SERVER_SSH_KEY` | private key of a key pair used **only** by GitHub Actions; add its public key to that user's `~/.ssh/authorized_keys` |
 | `SERVER_PORT` | *(optional)* SSH port, default 22 |
-| `APP_DIR` | *(optional)* default `/www/wwwroot/readlearn` |
+| `APP_DIR` | *(optional)* default `/www/wwwroot/gainee` |
 
 From then on, every push to `main` runs lint, type-check and build in CI, then deploys to the server.
 
@@ -146,7 +146,7 @@ Download the **StarDict** version of the dictionary (for example `tudien-stardic
 [redphx/tudien releases](https://github.com/redphx/tudien/releases)) to the server, then import it:
 
 ```bash
-cd /www/wwwroot/readlearn
+cd /www/wwwroot/gainee
 wget -O /tmp/tudien.zip "<link to the StarDict .zip from the release page>"
 node --env-file=.env dist/import-dictionary.js /tmp/tudien.zip --name tudien
 ```
@@ -159,17 +159,17 @@ Look-ups try three things in order: the exact headword, then a StarDict alias, t
 
 ### 7. Backups (aaPanel)
 Go to **Cron → Add task**:
-- **Backup Database** → `readlearn`, daily, keep 14 copies. If you use aaPanel's cloud-storage plugins, choose a remote target.
+- **Backup Database** → `gainee`, daily, keep 14 copies. If you use aaPanel's cloud-storage plugins, choose a remote target.
 - **Backup Directory** → your `UPLOAD_DIR` (word images, PDFs, audio), daily or weekly.
 
 ---
 
 ## Day-to-day operations
 
-| Task | Command (in `/www/wwwroot/readlearn`) |
+| Task | Command (in `/www/wwwroot/gainee`) |
 |---|---|
 | Status | `pm2 ls` |
-| Logs | `pm2 logs readlearn-web` / `pm2 logs readlearn-worker` |
+| Logs | `pm2 logs gainee-web` / `pm2 logs gainee-worker` |
 | Restart | `pm2 reload ecosystem.config.cjs --update-env` |
 | Update manually | `bash scripts/deploy.sh` |
 | Change login name | edit `APP_USERNAME` in `.env` → restart |

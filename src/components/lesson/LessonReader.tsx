@@ -175,9 +175,23 @@ export default function LessonReader({ data }: { data: LessonData }) {
             onSaveTerm={saveTerm}
           />
         )}
-        {tab === "vocab" && <VocabPane vocab={vocab} saved={saved} onToggleSave={toggleSave} onSaveAll={saveAll} />}
-        {tab === "ex" && content && <ExercisesPane lessonId={lesson.id} content={content} vocab={vocab} bestScore={best} onLocate={locate} onScored={setBest} />}
-        {tab === "practice" && content && <PracticePane lessonId={lesson.id} content={content} writings={data.writings} notes={lesson.notes ?? ""} />}
+        {tab !== "read" && (
+          // Desktop: keep the passage visible beside the vocab/exercises/practice pane.
+          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+            <article className="sticky top-14 hidden max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-2xl border border-line bg-card p-5 font-serif leading-[1.8] text-ink lg:block">
+              {lesson.paragraphs.map((p, i) => (
+                <p key={i} className="mb-[1.1em]">
+                  {p}
+                </p>
+              ))}
+            </article>
+            <div className="min-w-0">
+              {tab === "vocab" && <VocabPane vocab={vocab} saved={saved} onToggleSave={toggleSave} onSaveAll={saveAll} />}
+              {tab === "ex" && content && <ExercisesPane lessonId={lesson.id} content={content} vocab={vocab} bestScore={best} onLocate={locate} onScored={setBest} />}
+              {tab === "practice" && content && <PracticePane lessonId={lesson.id} content={content} writings={data.writings} notes={lesson.notes ?? ""} />}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-line pt-5">

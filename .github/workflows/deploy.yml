@@ -34,4 +34,4 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           command_timeout: 20m
-          script: cd ${{ secrets.APP_DIR || '/www/wwwroot/readlearn' }} && bash scripts/deploy.sh
+          script: cd ${{ secrets.APP_DIR || '/www/wwwroot/gainee' }} && bash scripts/deploy.sh

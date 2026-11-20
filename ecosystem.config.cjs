@@ -25,7 +25,7 @@ const port = env.PORT || "3000";
 module.exports = {
   apps: [
     {
-      name: "readlearn-web",
+      name: "gainee-web",
       cwd: __dirname,
       script: "node_modules/next/dist/bin/next",
       args: `start -p ${port} -H 127.0.0.1`,
@@ -36,7 +36,7 @@ module.exports = {
       time: true,
     },
     {
-      name: "readlearn-worker",
+      name: "gainee-worker",
       cwd: __dirname,
       script: "dist/worker.js",
       env,

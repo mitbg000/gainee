@@ -8,4 +8,4 @@ if ! command -v node >/dev/null 2>&1 || ! command -v pm2 >/dev/null 2>&1; then
 fi
 command -v node >/dev/null 2>&1 || { echo "Node.js not found. Install Node 20+ in aaPanel (App Store → Node.js version manager)."; exit 1; }
 NODE_MAJOR=$(node -p 'process.versions.node.split(".")[0]')
-[ "$NODE_MAJOR" -ge 20 ] || { echo "Node $NODE_MAJOR found – ReadLearn needs Node 20.6+ (22 LTS recommended)."; exit 1; }
+[ "$NODE_MAJOR" -ge 20 ] || { echo "Node $NODE_MAJOR found – Gainee needs Node 20.6+ (22 LTS recommended)."; exit 1; }

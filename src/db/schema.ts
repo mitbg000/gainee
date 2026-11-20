@@ -1,5 +1,5 @@
 /**
- * ReadLearn database schema (MySQL 5.7+/8.0 or MariaDB 10.4+, single user).
+ * Gainee database schema (MySQL 5.7+/8.0 or MariaDB 10.4+, single user).
  *
  * Tables for later phases are defined up front so the structure stays stable.
  * Conventions:

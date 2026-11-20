@@ -1,4 +1,4 @@
-# ReadLearn – Roadmap & product design
+# Gainee – Roadmap & product design
 
 ## Phases
 

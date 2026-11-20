@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install / update ReadLearn on the server. Safe to run repeatedly.
+# Install / update Gainee on the server. Safe to run repeatedly.
 #   bash scripts/deploy.sh            # pull latest code from origin/main, build, migrate, reload
 #   bash scripts/deploy.sh --no-pull  # build what is already on disk
 set -euo pipefail
@@ -32,10 +32,10 @@ echo "==> Health check"
 PORT=$(grep -E '^PORT=' .env | cut -d= -f2); PORT=${PORT:-3000}
 for _ in $(seq 1 30); do
   if curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
-    echo "✅ ReadLearn is running: $(git log -1 --pretty='%h %s' 2>/dev/null || echo 'local build')"
+    echo "✅ Gainee is running: $(git log -1 --pretty='%h %s' 2>/dev/null || echo 'local build')"
     exit 0
   fi
   sleep 2
 done
-echo "❌ No response on port $PORT – check logs: pm2 logs readlearn-web --lines 100"
+echo "❌ No response on port $PORT – check logs: pm2 logs gainee-web --lines 100"
 exit 1

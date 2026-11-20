@@ -1,4 +1,4 @@
-/* ReadLearn service worker – makes the app installable and gives it a fast, offline-tolerant shell.
+/* Gainee service worker – makes the app installable and gives it a fast, offline-tolerant shell.
  * Strategy:
  *  - /_next/static, /icons: cache-first (files are content-hashed / rarely change)
  *  - page navigations: network-first, fall back to the last cached copy, then /offline.html

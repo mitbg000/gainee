@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "ReadLearn",
+    "name": "Gainee",
     "tagline": "Học tiếng Anh qua bài đọc",
     "description": "Biến bài báo thành bài học IELTS: từ vựng, bài tập, ôn tập ngắt quãng và theo dõi tiến độ."
   },
@@ -103,7 +103,7 @@
     "notImported": "Chưa nhập từ điển – xem README → “Offline dictionary”."
   },
   "install": {
-    "title": "Cài ReadLearn lên thiết bị này",
+    "title": "Cài Gainee lên thiết bị này",
     "android": "Mở như một ứng dụng bình thường – toàn màn hình, ngay từ màn hình chính.",
     "ios": "Trong Safari, bấm <share></share> <b>Chia sẻ</b>, rồi chọn <b>Thêm vào MH chính</b>.",
     "install": "Cài đặt",

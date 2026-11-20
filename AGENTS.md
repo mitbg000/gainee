@@ -1,4 +1,4 @@
-# AGENTS.md – ReadLearn guide for AI coding agents
+# AGENTS.md – Gainee guide for AI coding agents
 
 This file is the single source of truth for any AI agent (Claude Code, Codex, Cursor, Copilot, …) working on this repository. It explains **what the product does, how it is built, how data flows, the conventions to follow, and how to build, test and deploy it.**
 
@@ -8,7 +8,7 @@ Read it fully before making changes. Keep it up to date when you change architec
 
 ## 1. Product in one paragraph
 
-ReadLearn is a **personal, single-user web app for learning English (IELTS focus) through authentic reading**. The owner is a Vietnamese learner. They import an article (PDF / DOCX / TXT / pasted text). The app cleans the text and splits it into ~500–800-word lessons. An AI model then generates, for each lesson:
+Gainee is a **personal, single-user web app for learning English (IELTS focus) through authentic reading**. The owner is a Vietnamese learner. They import an article (PDF / DOCX / TXT / pasted text). The app cleans the text and splits it into ~500–800-word lessons. An AI model then generates, for each lesson:
 
 - a Vietnamese summary and a warm-up question;
 - 8–12 vocabulary items;
@@ -54,7 +54,7 @@ Detailed product design (metrics, motivation features, reader UX): **`docs/ROADM
 | Background work | Separate **worker** process with a job queue stored in MySQL | `src/worker` |
 | AI | Any **OpenAI-compatible** chat API (DeepSeek, OpenAI, Gemini OpenAI-compat endpoint, xAI Grok, custom) | own fetch client, no SDK |
 | Files | PDF → `unpdf`, DOCX → `mammoth`, ZIP → `fflate`, HTML sanitizing → `sanitize-html`, icons → `sharp` | |
-| Process manager | **PM2** (`ecosystem.config.cjs`: `readlearn-web`, `readlearn-worker`) | |
+| Process manager | **PM2** (`ecosystem.config.cjs`: `gainee-web`, `gainee-worker`) | |
 | Reverse proxy | aaPanel **Nginx** + Let's Encrypt | snippet in `deploy/nginx-aapanel.conf` |
 | CI/CD | GitHub Actions: lint → typecheck → build → SSH `scripts/deploy.sh` | `.github/workflows/deploy.yml` |
 
@@ -122,10 +122,10 @@ src/
 Browser (desktop / phone / installed PWA)
    │ HTTPS
    ▼
-Nginx (aaPanel) ──► readlearn-web  (next start, 127.0.0.1:PORT, PM2)
+Nginx (aaPanel) ──► gainee-web  (next start, 127.0.0.1:PORT, PM2)
                          │  route handlers / server components
                          ▼
-                      MySQL  ◄──────── readlearn-worker (node dist/worker.js, PM2)
+                      MySQL  ◄──────── gainee-worker (node dist/worker.js, PM2)
                          ▲                 • polls `jobs` every 1 s
                          │                 • generate_document (AI lesson generation)
 UPLOAD_DIR (files) ◄─────┘                 • heartbeat → settings["worker.heartbeat"]
@@ -330,9 +330,9 @@ node scripts/make-icons.mjs
 Local MySQL quick start:
 
 ```sql
-CREATE DATABASE readlearn CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'readlearn'@'localhost' IDENTIFIED BY '...';
-GRANT ALL ON readlearn.* TO 'readlearn'@'localhost';
+CREATE DATABASE gainee CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'gainee'@'localhost' IDENTIFIED BY '...';
+GRANT ALL ON gainee.* TO 'gainee'@'localhost';
 ```
 
 ---
@@ -344,7 +344,7 @@ GRANT ALL ON readlearn.* TO 'readlearn'@'localhost';
 | `PORT` | – | web port (default 3000; Nginx proxies to it) |
 | `DEFAULT_LOCALE` | – | `en` or `vi`; UI language before the user chooses |
 | `TZ` | – | user time zone for streaks and daily stats (default `Asia/Ho_Chi_Minh`) |
-| `DATABASE_URL` | ✅ | `mysql://user:pass@127.0.0.1:3306/readlearn` (URL-encode the password) |
+| `DATABASE_URL` | ✅ | `mysql://user:pass@127.0.0.1:3306/gainee` (URL-encode the password) |
 | `DATABASE_POOL_SIZE` | – | default 5 |
 | `APP_USERNAME` | ✅ | login name (case-insensitive) |
 | `APP_PASSWORD_HASH` | ✅ | `scrypt:<salt>:<hash>` from `hash-password` |
@@ -378,13 +378,13 @@ Browser automation (Playwright) was used during development but is not committed
 
 Short version; the full step-by-step guide is in README.md.
 
-1. **aaPanel:** install Nginx, MySQL 8 and the Node.js version manager (Node 22). Create the database `readlearn` (utf8mb4). Create a site for the domain and enable SSL (Let's Encrypt, force HTTPS).
-2. **Code:** `git clone` the private repo to `/www/wwwroot/readlearn`, then run `bash scripts/init-env.sh`, which asks for DB credentials and the login name/password and generates the secrets.
+1. **aaPanel:** install Nginx, MySQL 8 and the Node.js version manager (Node 22). Create the database `gainee` (utf8mb4). Create a site for the domain and enable SSL (Let's Encrypt, force HTTPS).
+2. **Code:** `git clone` the private repo to `/www/wwwroot/gainee`, then run `bash scripts/init-env.sh`, which asks for DB credentials and the login name/password and generates the secrets.
 3. **Start:** `bash scripts/deploy.sh --no-pull`, which installs dependencies, builds, migrates, starts the PM2 apps and checks `/api/health`. Then run `pm2 startup` once.
 4. **Nginx:** paste `deploy/nginx-aapanel.conf` into the site config (proxy to `127.0.0.1:PORT`, `client_max_body_size 30m`, 300 s timeouts, buffering off for streaming).
 5. **Optional, the dictionary:** `node --env-file=.env dist/import-dictionary.js /tmp/tudien.zip --name tudien`.
 6. **Automatic deploys:** set the GitHub secrets `SERVER_HOST`, `SERVER_USER`, `SERVER_SSH_KEY` (plus optional `SERVER_PORT` and `APP_DIR`). Every push to `main` runs CI and then `scripts/deploy.sh` over SSH.
-7. **Backups:** create aaPanel cron jobs for "Backup Database" (`readlearn`) and "Backup Directory" (`UPLOAD_DIR`).
+7. **Backups:** create aaPanel cron jobs for "Backup Database" (`gainee`) and "Backup Directory" (`UPLOAD_DIR`).
 
 The PWA needs HTTPS. If you change caching in `public/sw.js`, bump `VERSION` in that file.
 

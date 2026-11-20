@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "ReadLearn – Learn English through reading",
-    short_name: "ReadLearn",
+    name: "Gainee – Learn English through reading",
+    short_name: "Gainee",
     description: "Turn articles into IELTS lessons with vocabulary, exercises and spaced repetition.",
     start_url: "/",
     scope: "/",

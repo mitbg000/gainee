@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "ReadLearn",
+    "name": "Gainee",
     "tagline": "Learn English through reading",
     "description": "Turn articles into IELTS lessons: vocabulary, exercises, spaced repetition and progress tracking."
   },
@@ -103,7 +103,7 @@
     "notImported": "No dictionary imported yet – see README → “Offline dictionary”."
   },
   "install": {
-    "title": "Install ReadLearn on this device",
+    "title": "Install Gainee on this device",
     "android": "Open it like a normal app – full screen, from your home screen.",
     "ios": "In Safari, tap <share></share> <b>Share</b>, then <b>Add to Home Screen</b>.",
     "install": "Install",

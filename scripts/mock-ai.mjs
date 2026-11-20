@@ -4,7 +4,7 @@
  *   node scripts/mock-ai.mjs [port=4010]
  * Then add a provider in Settings: preset "Custom", base URL http://127.0.0.1:4010/v1, any key, model "mock".
  *
- * It recognises ReadLearn's prompts and answers with plausible JSON built from the text itself.
+ * It recognises Gainee's prompts and answers with plausible JSON built from the text itself.
  * The FIRST lesson attempt deliberately contains mistakes (a word that is not in the text and a fake
  * quote) so the validation + retry path is exercised.
  */

@@ -10,14 +10,14 @@ if [ -f .env ]; then
 fi
 
 echo "MySQL database (create it first in aaPanel → Databases, charset utf8mb4)"
-read -rp "  Database name [readlearn]: " DB_NAME; DB_NAME=${DB_NAME:-readlearn}
+read -rp "  Database name [gainee]: " DB_NAME; DB_NAME=${DB_NAME:-gainee}
 read -rp "  Database user [$DB_NAME]: " DB_USER; DB_USER=${DB_USER:-$DB_NAME}
 read -rsp "  Database password: " DB_PASS; echo
 read -rp "  Host [127.0.0.1]: " DB_HOST; DB_HOST=${DB_HOST:-127.0.0.1}
 read -rp "  Port [3306]: " DB_PORT; DB_PORT=${DB_PORT:-3306}
 read -rp "App port (must be free) [3000]: " APP_PORT; APP_PORT=${APP_PORT:-3000}
 read -rp "Default language (en/vi) [vi]: " LOCALE; LOCALE=${LOCALE:-vi}
-read -rp "Upload folder [/www/wwwroot/readlearn-data/uploads]: " UPLOADS; UPLOADS=${UPLOADS:-/www/wwwroot/readlearn-data/uploads}
+read -rp "Upload folder [/www/wwwroot/gainee-data/uploads]: " UPLOADS; UPLOADS=${UPLOADS:-/www/wwwroot/gainee-data/uploads}
 
 read -rp "Login username for the web app [admin]: " APP_USER; APP_USER=${APP_USER:-admin}
 while true; do
