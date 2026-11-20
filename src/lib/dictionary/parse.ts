@@ -31,7 +31,7 @@ function toText(html: string) {
     .replace(/&#39;/g, "'");
 }
 
-const bare = (s: string) => s.toLowerCase().replace(/[·•@*]/g, "").trim();
+const letters = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 
 export function parseDictEntry(html: string, headword: string) {
   const lines = toText(html)
@@ -39,7 +39,7 @@ export function parseDictEntry(html: string, headword: string) {
     .split("\n")
     .map((l) => l.replace(/\s+/g, " ").trim())
     .filter(Boolean);
-  const word = bare(headword);
+  const word = letters(headword);
   let ipa: string | null = null;
   let pos: string | null = null;
   let example: string | null = null;
@@ -47,11 +47,11 @@ export function parseDictEntry(html: string, headword: string) {
 
   for (const line of lines) {
     ipa ??= IPA.exec(line)?.[0] ?? null;
-    // header: the headword (maybe with syllable dots or "@"), a dash, [UK]/[US] and IPAs
-    const b = bare(line);
-    if (b.startsWith(word) && !b.slice(word.length).replace(/\[(uk|us|br|am)\]|\/[^/]*\//g, "").replace(/[—–\-;,\s]/g, "")) continue;
+    // header: the headword (with syllable dots, "@", any dash), [UK]/[US] and IPAs – compared by letters only,
+    // and any line with an IPA before the first part of speech or meaning
+    const rest = letters(line.replace(/\[(uk|us|br|am)\]|\/[^/\n]*\//gi, ""));
+    if (rest === word || rest === "" || (IPA.test(line) && !pos && !senses.length)) continue;
     if (/^cefr\b/i.test(line)) continue;
-    if (IPA.test(line) && line.replace(IPA, "").replace(/[—–\-\s]/g, "") === "") continue;
 
     const posText = line.replace(/^[*•■◆\s]+/, "");
     const p = posText.length < 30 ? POS.find(([re]) => re.test(posText))?.[1] : undefined;
