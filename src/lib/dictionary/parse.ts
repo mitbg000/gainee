@@ -2,6 +2,7 @@
  * Turn a dictionary entry's HTML into vocabulary-card fields (IPA, part of speech, meaning, example).
  * Formats differ between dictionaries; handled:
  *   "thy·roid — /ˈθaɪrɔɪd/" header · "tính từ" · "1. (giải phẫu) tuyến giáp" · "‣ thyroid cartilage ↔ sụn tuyến giáp"
+ *   "pro·ced·ure — [UK] /…/ [US] /…/" header · "CEFR: B2" · "■ danh từ" · later "■ …" / "≈ …" sections (synonyms, origin) are skipped
  *   "@hat /hæt/" header · "* danh từ" · "- cái mũ" · "=to wear a hat+ đội mũ"
  * Only the first part of speech is used, so the card stays short like an AI card.
  */
@@ -46,9 +47,10 @@ export function parseDictEntry(html: string, headword: string) {
 
   for (const line of lines) {
     ipa ??= IPA.exec(line)?.[0] ?? null;
-    // header: the headword (maybe with syllable dots or "@"), a dash and/or the IPA
+    // header: the headword (maybe with syllable dots or "@"), a dash, [UK]/[US] and IPAs
     const b = bare(line);
-    if (b.startsWith(word) && /^\s*[—–-]?\s*(\/[^/]*\/)?\s*$/.test(b.slice(word.length))) continue;
+    if (b.startsWith(word) && !b.slice(word.length).replace(/\[(uk|us|br|am)\]|\/[^/]*\//g, "").replace(/[—–\-;,\s]/g, "")) continue;
+    if (/^cefr\b/i.test(line)) continue;
     if (IPA.test(line) && line.replace(IPA, "").replace(/[—–\-\s]/g, "") === "") continue;
 
     const posText = line.replace(/^[*•■◆\s]+/, "");
@@ -56,6 +58,11 @@ export function parseDictEntry(html: string, headword: string) {
     if (p) {
       if (senses.length) break; // next part of speech: the card keeps the first one only
       pos ??= p;
+      continue;
+    }
+    // other sections ("≈ CÙNG CHỦ ĐỀ", "■ đồng nghĩa/liên quan", "■ nguồn gốc từ") end the meanings
+    if (/^[■≈◆]/.test(line)) {
+      if (senses.length) break;
       continue;
     }
 
