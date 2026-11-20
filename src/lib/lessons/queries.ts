@@ -27,7 +27,7 @@ export async function getLessonData(id: number) {
   const saved = vocab.length
     ? await db.select({ id: words.id, lessonVocabId: words.lessonVocabId }).from(words).where(inArray(words.lessonVocabId, vocab.map((v) => v.id)))
     : [];
-  const terms = await db.select({ id: words.id, term: words.term }).from(words).where(and(eq(words.lessonId, id), isNull(words.lessonVocabId)));
+  const terms = await db.select({ id: words.id, term: words.term, meaningVi: words.meaningVi, context: words.context }).from(words).where(and(eq(words.lessonId, id), isNull(words.lessonVocabId))).orderBy(desc(words.id));
   return {
     lesson: { ...lesson, content: (lesson.content ?? null) as LessonContent | null },
     document: doc,
@@ -36,7 +36,7 @@ export async function getLessonData(id: number) {
     annotations: notes,
     aiMessages: ai,
     writings: writing,
-    savedTerms: Object.fromEntries(terms.map((w) => [w.term.toLowerCase(), w.id])) as Record<string, number>,
+    savedTermWords: terms,
     savedVocab: Object.fromEntries(saved.map((s) => [s.lessonVocabId!, s.id])) as Record<number, number>,
   };
 }

@@ -9,7 +9,23 @@ import { useAiAsk } from "./useAiAsk";
 import { speak } from "@/lib/speech";
 
 /* =================================================================== vocabulary */
-export function VocabPane({ vocab, saved, onToggleSave, onSaveAll }: { vocab: Vocab[]; saved: Record<number, number>; onToggleSave: (id: number) => void; onSaveAll: () => void }) {
+export type TermWord = { id: number; term: string; meaningVi: string | null; context: string | null };
+
+export function VocabPane({
+  vocab,
+  saved,
+  onToggleSave,
+  onSaveAll,
+  termWords,
+  onRemoveTerm,
+}: {
+  vocab: Vocab[];
+  saved: Record<number, number>;
+  onToggleSave: (id: number) => void;
+  onSaveAll: () => void;
+  termWords: TermWord[];
+  onRemoveTerm: (w: TermWord) => void;
+}) {
   const t = useTranslations("lesson.vocab");
   const [hide, setHide] = useState(false);
   const [shown, setShown] = useState<Set<number>>(new Set());
@@ -64,6 +80,29 @@ export function VocabPane({ vocab, saved, onToggleSave, onSaveAll }: { vocab: Vo
           );
         })}
       </ul>
+
+      {termWords.length > 0 && (
+        <section className="mt-6">
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-accent2">{t("mine", { n: termWords.length })}</h3>
+          <ul className="space-y-2.5">
+            {termWords.map((w) => (
+              <li key={w.id} className="flex items-start gap-2 rounded-2xl border border-line bg-card p-4">
+                <div className="min-w-0 flex-1">
+                  <span className="font-serif text-xl font-bold">{w.term}</span>
+                  {w.meaningVi && <div className="font-semibold text-accent">{w.meaningVi}</div>}
+                  {w.context && <p className="mt-1 rounded-lg bg-paper px-3 py-2 font-serif text-[15px]">“{w.context}”</p>}
+                </div>
+                <button onClick={() => speak(w.term)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
+                  🔊
+                </button>
+                <button onClick={() => onRemoveTerm(w)} className="rounded-lg border border-amber-400 bg-amber-50 px-2 py-1 dark:bg-amber-950" aria-label={t("save")}>
+                  ★
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

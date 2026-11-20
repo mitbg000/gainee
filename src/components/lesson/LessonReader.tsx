@@ -7,7 +7,7 @@ import { parseRich } from "@/lib/text/rich";
 import RichBlock from "./RichBlock";
 import LessonEditor from "./LessonEditor";
 import { locateQuote } from "./marks";
-import { ExercisesPane, PracticePane, VocabPane } from "./Panes";
+import { ExercisesPane, PracticePane, VocabPane, type TermWord } from "./Panes";
 import ReadPane from "./ReadPane";
 import type { AiMsg, Anchor, Annotation, HlColor, LessonData } from "./types";
 
@@ -21,7 +21,8 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const [annotations, setAnnotations] = useState<Annotation[]>(data.annotations);
   const [aiMessages, setAiMessages] = useState<AiMsg[]>(data.aiMessages);
   const [saved, setSaved] = useState<Record<number, number>>(data.savedVocab);
-  const [savedTerms, setSavedTerms] = useState<Record<string, number>>(data.savedTerms);
+  const [termWords, setTermWords] = useState<TermWord[]>(data.savedTermWords);
+  const savedTerms = useMemo(() => Object.fromEntries(termWords.map((w) => [w.term.toLowerCase(), w.id])) as Record<string, number>, [termWords]);
   const [flash, setFlash] = useState<{ p: number; start: number; end: number } | null>(null);
   const [completed, setCompleted] = useState(!!lesson.completedAt);
   const [best, setBest] = useState<number | null>(lesson.bestScore);
@@ -136,18 +137,14 @@ export default function LessonReader({ data }: { data: LessonData }) {
       const key = term.toLowerCase().slice(0, 191);
       const id = savedTerms[key];
       if (id) {
-        setSavedTerms((s) => {
-          const next = { ...s };
-          delete next[key];
-          return next;
-        });
+        setTermWords((ws) => ws.filter((w) => w.id !== id));
         await fetch(`/api/words/${id}`, { method: "DELETE" });
         return say(t("unsaved"));
       }
       const r = await fetch("/api/words", { method: "POST", ...json({ term: term.slice(0, 191), context, lessonId: lesson.id }) });
       if (!r.ok) return say(t("error"));
       const { id: newId } = await r.json();
-      setSavedTerms((s) => ({ ...s, [key]: newId }));
+      setTermWords((ws) => [{ id: newId, term: term.slice(0, 191), meaningVi: null, context }, ...ws]);
       say(t("saved"));
     },
     [savedTerms, lesson.id, t],
@@ -197,7 +194,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
             className={`min-h-11 whitespace-nowrap border-b-2 px-3 text-sm font-medium ${tab === k ? "border-accent2 text-ink" : "border-transparent text-muted"}`}
           >
             {t(`tabs.${k}`)}
-            {k === "vocab" && <span className="ml-1 text-xs text-muted">{vocab.length}</span>}
+            {k === "vocab" && <span className="ml-1 text-xs text-muted">{vocab.length + termWords.length}</span>}
           </button>
         ))}
       </div>
@@ -235,7 +232,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
               ))}
             </article>
             <div className="min-w-0">
-              {tab === "vocab" && <VocabPane vocab={vocab} saved={saved} onToggleSave={toggleSave} onSaveAll={saveAll} />}
+              {tab === "vocab" && <VocabPane vocab={vocab} saved={saved} onToggleSave={toggleSave} onSaveAll={saveAll} termWords={termWords} onRemoveTerm={(w) => toggleTerm(w.term, w.context ?? "")} />}
               {tab === "ex" && content && <ExercisesPane lessonId={lesson.id} content={content} vocab={vocab} bestScore={best} onLocate={locate} onScored={setBest} />}
               {tab === "practice" && content && <PracticePane lessonId={lesson.id} content={content} writings={data.writings} notes={lesson.notes ?? ""} />}
             </div>

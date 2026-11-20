@@ -410,7 +410,8 @@
       "count": "{n} từ",
       "reveal": "Hiện nghĩa",
       "listen": "Nghe",
-      "save": "Lưu vào sổ tay"
+      "save": "Lưu vào sổ tay",
+      "mine": "Từ bạn đã lưu trong bài này ({n})"
     },
     "ex": {
       "tip": "True = bài nói đúng như vậy · False = bài nói ngược lại · Not Given = bài không đề cập. Chỉ dựa vào bài, không dùng hiểu biết riêng.",
@@ -474,6 +475,10 @@
     "title": "Từ đã lưu",
     "empty": "Chưa có từ nào. Bấm vào một từ khi đọc rồi bấm ☆.",
     "fromLesson": "Từ bài đọc",
-    "remove": "Xóa"
+    "remove": "Xóa",
+    "total": "{n} từ đã lưu, nhóm theo bài đọc và phần",
+    "count": "{n} từ",
+    "part": "Phần {n}",
+    "other": "Từ khác"
   }
 }

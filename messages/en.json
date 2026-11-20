@@ -410,7 +410,8 @@
       "count": "{n} words",
       "reveal": "Show meaning",
       "listen": "Listen",
-      "save": "Save to notebook"
+      "save": "Save to notebook",
+      "mine": "Words you saved from this lesson ({n})"
     },
     "ex": {
       "tip": "True = the text says so · False = the text says the opposite · Not Given = the text does not say. Use only the text, not your own knowledge.",
@@ -474,6 +475,10 @@
     "title": "Saved words",
     "empty": "No saved words yet. Tap a word while reading, then ☆.",
     "fromLesson": "From a lesson",
-    "remove": "Remove"
+    "remove": "Remove",
+    "total": "{n} saved words, grouped by text and lesson",
+    "count": "{n} words",
+    "part": "Part {n}",
+    "other": "Other words"
   }
 }
