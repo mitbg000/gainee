@@ -707,6 +707,7 @@
     },
     "notConfigured": "Chưa cấu hình nhà cung cấp AI trong Cài đặt.",
     "aiError": "AI bị lỗi, hãy thử lại.",
-    "saveError": "Không lưu được bài, hãy thử lại."
+    "saveError": "Không lưu được bài, hãy thử lại.",
+    "draft": "Nháp"
   }
 }

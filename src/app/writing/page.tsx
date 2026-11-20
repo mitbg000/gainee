@@ -6,10 +6,13 @@ import { getWriting, listWritings, type Grade } from "@/lib/writing";
 
 export const dynamic = "force-dynamic";
 
-export default async function WritingPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
+export default async function WritingPage({ searchParams }: { searchParams: Promise<{ id?: string; new?: string }> }) {
   const t = await getTranslations("writing");
-  const id = Number((await searchParams).id) || null;
-  const [list, cur] = await Promise.all([listWritings(), id ? getWriting(id) : undefined]);
+  const sp = await searchParams;
+  const list = await listWritings();
+  // Without an id, continue the latest unscored draft; "New" (?new=1) starts a blank one.
+  const id = Number(sp.id) || (sp.new ? null : (list.find((w) => w.bandOverall == null)?.id ?? null));
+  const cur = id ? await getWriting(id) : undefined;
   const initial = cur ? { id: cur.id, kind: cur.kind as "task1" | "task2" | "free", prompt: cur.prompt ?? "", body: cur.body, grade: (cur.feedback as Grade | null) ?? null } : null;
 
   return (
@@ -21,7 +24,7 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
         <aside className="mt-8 lg:mt-0">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("history")}</h2>
-            <Link href="/writing" className="text-sm text-accent underline">
+            <Link href="/writing?new=1" className="text-sm text-accent underline">
               ＋ {t("new")}
             </Link>
           </div>
@@ -32,7 +35,7 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
                 <Link href={`/writing?id=${w.id}`} className={`block rounded-xl border px-3 py-2 text-sm ${w.id === id ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent"}`}>
                   <span className="flex items-center justify-between gap-2 text-xs text-muted">
                     <span>{t(`kind.${w.kind as "task1" | "task2" | "free"}`)} · {t("words", { n: w.wordCount })}</span>
-                    {w.bandOverall != null && <b className="rounded bg-accent px-1.5 text-on-accent">{w.bandOverall}</b>}
+                    {w.bandOverall != null ? <b className="rounded bg-accent px-1.5 text-on-accent">{w.bandOverall}</b> : <span className="rounded bg-amber-100 px-1.5 text-amber-800 dark:bg-amber-950 dark:text-amber-300">{t("draft")}</span>}
                   </span>
                   <span className="mt-0.5 line-clamp-2">{w.prompt || "…"}</span>
                 </Link>

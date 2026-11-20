@@ -707,6 +707,7 @@
     },
     "notConfigured": "No AI provider is configured in Settings.",
     "aiError": "The AI failed, please try again.",
-    "saveError": "Could not save, please try again."
+    "saveError": "Could not save, please try again.",
+    "draft": "Draft"
   }
 }

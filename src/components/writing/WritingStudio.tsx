@@ -42,29 +42,73 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
     return () => clearInterval(i);
   }, [startedAt]);
 
-  async function save() {
-    const snap = JSON.stringify({ kind, prompt, body });
-    if (snap === savedRef.current || (!prompt.trim() && !body.trim())) return true;
-    const r = idRef.current
-      ? await fetch(`/api/writings/${idRef.current}`, { method: "PUT", ...json({ kind, prompt, body }) })
-      : await fetch("/api/writings", { method: "POST", ...json({ kind, prompt, body }) });
-    if (!r.ok) return false;
-    if (!idRef.current) {
-      idRef.current = (await r.json()).id;
-      setId(idRef.current);
-    }
-    savedRef.current = snap;
-    setSaved(true);
-    return true;
+  const queue = useRef<Promise<boolean>>(Promise.resolve(true));
+  const latest = useRef({ kind, prompt, body });
+  latest.current = { kind, prompt, body };
+
+  /** Saves the current text; calls run one after another so the first save never creates two drafts. */
+  function save(keepalive = false): Promise<boolean> {
+    queue.current = queue.current.then(async () => {
+      const data = latest.current;
+      const snap = JSON.stringify(data);
+      if (snap === savedRef.current || (!data.prompt.trim() && !data.body.trim())) return true;
+      try {
+        const r = idRef.current
+          ? await fetch(`/api/writings/${idRef.current}`, { method: "PUT", keepalive, ...json(data) })
+          : await fetch("/api/writings", { method: "POST", keepalive, ...json(data) });
+        if (!r.ok) return false;
+        if (!idRef.current) {
+          idRef.current = (await r.json()).id as number;
+          setId(idRef.current);
+          // reloading or coming back opens this draft again
+          window.history.replaceState(null, "", `/writing?id=${idRef.current}`);
+        }
+        savedRef.current = snap;
+        setSaved(JSON.stringify(latest.current) === snap);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    return queue.current;
   }
-  // auto-save a moment after typing stops
+  // auto-save shortly after typing stops
   useEffect(() => {
     if (JSON.stringify({ kind, prompt, body }) === savedRef.current) return;
     setSaved(false);
-    const h = setTimeout(save, 1200);
+    const h = setTimeout(() => save(), 800);
     return () => clearTimeout(h);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- save() reads the same state
   }, [kind, prompt, body]);
+  // ...and right away when the tab is hidden, the app is switched or the page is left
+  useEffect(() => {
+    const flush = () => document.visibilityState === "hidden" && save(true);
+    const leave = () => save(true);
+    window.addEventListener("pagehide", leave);
+    document.addEventListener("visibilitychange", flush);
+    return () => {
+      window.removeEventListener("pagehide", leave);
+      document.removeEventListener("visibilitychange", flush);
+      save(true); // navigating to another page inside the app
+    };
+  }, []);
+
+  // the timer continues from the time already spent when the draft is opened again (time away is not counted)
+  useEffect(() => {
+    if (!id || startedAt) return;
+    try {
+      const spent = Number(localStorage.getItem(`wr_time_${id}`));
+      if (spent > 0) {
+        setStartedAt(Date.now() - spent * 1000);
+        setNow(Date.now());
+      }
+    } catch {}
+  }, [id, startedAt]);
+  useEffect(() => {
+    if (!id || !startedAt || !now) return;
+    try {
+      localStorage.setItem(`wr_time_${id}`, String(Math.floor((now - startedAt) / 1000)));
+    } catch {}
+  }, [id, startedAt, now]);
 
   async function newPrompt() {
     setBusy("prompt");
@@ -96,7 +140,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
   async function remove() {
     if (!idRef.current || !confirm(t("deleteConfirm"))) return;
     await fetch(`/api/writings/${idRef.current}`, { method: "DELETE" });
-    router.push("/writing");
+    router.push("/writing?new=1");
     router.refresh();
   }
 
@@ -181,7 +225,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
             ✨ {busy === "grade" ? t("grading") : grade ? t("regrade") : t("grade")}
           </button>
           {grade && (
-            <Link href="/writing" className="min-h-11 rounded-xl border border-line px-4 py-2.5 text-sm">
+            <Link href="/writing?new=1" className="min-h-11 rounded-xl border border-line px-4 py-2.5 text-sm">
               ＋ {t("new")}
             </Link>
           )}
