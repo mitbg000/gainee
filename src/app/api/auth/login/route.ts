@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { verifyPassword } from "@/lib/password";
+import { safeEqual, verifyPassword } from "@/lib/password";
 import { createSession, SESSION_COOKIE, SESSION_DAYS } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -15,19 +15,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
   }
 
-  const { password } = (await req.json().catch(() => ({}))) as { password?: string };
-  if (!password || !verifyPassword(password, process.env.APP_PASSWORD_HASH)) {
+  const { username, password } = (await req.json().catch(() => ({}))) as { username?: string; password?: string };
+  const expectedUser = (process.env.APP_USERNAME || "admin").trim().toLowerCase();
+  // Always run the (slow) password check so timing does not reveal whether the username exists.
+  const passOk = !!password && verifyPassword(password, process.env.APP_PASSWORD_HASH);
+  const userOk = !!username && safeEqual(username.trim().toLowerCase(), expectedUser);
+  if (!userOk || !passOk) {
     const cur = f && f.until > Date.now() ? f : { n: 0, until: Date.now() + WINDOW_MS };
     cur.n++;
     failures.set(ip, cur);
     await new Promise((r) => setTimeout(r, 400));
-    return NextResponse.json({ error: "wrong_password" }, { status: 401 });
+    return NextResponse.json({ error: "wrong_credentials" }, { status: 401 });
   }
   failures.delete(ip);
 
   const https = req.headers.get("x-forwarded-proto") === "https" || req.nextUrl.protocol === "https:";
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(SESSION_COOKIE, await createSession(), {
+  res.cookies.set(SESSION_COOKIE, await createSession(expectedUser), {
     httpOnly: true,
     sameSite: "lax",
     secure: https,

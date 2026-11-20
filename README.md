@@ -3,6 +3,8 @@
 A personal (single-user) web app for learning English through reading. It turns articles into IELTS-style lessons with vocabulary, exercises and spaced repetition, tracks your progress and keeps you motivated. It works with DeepSeek, ChatGPT, Gemini and Grok.
 
 - **UI languages:** English and Vietnamese, switchable with the EN / VI toggle
+- **Light / dark / system theme**, a mobile-first layout, and installable as an app (PWA), including on iPhone/iPad
+- **Offline English–Vietnamese dictionary** (StarDict import); AI is only used when you ask for a deeper explanation
 - **Stack:** Next.js 15 · TypeScript · Tailwind · Drizzle ORM · MySQL / MariaDB · PM2
 - **Hosting target:** aaPanel (Nginx + MySQL + Node.js manager); works on any Linux server with Node 20.6+ and MySQL
 
@@ -26,9 +28,13 @@ Files (word images, PDFs, audio) ─► UPLOAD_DIR (outside the app folder)
 | `src/db/schema.ts` | Full data model, including tables for later phases |
 | `src/i18n`, `messages/*.json` | Translations (`en`, `vi`) and locale detection |
 | `src/lib` | Auth (session, password), API-key encryption, job queue, settings |
+| `src/lib/dictionary` | Offline dictionary: normalization, lemma rules, lookup, HTML sanitizer |
+| `src/lib/ai/tasks.ts` | Per-task AI routing (provider + model for each feature) |
+| `src/theme` | Light/dark theme cookie + no-flash init script |
+| `src/app/manifest.ts`, `public/sw.js` | PWA manifest and service worker |
 | `src/worker` | Background worker: job handlers and per-minute tasks |
 | `drizzle/` | SQL migrations, generated from the schema |
-| `scripts/` | `init-env.sh`, `deploy.sh` |
+| `scripts/` | `init-env.sh`, `deploy.sh`, `make-icons.mjs` |
 | `deploy/nginx-aapanel.conf` | Reverse-proxy block for aaPanel |
 | `ecosystem.config.cjs` | PM2 config (web + worker) |
 
@@ -43,6 +49,7 @@ npm install
 cp .env.example .env              # set DATABASE_URL, then add secrets:
 #   SESSION_SECRET  → openssl rand -hex 32
 #   ENCRYPTION_KEY  → openssl rand -base64 32
+#   APP_USERNAME      → your login name
 #   APP_PASSWORD_HASH → npm run -s hash-password -- yourpassword
 npm run build:scripts && npm run db:migrate
 npm run dev           # http://localhost:3000
@@ -108,7 +115,23 @@ In GitHub, open **Settings → Secrets and variables → Actions** and add:
 
 From then on, every push to `main` runs lint, type-check and build in CI, then deploys to the server.
 
-### 6. Backups (aaPanel)
+### 6. Offline dictionary (recommended)
+Download the **StarDict** version of the dictionary (for example `tudien-stardict-en-vi.zip` from
+[redphx/tudien releases](https://github.com/redphx/tudien/releases)) to the server, then import it:
+
+```bash
+cd /www/wwwroot/readlearn
+wget -O /tmp/tudien.zip "<link to the StarDict .zip from the release page>"
+node --env-file=.env dist/import-dictionary.js /tmp/tudien.zip --name tudien
+```
+
+The importer reads `.ifo`, `.idx`, `.dict(.dz)` and the optional `.syn` file (inflections such as *remembered → remember*). It cleans the HTML, keeps cross-reference links clickable, and loads everything into the `dict_entries` and `dict_aliases` tables. If you import again with the same `--name`, the old copy is replaced. It accepts a `.zip` file, a folder, or a URL.
+
+Look-ups try three things in order: the exact headword, then a StarDict alias, then simple English lemma rules (*studies → study*, *stopped → stop*). None of this calls the AI.
+
+> The tudien repository has no license file, and its content is compiled from several commercial dictionaries. Keep it for personal use, and do not commit the data to a public repository.
+
+### 7. Backups (aaPanel)
 Go to **Cron → Add task**:
 - **Backup Database** → `readlearn`, daily, keep 14 copies. If you use aaPanel's cloud-storage plugins, choose a remote target.
 - **Backup Directory** → your `UPLOAD_DIR` (word images, PDFs, audio), daily or weekly.
@@ -123,5 +146,18 @@ Go to **Cron → Add task**:
 | Logs | `pm2 logs readlearn-web` / `pm2 logs readlearn-worker` |
 | Restart | `pm2 reload ecosystem.config.cjs --update-env` |
 | Update manually | `bash scripts/deploy.sh` |
+| Change login name | edit `APP_USERNAME` in `.env` → restart |
 | Change login password | `node dist/hash-password.js` → put the result in `APP_PASSWORD_HASH` in `.env` → restart |
+| Re-import / update dictionary | `node --env-file=.env dist/import-dictionary.js <zip> --name tudien` |
 | Change default language | `DEFAULT_LOCALE=en` or `vi` in `.env` → restart |
+
+---
+
+## Install on phones (PWA)
+
+The app must be served over **HTTPS** (aaPanel SSL) to be installable.
+
+- **iPhone / iPad (Safari):** tap **Share → Add to Home Screen**. The app then opens full screen with its own icon. The dashboard shows these instructions automatically on iOS.
+- **Android (Chrome) / desktop Chrome & Edge:** an **Install** button appears on the dashboard (or use the browser menu → *Install app*).
+
+The service worker (`public/sw.js`) caches static assets and recently visited pages. If you go offline, you get a friendly offline page instead of an error. API data is never cached. After changing caching rules, bump `VERSION` in `sw.js`.

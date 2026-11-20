@@ -4,6 +4,7 @@ import { getDb, schema } from "@/db";
 import { getSetting } from "@/lib/settings";
 import Shell from "@/components/Shell";
 import JobsPanel from "@/components/JobsPanel";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export const dynamic = "force-dynamic";
 
@@ -33,19 +34,21 @@ export default async function DashboardPage() {
   return (
     <Shell>
       <p className="text-xs font-bold uppercase tracking-widest text-accent2">{t("kicker")}</p>
-      <h1 className="mt-1 font-serif text-4xl font-bold">{t("greeting")}</h1>
-      <p className="mt-2 text-gray-600">{t("intro")}</p>
+      <h1 className="mt-1 font-serif text-3xl font-bold md:text-4xl">{t("greeting")}</h1>
+      <p className="mt-2 text-muted">{t("intro")}</p>
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <InstallPrompt />
+
+      <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
         {(["documents", "lessons", "words"] as const).map((k) => (
-          <div key={k} className="rounded-2xl border border-line bg-white p-4">
-            <div className="text-sm text-gray-500">{t(`stats.${k}`)}</div>
-            <div className="mt-1 text-3xl font-bold">{stats ? stats[k] : "–"}</div>
+          <div key={k} className="rounded-2xl border border-line bg-card p-3 sm:p-4">
+            <div className="text-xs text-muted sm:text-sm">{t(`stats.${k}`)}</div>
+            <div className="mt-1 text-2xl font-bold sm:text-3xl">{stats ? stats[k] : "–"}</div>
           </div>
         ))}
       </div>
 
-      <section className="mt-6 rounded-2xl border border-line bg-white p-5">
+      <section className="mt-6 rounded-2xl border border-line bg-card p-5">
         <h2 className="font-serif text-xl font-bold">{t("system.title")}</h2>
         <ul className="mt-3 space-y-1.5 text-sm">
           <li>✅ {t("system.web")}</li>

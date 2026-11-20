@@ -6,23 +6,26 @@
     "dev": "next dev",
     "dev:worker": "tsx watch --env-file=.env src/worker/index.ts",
     "build": "next build && npm run build:scripts",
-    "build:scripts": "esbuild src/worker/index.ts src/db/migrate.ts src/scripts/hash-password.ts --bundle --platform=node --target=node20 --format=cjs --external:mysql2 --outdir=dist --entry-names=[name] && mv dist/index.js dist/worker.js",
+    "build:scripts": "esbuild src/worker/index.ts src/db/migrate.ts src/scripts/hash-password.ts src/scripts/import-dictionary.ts --bundle --platform=node --target=node20 --format=cjs --external:mysql2 --outdir=dist --entry-names=[name] && mv dist/index.js dist/worker.js",
     "start": "next start",
     "worker": "node --env-file=.env dist/worker.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env dist/migrate.js",
     "hash-password": "tsx src/scripts/hash-password.ts",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dict:import": "node --env-file=.env dist/import-dictionary.js"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
+    "fflate": "^0.8.3",
     "jose": "^6.2.18",
     "mysql2": "^3.24.6",
     "next": "15.5.29",
     "next-intl": "^4.15.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "sanitize-html": "^2.18.2",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -31,6 +34,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.2",
     "drizzle-kit": "^0.31.11",
     "esbuild": "^0.28.2",
     "eslint": "^9",

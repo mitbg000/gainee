@@ -13,7 +13,7 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
   const [pending, start] = useTransition();
 
   return (
-    <div role="group" aria-label={t("label")} className={`inline-flex rounded-lg border border-line bg-white p-0.5 text-xs ${className}`}>
+    <div role="group" aria-label={t("label")} className={`inline-flex rounded-lg border border-line bg-card p-0.5 text-xs ${className}`}>
       {locales.map((l) => (
         <button
           key={l}
@@ -27,8 +27,8 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
               router.refresh();
             })
           }
-          className={`rounded-md px-2.5 py-1 font-semibold uppercase transition ${
-            l === current ? "bg-ink text-white" : "text-gray-500 hover:text-ink"
+          className={`rounded-md px-2.5 py-1.5 font-semibold uppercase transition ${
+            l === current ? "bg-ink text-paper" : "text-muted hover:text-ink"
           }`}
         >
           {l}

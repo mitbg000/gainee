@@ -4,10 +4,10 @@
 
 | Phase | Scope | Status |
 |---|---|---|
-| **0 – Foundation** | Next.js, MySQL + Drizzle, single-user login, EN/VI UI, job queue + worker, PM2, aaPanel deploy, CI/CD | ✅ done |
-| **1 – Texts → lessons** | Import (paste / PDF / DOCX / TXT); clean & split into ~500–800-word lessons; AI generates summary, vocabulary, TFNG / MCQ / gap / matching, structures, paraphrase, speaking/writing prompts; validation against the source text; reader with tap-to-define; exercises with explanations | next |
+| **0 – Foundation** | Next.js, MySQL + Drizzle, username + password login, EN/VI UI, light/dark theme, mobile layout + PWA (iOS & Android), offline StarDict dictionary, job queue + worker, PM2, aaPanel deploy, CI/CD | ✅ done |
+| **1 – Texts → lessons + reader** | AI provider settings (all 4 providers, model per task); import (paste / PDF / DOCX / TXT); clean & split into ~500–800-word lessons; AI generates summary, vocabulary, TFNG / MCQ / gap / matching, structures, paraphrase, speaking/writing prompts, validated against the source text; **reader with margin notes, dictionary pop-up and quick-AI panel** (see below); exercises with explanations | next |
 | **2 – Vocabulary, progress, motivation** | Notebook with **images** and mnemonics; FSRS reviews in several modes; progress dashboard; streaks, XP, goals, achievements; "then vs. now" | |
-| **3 – Multi-AI & assistant** | DeepSeek / OpenAI / Gemini / xAI behind one OpenAI-compatible client; model per task; fallback; cost tracking; Writing Task 2 grading by criterion; ask-about-this-text chat; sentence explainer | |
+| **3 – Assistant & writing** | Fallback provider, cost dashboard, Writing Task 2 grading by criterion, free chat about a text | |
 | **4 – Reminders, mobile, speaking** | PWA install + web push; Telegram / email reminders; weekly report; speaking practice (record → transcript → feedback) | |
 
 ---
@@ -77,3 +77,37 @@ The rules behind these features: small daily wins, visible progress, and no all-
 - **Data model:** a word can have several images with captions (`media`, `word_media`). Each word also has a `mnemonic` field for a personal memory hook.
 - **Review modes:** *image → word* (recall), *word → meaning + image*, *cloze* with the original sentence, *listen → spell*.
 - **Later (optional):** image search via the Unsplash or Pixabay API, AI-generated images, and AI-suggested mnemonics.
+
+---
+
+## Reader (Phase 1)
+
+The reader keeps everything on one screen, so you never have to switch tabs while reading.
+
+```
+┌──────────── text (serif, adjustable size) ────────────┬──── right panel ────┐
+│ … she carried herself with an [air of easy command] … │ 💬 Note             │
+│                                                       │  "confident without │
+│                                                       │   trying – use in   │
+│                                                       │   Speaking P2"      │
+│                                                       │ ─────────────────── │
+│                                                       │ 📖 Dictionary       │
+│                                                       │ ✨ Ask AI           │
+└───────────────────────────────────────────────────────┴─────────────────────┘
+```
+
+**Selecting text** opens a small toolbar: **Highlight** (5 colours) · **Note** · **Look up** · **Ask AI** · **Save word**.
+
+- **Margin notes (Google Docs style):** notes appear in the right panel, lined up with their highlight. Clicking a highlight scrolls to its note, and clicking a note flashes its highlight. Notes are saved automatically. Each note is stored in `annotations` with paragraph, start/end offsets and the quoted text plus a little context, so it stays attached even if the text is edited. A search box filters all notes in the lesson.
+- **Dictionary first, AI second:** *Look up* shows the offline dictionary entry in the panel instantly, with no API call. An **"Explain more with AI"** button sits under every entry, for when the dictionary is not enough.
+- **Quick-AI panel:** one-tap actions for the selection:
+  - *Explain word in context*
+  - *Explain sentence*
+  - *Grammar / structure*
+  - *Translate*
+  - *Paraphrase (IELTS)*
+  - a free question box
+
+  The AI receives the selection, its sentence and its paragraph. Answers stream into the panel. Each answer can be **pinned** to the margin like a note, or turned into a vocabulary card. Everything is saved in `ai_messages`, so you can search old answers later.
+- **Model per task:** the quick-AI panel uses the `reader_quick` route from `ai.routing` (`src/lib/ai/tasks.ts`). In Settings you choose the provider and model for each task, e.g. a cheap DeepSeek model for quick questions, and a stronger model for lesson generation and writing feedback. A small model picker in the panel lets you override it for one question.
+- **Mobile:** the right panel becomes a bottom sheet. On phones, selecting text pops up the same toolbar. Tapping a highlight opens its note in the sheet.

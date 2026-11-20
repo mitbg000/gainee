@@ -1,16 +1,78 @@
 @import "tailwindcss";
 
-@theme {
-  --color-paper: #faf7f1;
-  --color-ink: #1d2433;
-  --color-line: #e7e1d6;
-  --color-accent: #1f4e79;
-  --color-accent2: #c2410c;
+/* Dark mode is driven by the `dark` class on <html> (see src/theme). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --paper: #faf7f1;
+  --card: #ffffff;
+  --ink: #1d2433;
+  --muted: #6b7280;
+  --line: #e7e1d6;
+  --accent: #1f4e79;
+  --on-accent: #ffffff;
+  --accent2: #c2410c;
+  --highlight: #fff1c2;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: #13161c;
+  --card: #1b1f27;
+  --ink: #e6e8ec;
+  --muted: #9aa3b2;
+  --line: #2b313c;
+  --accent: #7cb3e6;
+  --on-accent: #0b1220;
+  --accent2: #f59e5b;
+  --highlight: #5b4a14;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent2: var(--accent2);
+  --color-highlight: var(--highlight);
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-serif: Charter, "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
 }
 
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Dictionary entries (sanitized HTML from StarDict) */
+.dict-entry {
+  line-height: 1.55;
+}
+.dict-entry b,
+.dict-entry strong {
+  font-weight: 600;
+}
+.dict-entry i,
+.dict-entry em {
+  color: var(--muted);
+}
+.dict-entry ul,
+.dict-entry ol {
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.dict-entry li {
+  margin: 0.15rem 0;
+}
+.dict-entry p,
+.dict-entry div {
+  margin: 0.2rem 0;
+}
+.dict-entry a {
+  color: var(--accent);
+  text-decoration: underline;
 }

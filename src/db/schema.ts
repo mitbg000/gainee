@@ -371,3 +371,77 @@ export const jobs = mysqlTable(
   },
   (t) => [index("jobs_pick").on(t.status, t.runAt)],
 );
+
+/* =====================================================================
+ * Offline dictionary (imported from StarDict, e.g. redphx/tudien)
+ * ===================================================================== */
+export const dictEntries = mysqlTable(
+  "dict_entries",
+  {
+    id: pk(),
+    dict: varchar("dict", { length: 32 }).notNull(), // dictionary id, e.g. "tudien"
+    headword: varchar("headword", { length: 191 }).notNull(),
+    lookupKey: varchar("lookup_key", { length: 191 }).notNull(), // normalized lower-case headword
+    html: longtext("html").notNull(), // sanitized at import time
+  },
+  (t) => [index("dict_entries_key").on(t.lookupKey), index("dict_entries_dict").on(t.dict)],
+);
+
+/** Alternative spellings / inflections that point to an entry (StarDict .syn file). */
+export const dictAliases = mysqlTable(
+  "dict_aliases",
+  {
+    id: pk(),
+    dict: varchar("dict", { length: 32 }).notNull(),
+    lookupKey: varchar("lookup_key", { length: 191 }).notNull(),
+    entryId: int("entry_id").notNull().references(() => dictEntries.id, { onDelete: "cascade" }),
+  },
+  (t) => [index("dict_aliases_key").on(t.lookupKey), index("dict_aliases_dict").on(t.dict)],
+);
+
+/* =====================================================================
+ * Reader: highlights & margin notes, quick AI questions
+ * ===================================================================== */
+/**
+ * A highlight/comment anchored to a text range inside one lesson paragraph.
+ * Anchoring follows the W3C TextQuoteSelector idea: offsets for speed, plus the quoted text
+ * with a little context so the note can be re-attached if the paragraph text ever changes.
+ */
+export const annotations = mysqlTable(
+  "annotations",
+  {
+    id: pk(),
+    lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+    paragraph: int("paragraph").notNull(), // index in lessons.paragraphs
+    startOffset: int("start_offset").notNull(), // character offsets in the paragraph's plain text
+    endOffset: int("end_offset").notNull(),
+    quote: varchar("quote", { length: 1000 }).notNull(),
+    prefix: varchar("prefix", { length: 64 }),
+    suffix: varchar("suffix", { length: 64 }),
+    color: mysqlEnum("color", ["yellow", "green", "blue", "pink", "purple"]).notNull().default("yellow"),
+    note: text("note"), // empty = highlight only
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("annotations_lesson").on(t.lessonId, t.paragraph)],
+);
+
+/** Questions asked to the AI from the reader (or the dictionary), kept as a searchable history. */
+export const aiMessages = mysqlTable(
+  "ai_messages",
+  {
+    id: pk(),
+    lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
+    annotationId: int("annotation_id").references(() => annotations.id, { onDelete: "set null" }),
+    action: mysqlEnum("action", ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase", "custom"]).notNull(),
+    selection: text("selection"), // highlighted text
+    context: text("context"), // surrounding sentence/paragraph sent to the AI
+    question: text("question"), // free-form question (action = custom)
+    answer: longtext("answer"),
+    providerId: int("provider_id").references(() => aiProviders.id, { onDelete: "set null" }),
+    model: varchar("model", { length: 100 }),
+    pinned: boolean("pinned").notNull().default(false), // shown in the margin like a note
+    createdAt: createdAt(),
+  },
+  (t) => [index("ai_messages_lesson").on(t.lessonId)],
+);

@@ -19,14 +19,23 @@
     "assistant": "AI assistant",
     "settings": "Settings",
     "phase": "Phase {n}",
-    "logout": "Log out"
+    "logout": "Log out",
+    "dictionary": "Dictionary",
+    "more": "More",
+    "tab": {
+      "dashboard": "Home",
+      "library": "Library",
+      "dictionary": "Dictionary",
+      "review": "Review"
+    }
   },
   "login": {
+    "username": "Username",
     "password": "Password",
     "submit": "Log in",
     "checking": "Checking…",
     "errors": {
-      "wrong_password": "Wrong password",
+      "wrong_credentials": "Wrong username or password",
       "too_many_attempts": "Too many attempts. Please wait 15 minutes.",
       "unknown": "Login failed"
     }
@@ -61,5 +70,34 @@
       "done": "Done",
       "failed": "Failed"
     }
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Match system"
+  },
+  "dictionary": {
+    "kicker": "Offline",
+    "title": "Dictionary",
+    "placeholder": "Type an English word or phrase…",
+    "search": "Look up",
+    "loading": "Looking up…",
+    "notFound": "No entry for “{word}”.",
+    "askAiHint": "Tip: in the reader you can ask the AI to explain words that are not in the dictionary.",
+    "listen": "Listen",
+    "via": {
+      "alias": "shown for “{word}”",
+      "lemma": "base form of “{word}”"
+    },
+    "info": "{name} · {entries, number} entries · works offline, no AI needed",
+    "notImported": "No dictionary imported yet – see README → “Offline dictionary”."
+  },
+  "install": {
+    "title": "Install ReadLearn on this device",
+    "android": "Open it like a normal app – full screen, from your home screen.",
+    "ios": "In Safari, tap <share></share> <b>Share</b>, then <b>Add to Home Screen</b>.",
+    "install": "Install",
+    "dismiss": "Not now"
   }
 }

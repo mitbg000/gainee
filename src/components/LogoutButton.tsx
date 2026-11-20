@@ -6,7 +6,7 @@ export default function LogoutButton() {
   const t = useTranslations("nav");
   return (
     <button
-      className="text-sm text-gray-500 hover:text-ink"
+      className="text-sm text-muted hover:text-ink"
       onClick={async () => {
         await fetch("/api/auth/logout", { method: "POST" });
         location.href = "/login";

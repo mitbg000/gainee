@@ -1,54 +1,61 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { getTheme } from "@/theme/server";
 import LanguageSwitcher from "./LanguageSwitcher";
 import LogoutButton from "./LogoutButton";
+import { MobileTabBar, SidebarNav } from "./NavLinks";
+import ThemeSwitcher from "./ThemeSwitcher";
 
-const NAV: { href: string; key: string; phase?: number }[] = [
-  { href: "/", key: "dashboard" },
-  { href: "/library", key: "library", phase: 1 },
-  { href: "/import", key: "import", phase: 1 },
-  { href: "/words", key: "words", phase: 2 },
-  { href: "/review", key: "review", phase: 2 },
-  { href: "/progress", key: "progress", phase: 2 },
-  { href: "/assistant", key: "assistant", phase: 3 },
-  { href: "/settings", key: "settings", phase: 3 },
-];
-
+/**
+ * App frame.
+ *  - Desktop (md+): sticky sidebar with full navigation and settings at the bottom.
+ *  - Mobile: compact top bar + bottom tab bar; respects iPhone safe areas (notch / home indicator).
+ */
 export default async function Shell({ children }: { children: React.ReactNode }) {
-  const t = await getTranslations();
+  const [t, theme] = await Promise.all([getTranslations(), getTheme()]);
+
+  const controls = (
+    <div className="flex items-center justify-between gap-3">
+      <ThemeSwitcher initial={theme} />
+      <LanguageSwitcher />
+    </div>
+  );
+
   return (
-    <div className="min-h-screen md:flex">
-      <aside className="border-b border-line bg-white p-4 md:sticky md:top-0 md:flex md:h-screen md:w-60 md:flex-none md:flex-col md:border-r md:border-b-0">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <Link href="/" className="font-serif text-2xl font-bold">{t("app.name")}</Link>
-            <p className="text-xs text-gray-500">{t("app.tagline")}</p>
-          </div>
-          <LanguageSwitcher className="md:hidden" />
-        </div>
-        <nav className="mt-5 flex gap-1 overflow-x-auto md:flex-col">
-          {NAV.map((n) => (
-            <Link
-              key={n.key}
-              href={n.phase ? "#" : n.href}
-              aria-disabled={!!n.phase}
-              className={`flex items-center justify-between whitespace-nowrap rounded-lg px-3 py-2 text-sm ${
-                n.phase ? "pointer-events-none text-gray-400" : "hover:bg-paper"
-              }`}
-            >
-              {t(`nav.${n.key}`)}
-              {n.phase && <span className="ml-2 rounded bg-gray-100 px-1.5 text-[10px]">{t("nav.phase", { n: n.phase })}</span>}
-            </Link>
-          ))}
-        </nav>
-        <div className="mt-auto hidden items-center justify-between pt-6 md:flex">
+    <div className="min-h-dvh md:flex">
+      {/* Desktop sidebar */}
+      <aside className="hidden border-r border-line bg-card p-4 md:sticky md:top-0 md:flex md:h-dvh md:w-64 md:flex-none md:flex-col">
+        <Link href="/" className="font-serif text-2xl font-bold">{t("app.name")}</Link>
+        <p className="text-xs text-muted">{t("app.tagline")}</p>
+        <SidebarNav />
+        <div className="mt-auto flex flex-col gap-3 pt-6">
+          {controls}
           <LogoutButton />
-          <LanguageSwitcher />
         </div>
       </aside>
-      <main className="min-w-0 flex-1 px-5 py-7 md:px-10">
+
+      {/* Mobile top bar */}
+      <header
+        className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-card/95 px-4 backdrop-blur md:hidden"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <Link href="/" className="flex h-12 items-center font-serif text-xl font-bold">{t("app.name")}</Link>
+        <ThemeSwitcher initial={theme} />
+      </header>
+
+      <main
+        className="min-w-0 flex-1 px-4 pt-5 md:px-10 md:py-8"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}
+      >
         <div className="mx-auto max-w-4xl">{children}</div>
       </main>
+
+      <MobileTabBar>
+        <div className="flex flex-col gap-4">
+          <LanguageSwitcher />
+          <LogoutButton />
+        </div>
+      </MobileTabBar>
     </div>
   );
 }

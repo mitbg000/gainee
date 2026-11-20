@@ -19,14 +19,23 @@
     "assistant": "Trợ lý AI",
     "settings": "Cài đặt",
     "phase": "GĐ {n}",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "dictionary": "Từ điển",
+    "more": "Thêm",
+    "tab": {
+      "dashboard": "Tổng quan",
+      "library": "Thư viện",
+      "dictionary": "Từ điển",
+      "review": "Ôn tập"
+    }
   },
   "login": {
+    "username": "Tên đăng nhập",
     "password": "Mật khẩu",
     "submit": "Đăng nhập",
     "checking": "Đang kiểm tra…",
     "errors": {
-      "wrong_password": "Sai mật khẩu",
+      "wrong_credentials": "Sai tên đăng nhập hoặc mật khẩu",
       "too_many_attempts": "Thử sai quá nhiều lần. Hãy đợi 15 phút.",
       "unknown": "Đăng nhập thất bại"
     }
@@ -61,5 +70,34 @@
       "done": "Xong",
       "failed": "Lỗi"
     }
+  },
+  "theme": {
+    "label": "Giao diện",
+    "light": "Sáng",
+    "dark": "Tối",
+    "system": "Theo hệ thống"
+  },
+  "dictionary": {
+    "kicker": "Ngoại tuyến",
+    "title": "Từ điển",
+    "placeholder": "Nhập từ hoặc cụm từ tiếng Anh…",
+    "search": "Tra",
+    "loading": "Đang tra…",
+    "notFound": "Không có mục từ “{word}”.",
+    "askAiHint": "Mẹo: trong trang đọc, bạn có thể hỏi AI để giải thích những từ không có trong từ điển.",
+    "listen": "Nghe",
+    "via": {
+      "alias": "hiển thị cho “{word}”",
+      "lemma": "dạng gốc của “{word}”"
+    },
+    "info": "{name} · {entries, number} mục từ · dùng ngoại tuyến, không cần AI",
+    "notImported": "Chưa nhập từ điển – xem README → “Offline dictionary”."
+  },
+  "install": {
+    "title": "Cài ReadLearn lên thiết bị này",
+    "android": "Mở như một ứng dụng bình thường – toàn màn hình, ngay từ màn hình chính.",
+    "ios": "Trong Safari, bấm <share></share> <b>Chia sẻ</b>, rồi chọn <b>Thêm vào MH chính</b>.",
+    "install": "Cài đặt",
+    "dismiss": "Để sau"
   }
 }

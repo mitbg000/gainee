@@ -19,6 +19,7 @@ read -rp "App port (must be free) [3000]: " APP_PORT; APP_PORT=${APP_PORT:-3000}
 read -rp "Default language (en/vi) [vi]: " LOCALE; LOCALE=${LOCALE:-vi}
 read -rp "Upload folder [/www/wwwroot/readlearn-data/uploads]: " UPLOADS; UPLOADS=${UPLOADS:-/www/wwwroot/readlearn-data/uploads}
 
+read -rp "Login username for the web app [admin]: " APP_USER; APP_USER=${APP_USER:-admin}
 while true; do
   read -rsp "Login password for the web app (min 8 chars): " PW; echo
   read -rsp "Repeat: " PW2; echo
@@ -37,6 +38,7 @@ set_kv() { node -e '
 set_kv PORT "$APP_PORT"
 set_kv DEFAULT_LOCALE "$LOCALE"
 set_kv DATABASE_URL "mysql://$DB_USER:$ENC_DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME"
+set_kv APP_USERNAME "$APP_USER"
 set_kv APP_PASSWORD_HASH "$HASH"
 set_kv SESSION_SECRET "$(node -p 'require("crypto").randomBytes(32).toString("hex")')"
 set_kv ENCRYPTION_KEY "$(node -p 'require("crypto").randomBytes(32).toString("base64")')"

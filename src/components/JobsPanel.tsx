@@ -7,10 +7,10 @@ type Status = "queued" | "running" | "done" | "failed";
 type Job = { id: number; type: string; status: Status; progress: string | null; error: string | null };
 
 const COLOR: Record<Status, string> = {
-  queued: "bg-gray-100 text-gray-700",
-  running: "bg-blue-100 text-blue-800",
-  done: "bg-green-100 text-green-800",
-  failed: "bg-red-100 text-red-800",
+  queued: "bg-paper text-muted",
+  running: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  done: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
+  failed: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
 };
 
 export default function JobsPanel() {
@@ -34,24 +34,24 @@ export default function JobsPanel() {
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-line bg-white p-5">
-      <div className="flex items-center justify-between gap-3">
+    <section className="mt-8 rounded-2xl border border-line bg-card p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-serif text-xl font-bold">{t("title")}</h2>
-          <p className="text-sm text-gray-500">{t("intro")}</p>
+          <p className="text-sm text-muted">{t("intro")}</p>
         </div>
-        <button onClick={runTest} className="whitespace-nowrap rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white">
+        <button onClick={runTest} className="min-h-11 whitespace-nowrap rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent">
           {t("test")}
         </button>
       </div>
       <ul className="mt-4 divide-y divide-line text-sm">
-        {jobs.length === 0 && <li className="py-3 text-gray-500">{t("empty")}</li>}
+        {jobs.length === 0 && <li className="py-3 text-muted">{t("empty")}</li>}
         {jobs.map((j) => (
           <li key={j.id} className="flex items-center gap-3 py-2">
-            <span className="w-10 text-gray-400">#{j.id}</span>
+            <span className="w-10 text-muted/70">#{j.id}</span>
             <span className="font-mono">{j.type}</span>
             <span className={`rounded px-2 py-0.5 text-xs ${COLOR[j.status]}`}>{t(`status.${j.status}`)}</span>
-            <span className="flex-1 truncate text-gray-500">{j.error || j.progress}</span>
+            <span className="flex-1 truncate text-muted">{j.error || j.progress}</span>
           </li>
         ))}
       </ul>

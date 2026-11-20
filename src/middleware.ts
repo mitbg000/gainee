@@ -19,5 +19,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.*|manifest.*).*)"],
+  // Static/PWA files must stay public: browsers fetch the manifest, icons and service worker without cookies.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|icons/|manifest.webmanifest|sw.js|offline.html).*)"],
 };

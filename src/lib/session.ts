@@ -10,8 +10,8 @@ function secret() {
   return new TextEncoder().encode(s);
 }
 
-export async function createSession(): Promise<string> {
-  return new SignJWT({ sub: "owner" })
+export async function createSession(username: string): Promise<string> {
+  return new SignJWT({ sub: username })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
