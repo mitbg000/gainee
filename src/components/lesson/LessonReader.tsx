@@ -152,7 +152,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
   };
   /** Save / un-save a word that is not in the lesson's vocabulary list (dictionary look-ups, selected words). */
   const toggleTerm = useCallback(
-    async (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => {
+    async (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null; example?: string | null }) => {
       const key = term.toLowerCase().slice(0, 191);
       const id = savedTerms[key];
       if (id) {
@@ -160,10 +160,10 @@ export default function LessonReader({ data }: { data: LessonData }) {
         await fetch(`/api/words/${id}`, { method: "DELETE" });
         return say(t("unsaved"));
       }
-      const r = await fetch("/api/words", { method: "POST", ...json({ term: term.slice(0, 191), context, lessonId: lesson.id, ipa: extra?.ipa ?? undefined, pos: extra?.pos ?? undefined, meaningVi: extra?.meaningVi ?? undefined }) });
+      const r = await fetch("/api/words", { method: "POST", ...json({ term: term.slice(0, 191), context, lessonId: lesson.id, ipa: extra?.ipa ?? undefined, pos: extra?.pos ?? undefined, meaningVi: extra?.meaningVi ?? undefined, example: extra?.example ?? undefined }) });
       if (!r.ok) return say(t("error"));
       const { id: newId } = await r.json();
-      setTermWords((ws) => [{ id: newId, term: term.slice(0, 191), ipa: extra?.ipa ?? null, pos: extra?.pos ?? null, meaningVi: extra?.meaningVi ?? null, definitionEn: null, example: null, note: null, context }, ...ws]);
+      setTermWords((ws) => [{ id: newId, term: term.slice(0, 191), ipa: extra?.ipa ?? null, pos: extra?.pos ?? null, meaningVi: extra?.meaningVi ?? null, definitionEn: null, example: extra?.example ?? null, note: null, context }, ...ws]);
       say(t("saved"));
     },
     [savedTerms, lesson.id, t],

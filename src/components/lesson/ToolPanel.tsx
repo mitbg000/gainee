@@ -39,7 +39,7 @@ export default function ToolPanel({
   savedTerms: Record<string, number>;
   termWords: TermWord[];
   onToggleSave: (vocabId: number) => void;
-  onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
+  onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null; example?: string | null }) => void;
   onClose: () => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
   onPin: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
@@ -79,7 +79,7 @@ function Lookup({
   savedTerms: Record<string, number>;
   termWords: TermWord[];
   onToggleSave: (id: number) => void;
-  onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
+  onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null; example?: string | null }) => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
 }) {
   const t = useTranslations("lesson.tool");
