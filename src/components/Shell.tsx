@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { getTheme } from "@/theme/server";
+import CollapsibleSidebar from "./CollapsibleSidebar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import LogoutButton from "./LogoutButton";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
@@ -24,15 +25,18 @@ export default async function Shell({ children, wide = false }: { children: Reac
   return (
     <div className="min-h-dvh md:flex">
       {/* Desktop sidebar */}
-      <aside className="hidden border-r border-line bg-card p-4 md:sticky md:top-0 md:flex md:h-dvh md:w-64 md:flex-none md:flex-col">
-        <Link href="/" className="font-serif text-2xl font-bold">{t("app.name")}</Link>
-        <p className="text-xs text-muted">{t("app.tagline")}</p>
+      <CollapsibleSidebar>
+        <Link href="/" className="font-serif text-2xl font-bold" title={t("app.name")}>
+          <span className="group-data-[collapsed=true]/sb:hidden">{t("app.name")}</span>
+          <span className="hidden text-center group-data-[collapsed=true]/sb:block">{t("app.name").charAt(0)}</span>
+        </Link>
+        <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
         <SidebarNav />
-        <div className="mt-auto flex flex-col gap-3 pt-6">
+        <div className="mt-auto flex flex-col gap-3 pt-6 group-data-[collapsed=true]/sb:hidden">
           {controls}
           <LogoutButton />
         </div>
-      </aside>
+      </CollapsibleSidebar>
 
       {/* Mobile top bar */}
       <header

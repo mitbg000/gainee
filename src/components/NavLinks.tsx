@@ -31,14 +31,14 @@ export function SidebarNav() {
 
 function Item({ n, active, label, soon, onClick }: { n: NavItem; active: boolean; label: string; soon?: string; onClick?: () => void }) {
   const Icon = ICONS[n.icon];
-  const cls = `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm ${
+  const cls = `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm group-data-[collapsed=true]/sb:justify-center ${
     soon ? "pointer-events-none text-muted/60" : active ? "bg-accent/10 font-semibold text-accent" : "hover:bg-paper"
   }`;
   return (
-    <Link href={soon ? "#" : n.href} aria-disabled={!!soon} aria-current={active ? "page" : undefined} className={cls} onClick={onClick}>
+    <Link href={soon ? "#" : n.href} title={label} aria-disabled={!!soon} aria-current={active ? "page" : undefined} className={cls} onClick={onClick}>
       <Icon />
-      <span className="flex-1">{label}</span>
-      {soon && <span className="rounded bg-paper px-1.5 text-[10px]">{soon}</span>}
+      <span className="flex-1 group-data-[collapsed=true]/sb:hidden">{label}</span>
+      {soon && <span className="rounded bg-paper px-1.5 text-[10px] group-data-[collapsed=true]/sb:hidden">{soon}</span>}
     </Link>
   );
 }

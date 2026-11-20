@@ -28,7 +28,9 @@
       "dictionary": "Từ điển",
       "review": "Ôn tập"
     },
-    "labels": "Phân loại"
+    "labels": "Phân loại",
+    "collapse": "Thu nhỏ",
+    "expand": "Mở rộng thanh bên"
   },
   "login": {
     "username": "Tên đăng nhập",

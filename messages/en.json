@@ -28,7 +28,9 @@
       "dictionary": "Dictionary",
       "review": "Review"
     },
-    "labels": "Categories"
+    "labels": "Categories",
+    "collapse": "Collapse",
+    "expand": "Expand sidebar"
   },
   "login": {
     "username": "Username",
