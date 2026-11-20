@@ -34,6 +34,8 @@ const jsonText = <T>(name: string) =>
     fromDriver: (v) => (typeof v === "string" ? JSON.parse(v) : v) as T,
   })(name);
 
+export type DocumentMeta = { summary?: string; suggestedTopics?: string[]; suggestedSource?: string | null; userTitle?: boolean; dismissed?: boolean };
+
 const pk = () => int("id").autoincrement().primaryKey();
 const ts = (name: string) => datetime(name, { mode: "date", fsp: 3 });
 const createdAt = () => ts("created_at").notNull().default(sql`CURRENT_TIMESTAMP(3)`);
@@ -86,6 +88,8 @@ export const documents = mysqlTable("documents", {
   rawText: longtext("raw_text").notNull(),
   wordCount: int("word_count").notNull().default(0),
   level: varchar("level", { length: 8 }), // estimated CEFR: B1..C2
+  /** AI-generated overview: { summary, suggestedTopics[], suggestedSource } – suggestions are only applied when the user accepts them. */
+  meta: jsonText<DocumentMeta>("meta"),
   status: mysqlEnum("status", ["draft", "processing", "ready", "error"]).notNull().default("draft"),
   error: text("error"),
   createdAt: createdAt(),
@@ -455,7 +459,7 @@ export const aiMessages = mysqlTable(
     id: pk(),
     lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
     annotationId: int("annotation_id").references(() => annotations.id, { onDelete: "set null" }),
-    action: mysqlEnum("action", ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase", "custom"]).notNull(),
+    action: mysqlEnum("action", ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase", "custom", "feedback"]).notNull(),
     selection: text("selection"), // highlighted text
     context: text("context"), // surrounding sentence/paragraph sent to the AI
     question: text("question"), // free-form question (action = custom)

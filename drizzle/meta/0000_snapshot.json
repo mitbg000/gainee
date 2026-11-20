@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "3b0309e0-1167-4c80-8dfe-ea3561a64cfd",
+  "id": "812b703a-3e47-466a-ba28-2195872fa056",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "achievements": {
@@ -280,7 +280,7 @@
         },
         "action": {
           "name": "action",
-          "type": "enum('explain_word','explain_sentence','grammar','translate','paraphrase','custom')",
+          "type": "enum('explain_word','explain_sentence','grammar','translate','paraphrase','custom','feedback')",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -1117,6 +1117,13 @@
         "level": {
           "name": "level",
           "type": "varchar(8)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "meta": {
+          "name": "meta",
+          "type": "json",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

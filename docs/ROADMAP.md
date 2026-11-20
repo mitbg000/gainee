@@ -5,8 +5,8 @@
 | Phase | Scope | Status |
 |---|---|---|
 | **0 – Foundation** | Next.js, MySQL + Drizzle, username + password login, EN/VI UI, light/dark theme, mobile layout + PWA (iOS & Android), offline StarDict dictionary with **Kindle-style tap/select look-up**, **user-defined categories** (topics / sources / labels), job queue + worker, PM2, aaPanel deploy, CI/CD | ✅ done |
-| **1 – Texts → lessons + reader** | AI provider settings (all 4 providers, model per task); import (paste / PDF / DOCX / TXT); clean & split into ~500–800-word lessons; AI generates summary, vocabulary, TFNG / MCQ / gap / matching, structures, paraphrase, speaking/writing prompts, validated against the source text; **reader with margin notes, dictionary pop-up and quick-AI panel** (see below); exercises with explanations | next |
-| **2 – Vocabulary, progress, motivation** | Notebook with **images** and mnemonics; FSRS reviews in several modes; progress dashboard; streaks, XP, goals, achievements; "then vs. now" | |
+| **1 – Texts → lessons + reader** | AI provider settings (all 4 providers, model per task, fallback); import (paste / PDF / DOCX / TXT) with preview; clean & split into lessons; AI generates summary, vocabulary, TFNG / MCQ / gap fill, structures, paraphrase, speaking/writing prompts, validated against the source text; AI topic/source suggestions; **reader with margin notes, dictionary pop-up and quick-AI panel (pin answers)**; exercises with "show in text"; practice with AI feedback; XP + streak on the dashboard | ✅ done |
+| **2 – Vocabulary, progress, motivation** | Notebook with **images** and mnemonics; FSRS reviews in several modes; progress dashboard; goals, achievements, heat map; "then vs. now"; matching/heading exercise types | next |
 | **3 – Assistant & writing** | Fallback provider, cost dashboard, Writing Task 2 grading by criterion, free chat about a text | |
 | **4 – Reminders, mobile, speaking** | PWA install + web push; Telegram / email reminders; weekly report; speaking practice (record → transcript → feedback) | |
 
@@ -80,7 +80,7 @@ The rules behind these features: small daily wins, visible progress, and no all-
 
 ---
 
-## Reader (Phase 1)
+## Reader (Phase 1 – done)
 
 The reader keeps everything on one screen, so you never have to switch tabs while reading.
 

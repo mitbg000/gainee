@@ -11,7 +11,7 @@ import ThemeSwitcher from "./ThemeSwitcher";
  *  - Desktop (md+): sticky sidebar with full navigation and settings at the bottom.
  *  - Mobile: compact top bar + bottom tab bar; respects iPhone safe areas (notch / home indicator).
  */
-export default async function Shell({ children }: { children: React.ReactNode }) {
+export default async function Shell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   const [t, theme] = await Promise.all([getTranslations(), getTheme()]);
 
   const controls = (
@@ -47,7 +47,7 @@ export default async function Shell({ children }: { children: React.ReactNode })
         className="min-w-0 flex-1 px-4 pt-5 md:px-10 md:py-8"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}
       >
-        <div className="mx-auto max-w-4xl">{children}</div>
+        <div className={`mx-auto ${wide ? "max-w-6xl" : "max-w-4xl"}`}>{children}</div>
       </main>
 
       <MobileTabBar>

@@ -1,0 +1,24 @@
+import type { LessonData } from "@/lib/lessons/queries";
+import type { AskInput } from "./useAiAsk";
+
+export type { LessonData };
+export type Annotation = LessonData["annotations"][number];
+export type AiMsg = LessonData["aiMessages"][number];
+export type Vocab = LessonData["vocab"][number];
+export type HlColor = Annotation["color"];
+export const HL_COLORS: HlColor[] = ["yellow", "green", "blue", "pink", "purple"];
+export const HL_DOT: Record<HlColor, string> = {
+  yellow: "bg-yellow-300",
+  green: "bg-green-300",
+  blue: "bg-blue-300",
+  pink: "bg-pink-300",
+  purple: "bg-violet-300",
+};
+
+/** A text range inside one paragraph. */
+export type Anchor = { paragraph: number; start: number; end: number; quote: string; context: string };
+
+export type Tool =
+  | { mode: "lookup"; text: string; vocabId?: number; anchor?: Anchor }
+  | { mode: "ai"; action: AskInput["action"]; selection: string; context: string; anchor?: Anchor; annotationId?: number }
+  | null;

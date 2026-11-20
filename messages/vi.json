@@ -44,11 +44,14 @@
   "dashboard": {
     "kicker": "Tổng quan",
     "greeting": "Chào bạn 👋",
-    "intro": "Hệ thống đã sẵn sàng. Giai đoạn 1 sẽ thêm phần nhập bài đọc và để AI tạo bài học.",
+    "intro": "Nhập một bài báo, đọc từng phần ngắn và giữ chuỗi ngày học.",
     "stats": {
       "documents": "Bài đọc",
       "lessons": "Bài học",
-      "words": "Từ trong sổ tay"
+      "words": "Từ đã lưu",
+      "lessonsDone": "Bài đã học",
+      "xpToday": "XP hôm nay",
+      "streak": "Chuỗi ngày"
     },
     "system": {
       "title": "Trạng thái hệ thống",
@@ -59,7 +62,11 @@
       "workerLost": "Worker: mất tín hiệu {seconds}s",
       "workerNever": "Worker: chưa khởi động"
     },
-    "tryReader": "Thử tra từ kiểu Kindle →"
+    "tryReader": "Thử tra từ kiểu Kindle →",
+    "continue": "Học tiếp",
+    "part": "Phần {n}",
+    "importFirst": "Nhập bài báo đầu tiên",
+    "advanced": "Hệ thống & công cụ"
   },
   "jobs": {
     "title": "Việc nền",
@@ -164,6 +171,278 @@
       "invalid": "Hãy kiểm tra lại thông tin.",
       "not_found": "Nhãn này không còn tồn tại.",
       "unknown": "Có lỗi xảy ra, hãy thử lại."
+    },
+    "noneYet": "Chưa có phân loại nào.",
+    "manage": "Tạo phân loại"
+  },
+  "settings": {
+    "kicker": "Cài đặt",
+    "title": "Cài đặt",
+    "saved": "Đã lưu ✓",
+    "saveError": "Không lưu được",
+    "profile": {
+      "title": "Hồ sơ học",
+      "hint": "AI dùng thông tin này để chọn từ vựng phù hợp và viết lời giải thích.",
+      "level": "Trình độ hiện tại (CEFR)",
+      "targetBand": "Band IELTS mục tiêu",
+      "explainIn": "Giải thích bằng",
+      "lessonWords": "Số từ mỗi bài"
+    },
+    "providers": {
+      "title": "Nhà cung cấp AI",
+      "hint": "Thêm một hoặc nhiều nhà cung cấp. API key được mã hoá trước khi lưu. Tất cả dùng chuẩn API tương thích OpenAI.",
+      "add": "Thêm nhà cung cấp",
+      "label": "Tên",
+      "model": "Model mặc định",
+      "eg": "vd:",
+      "apiKey": "API key",
+      "newKey": "API key mới (để trống nếu giữ nguyên)",
+      "baseUrl": "Base URL",
+      "modelNote": "Tên model thay đổi thường xuyên – sau khi lưu, bấm “Kiểm tra” để tải danh sách model mà key của bạn dùng được.",
+      "enabled": "Bật",
+      "test": "Kiểm tra",
+      "testing": "Đang kiểm tra…",
+      "testOk": "Kết nối được ✓ – model trả lời “{reply}”.",
+      "testFail": "Lỗi: {error}",
+      "modelsFound": "Có {n} model – chọn bằng nút “Sửa”.",
+      "edit": "Sửa",
+      "save": "Lưu",
+      "cancel": "Huỷ",
+      "delete": "Xoá",
+      "confirmDelete": "Xoá {name}?",
+      "invalid": "Hãy kiểm tra lại (API key cần ít nhất 8 ký tự)."
+    },
+    "routing": {
+      "title": "Model cho từng việc",
+      "hint": "Dùng model rẻ, nhanh cho câu hỏi nhanh và model mạnh hơn cho tạo bài học, chấm bài viết. Nếu model chính lỗi, model dự phòng sẽ tự được dùng.",
+      "needProvider": "Hãy thêm nhà cung cấp trước.",
+      "auto": "Tự động (nhà cung cấp đầu tiên đang bật)",
+      "model": "Model",
+      "fallback": "Dự phòng:",
+      "none": "không",
+      "tasks": {
+        "lesson_generate": {
+          "title": "Tạo bài học",
+          "hint": "Tạo bài học, từ vựng, bài tập từ bài đọc đã nhập. Cần model trả JSON tốt."
+        },
+        "reader_quick": {
+          "title": "Hỏi nhanh trong trang đọc",
+          "hint": "Giải thích từ, câu, ngữ pháp, dịch, paraphrase. Nhanh và rẻ là tốt nhất."
+        },
+        "writing_grade": {
+          "title": "Chấm bài viết",
+          "hint": "Band IELTS và sửa lỗi cho câu paraphrase, bài luận."
+        },
+        "chat": {
+          "title": "Trò chuyện về bài đọc",
+          "hint": "Hỏi đáp tự do với trợ lý."
+        }
+      }
+    }
+  },
+  "import": {
+    "kicker": "Thư viện",
+    "heading": "Thêm bài đọc mới",
+    "intro": "Tải file PDF / Word hoặc dán bài báo. Hệ thống làm sạch văn bản, chia thành các bài ngắn và AI chuẩn bị từ vựng, bài tập cho từng phần.",
+    "mode": {
+      "file": "Tải file",
+      "paste": "Dán văn bản"
+    },
+    "drop": "Kéo thả file vào đây hoặc chạm để chọn",
+    "formats": "PDF, DOCX hoặc TXT · tối đa 25 MB",
+    "pastePlaceholder": "Dán bài báo vào đây…",
+    "title": "Tiêu đề",
+    "titleHint": "Để trống để tự nhận diện",
+    "author": "Tác giả",
+    "source": "Nguồn",
+    "sourceHint": "vd: The New Yorker, BBC, Cambridge IELTS 18",
+    "labels": "Phân loại (không bắt buộc – AI cũng sẽ gợi ý chủ đề)",
+    "preview": "Xem trước",
+    "reading": "Đang đọc…",
+    "create": "Tạo bài học",
+    "creating": "Đang lưu…",
+    "previewSummary": "{words, number} từ · {paragraphs} đoạn → {lessons} bài học",
+    "part": "Phần {n}",
+    "sample": "Xem các đoạn đầu",
+    "aiNote": "Bài học được tạo ở chế độ nền – bạn có thể bắt đầu đọc ngay khi bài đầu tiên sẵn sàng.",
+    "errors": {
+      "empty": "Hãy dán văn bản hoặc chọn file.",
+      "too_short": "Văn bản quá ngắn (cần khoảng 80 từ trở lên).",
+      "unsupported_file": "Chỉ hỗ trợ file PDF, DOCX và TXT.",
+      "file_too_large": "File lớn hơn 25 MB.",
+      "cannot_read_file": "Không đọc được file này.",
+      "no_text_in_pdf": "Không tìm thấy chữ – có thể PDF là ảnh scan.",
+      "unknown": "Có lỗi xảy ra, hãy thử lại."
+    }
+  },
+  "library": {
+    "kicker": "Thư viện",
+    "title": "Thư viện bài đọc",
+    "add": "Thêm bài",
+    "search": "Tìm theo tiêu đề, tác giả, nguồn…",
+    "clear": "Bỏ lọc",
+    "empty": "Chưa có bài đọc nào.",
+    "noMatch": "Không có bài nào khớp bộ lọc.",
+    "importFirst": "Nhập bài báo đầu tiên →",
+    "generating": "Đang tạo bài học… {ready}/{total}",
+    "failed": "Tạo bài lỗi – mở để thử lại",
+    "progress": "Xong {done}/{total} bài · {words, number} từ"
+  },
+  "document": {
+    "back": "Thư viện",
+    "words": "{n, number} từ",
+    "editLabels": "Sửa phân loại",
+    "addLabels": "Thêm phân loại",
+    "save": "Lưu",
+    "cancel": "Huỷ",
+    "suggestTitle": "Gợi ý phân loại",
+    "accept": "Thêm các nhãn này",
+    "dismiss": "Bỏ qua",
+    "generating": "AI đang chuẩn bị bài học…",
+    "generatingHint": "Bạn có thể rời trang – việc tạo bài vẫn tiếp tục ở chế độ nền.",
+    "continue": "Học tiếp phần {n}",
+    "start": "Bắt đầu đọc",
+    "lessons": "Các bài học",
+    "part": "Phần {n}",
+    "score": "cao nhất {n}%",
+    "lessonFailed": "Tạo bài lỗi",
+    "status": {
+      "pending": "Đang chờ…",
+      "generating": "Đang tạo…",
+      "ready": "Sẵn sàng",
+      "error": "Lỗi"
+    },
+    "retry": "Thử lại",
+    "retryAll": "Thử lại {n} bài lỗi",
+    "delete": "Xoá bài đọc",
+    "confirmDelete": "Xoá bài đọc này cùng mọi bài học, ghi chú và tiến độ?"
+  },
+  "lesson": {
+    "part": "Phần {n}/{total}",
+    "words": "{n, number} từ",
+    "tabs": {
+      "read": "📖 Đọc",
+      "vocab": "🔤 Từ vựng",
+      "ex": "✍️ Bài tập",
+      "practice": "🗣 Luyện tập"
+    },
+    "prev": "Phần trước",
+    "next": "Phần tiếp",
+    "markComplete": "Đánh dấu đã học",
+    "completed": "Đã học",
+    "completedToast": "Hoàn thành bài! +XP",
+    "pinned": "Đã ghim vào lề",
+    "saved": "Đã lưu vào sổ tay ⭐",
+    "unsaved": "Đã bỏ khỏi sổ tay",
+    "error": "Có lỗi xảy ra",
+    "notFoundInText": "Không tìm thấy trích dẫn trong bài",
+    "read": {
+      "warmup": "Trước khi đọc:",
+      "timer": "Thời gian đọc",
+      "hint": "Chạm vào từ để tra · bôi đen để tô sáng, ghi chú hoặc hỏi AI",
+      "finish": "Tôi đã đọc xong",
+      "result": "{minutes} phút {seconds} giây · {wpm} từ/phút · tra {lookups} lần.",
+      "wpmSlow": "Hãy đọc lướt lấy ý chính trước.",
+      "wpmOk": "Tốc độ ổn – IELTS cần khoảng 200–250 từ/phút.",
+      "wpmFast": "Rất nhanh! Hãy chắc là bạn đã hiểu.",
+      "showSummary": "Xem tóm tắt",
+      "marginHint": "Bôi đen đoạn bất kỳ để tô sáng hoặc ghi chú – ghi chú hiện ở đây, ngay cạnh dòng đó.",
+      "highlight": "Tô sáng",
+      "note": "Ghi chú",
+      "lookup": "Tra từ",
+      "ask": "Hỏi AI",
+      "save": "Lưu",
+      "close": "Đóng",
+      "allNotes": "Ghi chú ({n})"
+    },
+    "notes": {
+      "placeholder": "Viết ghi chú…",
+      "delete": "Xoá",
+      "unpin": "Bỏ ghim",
+      "actions": {
+        "explain_word": "Giải thích từ",
+        "explain_sentence": "Giải thích câu",
+        "grammar": "Ngữ pháp",
+        "translate": "Dịch",
+        "paraphrase": "Paraphrase",
+        "custom": "Câu hỏi",
+        "feedback": "Nhận xét"
+      }
+    },
+    "tool": {
+      "lookup": "Từ điển",
+      "ai": "Hỏi AI",
+      "close": "Đóng",
+      "listen": "Nghe",
+      "save": "Lưu từ",
+      "dictionary": "Từ điển offline",
+      "loading": "Đang tra…",
+      "notInDictionary": "Không có trong từ điển offline.",
+      "more": "Xem thêm",
+      "less": "Thu gọn",
+      "askMore": "Giải thích bằng AI",
+      "openDictionary": "Mở từ điển",
+      "actions": {
+        "explain_word": "Giải thích từ",
+        "explain_sentence": "Giải thích câu",
+        "grammar": "Ngữ pháp",
+        "translate": "Dịch",
+        "paraphrase": "Paraphrase",
+        "custom": "Câu hỏi",
+        "feedback": "Nhận xét"
+      },
+      "askPlaceholder": "Hỏi bất cứ điều gì về đoạn này…",
+      "send": "Hỏi",
+      "notConfigured": "Chưa cài đặt nhà cung cấp AI.",
+      "openSettings": "Mở Cài đặt",
+      "thinking": "Đang suy nghĩ…",
+      "pin": "Ghim vào lề",
+      "pinned": "Đã ghim",
+      "stop": "Dừng",
+      "model": "Model",
+      "modelDefault": "Model: theo cài đặt"
+    },
+    "vocab": {
+      "hide": "Che nghĩa",
+      "saveAll": "Lưu tất cả",
+      "count": "{n} từ",
+      "reveal": "Hiện nghĩa",
+      "listen": "Nghe",
+      "save": "Lưu vào sổ tay"
+    },
+    "ex": {
+      "tip": "True = bài nói đúng như vậy · False = bài nói ngược lại · Not Given = bài không đề cập. Chỉ dựa vào bài, không dùng hiểu biết riêng.",
+      "tfng": "True / False / Not Given",
+      "mcq": "Trắc nghiệm",
+      "gaps": "Điền vào câu (có thể cần đổi dạng từ)",
+      "tf": {
+        "T": "True",
+        "F": "False",
+        "NG": "Not Given"
+      },
+      "answer": "Đáp án",
+      "showInText": "Xem trong bài",
+      "submit": "Kiểm tra",
+      "retry": "Làm lại",
+      "best": "Điểm cao nhất: {n}%"
+    },
+    "practice": {
+      "structures": "Cấu trúc câu đáng học",
+      "paraphrase": "Luyện paraphrase",
+      "paraphraseHint": "Viết lại câu bằng từ ngữ của bạn, rồi so với câu mẫu hoặc nhờ AI nhận xét.",
+      "paraphrasePlaceholder": "Câu paraphrase của bạn…",
+      "model": "Xem câu mẫu",
+      "speaking": "IELTS Speaking",
+      "writing": "IELTS Writing",
+      "ideas": "Gợi ý ý tưởng",
+      "speakingPlaceholder": "Viết câu trả lời hoặc dàn ý, rồi nói to trong 1–2 phút…",
+      "writingPlaceholder": "Viết bài luận (khoảng 250 từ)…",
+      "words": "{n} từ",
+      "feedback": "AI nhận xét",
+      "checking": "Đang chấm…",
+      "notConfigured": "Hãy cài đặt nhà cung cấp AI trong Cài đặt để nhận nhận xét.",
+      "myNotes": "Ghi chú của tôi cho bài này",
+      "notesPlaceholder": "Ý chính theo cách hiểu của bạn, câu hỏi, điều cần nhớ…"
     }
   }
 }

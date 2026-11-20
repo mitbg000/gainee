@@ -44,11 +44,14 @@
   "dashboard": {
     "kicker": "Dashboard",
     "greeting": "Hello 👋",
-    "intro": "The system is ready. Phase 1 adds importing texts and AI-generated lessons.",
+    "intro": "Import an article, read it in short parts, and keep your streak going.",
     "stats": {
       "documents": "Texts",
       "lessons": "Lessons",
-      "words": "Words in notebook"
+      "words": "Saved words",
+      "lessonsDone": "Lessons done",
+      "xpToday": "XP today",
+      "streak": "Day streak"
     },
     "system": {
       "title": "System status",
@@ -59,7 +62,11 @@
       "workerLost": "Worker: no signal for {seconds}s",
       "workerNever": "Worker: not started yet"
     },
-    "tryReader": "Try Kindle-style look-up →"
+    "tryReader": "Try Kindle-style look-up →",
+    "continue": "Continue reading",
+    "part": "Part {n}",
+    "importFirst": "Import your first article",
+    "advanced": "System & tools"
   },
   "jobs": {
     "title": "Background jobs",
@@ -164,6 +171,278 @@
       "invalid": "Please check the form.",
       "not_found": "This label no longer exists.",
       "unknown": "Something went wrong. Please try again."
+    },
+    "noneYet": "No categories yet.",
+    "manage": "Create some"
+  },
+  "settings": {
+    "kicker": "Settings",
+    "title": "Settings",
+    "saved": "Saved ✓",
+    "saveError": "Could not save",
+    "profile": {
+      "title": "Learning profile",
+      "hint": "Used by the AI to choose vocabulary and to write explanations.",
+      "level": "Current level (CEFR)",
+      "targetBand": "Target IELTS band",
+      "explainIn": "Explanations in",
+      "lessonWords": "Words per lesson"
+    },
+    "providers": {
+      "title": "AI providers",
+      "hint": "Add one or more providers. Keys are encrypted before they are stored. All of them use the OpenAI-compatible API.",
+      "add": "Add provider",
+      "label": "Name",
+      "model": "Default model",
+      "eg": "e.g.",
+      "apiKey": "API key",
+      "newKey": "New API key (leave empty to keep)",
+      "baseUrl": "Base URL",
+      "modelNote": "Model names change often – press “Test” after saving to load the list of models your key can use.",
+      "enabled": "Enabled",
+      "test": "Test",
+      "testing": "Testing…",
+      "testOk": "Connected ✓ – the model replied “{reply}”.",
+      "testFail": "Failed: {error}",
+      "modelsFound": "{n} models available – pick one with “Edit”.",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Delete {name}?",
+      "invalid": "Please check the fields (the API key must be at least 8 characters)."
+    },
+    "routing": {
+      "title": "Model for each task",
+      "hint": "Use a cheap, fast model for quick questions and a stronger one for lessons and writing feedback. A fallback is used automatically if the main one fails.",
+      "needProvider": "Add a provider first.",
+      "auto": "Automatic (first enabled provider)",
+      "model": "Model",
+      "fallback": "Fallback:",
+      "none": "none",
+      "tasks": {
+        "lesson_generate": {
+          "title": "Lesson generation",
+          "hint": "Builds lessons, vocabulary and exercises from imported texts. Needs good JSON output."
+        },
+        "reader_quick": {
+          "title": "Quick questions in the reader",
+          "hint": "Explain a word or sentence, grammar, translate, paraphrase. Fast and cheap is best."
+        },
+        "writing_grade": {
+          "title": "Writing feedback",
+          "hint": "IELTS band and corrections for paraphrases and essays."
+        },
+        "chat": {
+          "title": "Chat about a text",
+          "hint": "Free conversation with the assistant."
+        }
+      }
+    }
+  },
+  "import": {
+    "kicker": "Library",
+    "heading": "Add a new text",
+    "intro": "Upload a PDF / Word file or paste an article. It is cleaned, split into short lessons, and the AI prepares vocabulary and exercises for each part.",
+    "mode": {
+      "file": "Upload file",
+      "paste": "Paste text"
+    },
+    "drop": "Drop a file here or tap to choose",
+    "formats": "PDF, DOCX or TXT · up to 25 MB",
+    "pastePlaceholder": "Paste the article here…",
+    "title": "Title",
+    "titleHint": "Leave empty to detect it automatically",
+    "author": "Author",
+    "source": "Source",
+    "sourceHint": "e.g. The New Yorker, BBC, Cambridge IELTS 18",
+    "labels": "Categories (optional – the AI will also suggest topics)",
+    "preview": "Preview",
+    "reading": "Reading…",
+    "create": "Create lessons",
+    "creating": "Saving…",
+    "previewSummary": "{words, number} words · {paragraphs} paragraphs → {lessons} lessons",
+    "part": "Part {n}",
+    "sample": "Show first paragraphs",
+    "aiNote": "Lessons are generated in the background – you can start reading as soon as the first one is ready.",
+    "errors": {
+      "empty": "Paste some text or choose a file.",
+      "too_short": "The text is too short (at least ~80 words).",
+      "unsupported_file": "Only PDF, DOCX and TXT files are supported.",
+      "file_too_large": "The file is larger than 25 MB.",
+      "cannot_read_file": "This file could not be read.",
+      "no_text_in_pdf": "No text found – the PDF may be a scanned image.",
+      "unknown": "Something went wrong. Please try again."
+    }
+  },
+  "library": {
+    "kicker": "Library",
+    "title": "Reading library",
+    "add": "Add text",
+    "search": "Search title, author, source…",
+    "clear": "Clear",
+    "empty": "No texts yet.",
+    "noMatch": "Nothing matches these filters.",
+    "importFirst": "Import your first article →",
+    "generating": "Generating lessons… {ready}/{total}",
+    "failed": "Generation failed – open to retry",
+    "progress": "{done}/{total} lessons done · {words, number} words"
+  },
+  "document": {
+    "back": "Library",
+    "words": "{n, number} words",
+    "editLabels": "Edit categories",
+    "addLabels": "Add categories",
+    "save": "Save",
+    "cancel": "Cancel",
+    "suggestTitle": "Suggested categories",
+    "accept": "Add these",
+    "dismiss": "No thanks",
+    "generating": "The AI is preparing your lessons…",
+    "generatingHint": "You can leave this page – generation continues in the background.",
+    "continue": "Continue with part {n}",
+    "start": "Start reading",
+    "lessons": "Lessons",
+    "part": "Part {n}",
+    "score": "best {n}%",
+    "lessonFailed": "Generation failed",
+    "status": {
+      "pending": "Waiting…",
+      "generating": "Generating…",
+      "ready": "Ready",
+      "error": "Failed"
+    },
+    "retry": "Retry",
+    "retryAll": "Retry {n} failed lessons",
+    "delete": "Delete text",
+    "confirmDelete": "Delete this text and all its lessons, notes and progress?"
+  },
+  "lesson": {
+    "part": "Part {n} of {total}",
+    "words": "{n, number} words",
+    "tabs": {
+      "read": "📖 Read",
+      "vocab": "🔤 Vocabulary",
+      "ex": "✍️ Exercises",
+      "practice": "🗣 Practice"
+    },
+    "prev": "Previous",
+    "next": "Next part",
+    "markComplete": "Mark as done",
+    "completed": "Done",
+    "completedToast": "Lesson completed! +XP",
+    "pinned": "Pinned to the margin",
+    "saved": "Saved to your notebook ⭐",
+    "unsaved": "Removed from notebook",
+    "error": "Something went wrong",
+    "notFoundInText": "Could not find that quote in the text",
+    "read": {
+      "warmup": "Before you read:",
+      "timer": "Reading time",
+      "hint": "Tap a word to look it up · select text to highlight, note or ask AI",
+      "finish": "I've finished reading",
+      "result": "{minutes} min {seconds} s · {wpm} words/min · {lookups} look-ups.",
+      "wpmSlow": "Try skimming for the main idea first.",
+      "wpmOk": "Good pace – IELTS needs about 200–250 wpm.",
+      "wpmFast": "Fast! Make sure you understood it.",
+      "showSummary": "Show summary",
+      "marginHint": "Select any text to highlight it or add a note – notes appear here, next to the line.",
+      "highlight": "Highlight",
+      "note": "Note",
+      "lookup": "Look up",
+      "ask": "Ask AI",
+      "save": "Save",
+      "close": "Close",
+      "allNotes": "Notes ({n})"
+    },
+    "notes": {
+      "placeholder": "Write a note…",
+      "delete": "Delete",
+      "unpin": "Unpin",
+      "actions": {
+        "explain_word": "Explain word",
+        "explain_sentence": "Explain sentence",
+        "grammar": "Grammar",
+        "translate": "Translate",
+        "paraphrase": "Paraphrase",
+        "custom": "Question",
+        "feedback": "Feedback"
+      }
+    },
+    "tool": {
+      "lookup": "Dictionary",
+      "ai": "Ask AI",
+      "close": "Close",
+      "listen": "Listen",
+      "save": "Save word",
+      "dictionary": "Offline dictionary",
+      "loading": "Looking up…",
+      "notInDictionary": "Not in the offline dictionary.",
+      "more": "Show more",
+      "less": "Show less",
+      "askMore": "Explain with AI",
+      "openDictionary": "Open dictionary",
+      "actions": {
+        "explain_word": "Explain word",
+        "explain_sentence": "Explain sentence",
+        "grammar": "Grammar",
+        "translate": "Translate",
+        "paraphrase": "Paraphrase",
+        "custom": "Question",
+        "feedback": "Feedback"
+      },
+      "askPlaceholder": "Ask anything about this…",
+      "send": "Ask",
+      "notConfigured": "No AI provider is set up yet.",
+      "openSettings": "Open Settings",
+      "thinking": "Thinking…",
+      "pin": "Pin to margin",
+      "pinned": "Pinned",
+      "stop": "Stop",
+      "model": "Model",
+      "modelDefault": "Model: from settings"
+    },
+    "vocab": {
+      "hide": "Hide meanings",
+      "saveAll": "Save all",
+      "count": "{n} words",
+      "reveal": "Show meaning",
+      "listen": "Listen",
+      "save": "Save to notebook"
+    },
+    "ex": {
+      "tip": "True = the text says so · False = the text says the opposite · Not Given = the text does not say. Use only the text, not your own knowledge.",
+      "tfng": "True / False / Not Given",
+      "mcq": "Multiple choice",
+      "gaps": "Complete the sentences (you may need to change the word form)",
+      "tf": {
+        "T": "True",
+        "F": "False",
+        "NG": "Not Given"
+      },
+      "answer": "Answer",
+      "showInText": "Show in the text",
+      "submit": "Check answers",
+      "retry": "Try again",
+      "best": "Best score: {n}%"
+    },
+    "practice": {
+      "structures": "Sentence structures worth learning",
+      "paraphrase": "Paraphrase practice",
+      "paraphraseHint": "Rewrite the sentence in your own words, then compare with the model or ask the AI for feedback.",
+      "paraphrasePlaceholder": "Your paraphrase…",
+      "model": "Show model answer",
+      "speaking": "IELTS Speaking",
+      "writing": "IELTS Writing",
+      "ideas": "Idea hints",
+      "speakingPlaceholder": "Write your answer or an outline, then say it aloud for 1–2 minutes…",
+      "writingPlaceholder": "Write your essay (about 250 words)…",
+      "words": "{n} words",
+      "feedback": "AI feedback",
+      "checking": "Checking…",
+      "notConfigured": "Set up an AI provider in Settings to get feedback.",
+      "myNotes": "My notes for this lesson",
+      "notesPlaceholder": "Main ideas in your own words, questions, things to remember…"
     }
   }
 }

@@ -9,7 +9,23 @@ A personal (single-user) web app for learning English through reading. It turns 
 - **Stack:** Next.js 15 · TypeScript · Tailwind · Drizzle ORM · MySQL / MariaDB · PM2
 - **Hosting target:** aaPanel (Nginx + MySQL + Node.js manager); works on any Linux server with Node 20.6+ and MySQL
 
-**Status:** Phase 0 (foundation) is done. Next up is Phase 1: importing texts and generating lessons with AI. See [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status:** Phases 0 and 1 are done. You can import texts, have AI lessons generated and validated, and use the full reader with margin notes, quick AI and the offline dictionary. Next up is Phase 2: the vocabulary notebook with images, spaced repetition and the progress dashboard. See [docs/ROADMAP.md](docs/ROADMAP.md).
+
+> **For AI coding agents:** read [`AGENTS.md`](AGENTS.md). It is the complete technical guide.
+
+## What you can do
+
+- **Import** a PDF, DOCX or TXT file, or paste text, with a preview of how it will be split. The text is cleaned up and split into ~650-word lessons.
+- **AI lessons:** each lesson gets a Vietnamese summary, 8–12 vocabulary items, True/False/Not Given, multiple choice, gap fill, useful sentence structures, paraphrase practice and a speaking/writing prompt. Every item is checked against the original text.
+- **Reader:**
+  - tap a word for the offline dictionary;
+  - select text to **highlight**, write a **margin note**, **look it up** or **ask the AI** (explain word or sentence, grammar, translate, paraphrase, or your own question), then **pin** the AI answer to the margin;
+  - reading timer with words-per-minute;
+  - "show in text" for exercise answers.
+- **Practice:** auto-saved paraphrase and speaking/writing answers, with AI feedback.
+- **Library:** filter by your own categories (topics, sources, labels); the AI suggests topics and the source.
+- **AI settings:** DeepSeek, OpenAI, Gemini, Grok or any OpenAI-compatible API. Choose a model for each task, with an automatic fallback.
+- **Dashboard:** "continue reading", day streak and XP.
 
 ---
 
@@ -60,6 +76,13 @@ npm run dev:worker    # second terminal
 ```
 
 After you change `src/db/schema.ts`, run `npm run db:generate` to create a new migration file, then commit it.
+
+### Trying it without an AI key
+
+```bash
+node scripts/mock-ai.mjs     # fake OpenAI-compatible server on http://127.0.0.1:4010/v1
+```
+In **Settings → AI providers → Add**, choose *Custom*, use the base URL `http://127.0.0.1:4010/v1`, any key and the model `mock`. Lessons are then generated instantly from the text itself, which is useful for testing the whole flow.
 
 ### Adding or editing UI text
 

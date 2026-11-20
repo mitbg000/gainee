@@ -38,7 +38,9 @@ function wordRangeAt(x: number, y: number): Range | null {
   if (doc.caretPositionFromPoint) {
     const p = doc.caretPositionFromPoint(x, y);
     if (p) ({ offsetNode: node, offset } = p);
-  } else if (document.caretRangeFromPoint) {
+  }
+  // fall back to the WebKit API when the standard one is missing or returned an element
+  if ((!node || node.nodeType !== Node.TEXT_NODE) && document.caretRangeFromPoint) {
     const r = document.caretRangeFromPoint(x, y);
     if (r) ({ startContainer: node, startOffset: offset } = r);
   }
