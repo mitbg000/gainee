@@ -50,7 +50,7 @@ export default function ToolPanel({
     <div className="rounded-2xl border border-line bg-card p-4 shadow-lg" data-tool-panel>
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-wider text-accent2">{tool.mode === "lookup" ? t("lookup") : t("ai")}</span>
-        <button onClick={onClose} aria-label={t("close")} className="rounded-lg px-2 py-1 text-muted hover:text-ink">
+        <button onClick={onClose} aria-label={t("close")} className="icon-btn">
           <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
       </div>
@@ -119,20 +119,20 @@ function Lookup({
             </div>
           )}
         </div>
-        <button onClick={() => speak(v?.headword ?? tool.text)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
+        <button onClick={() => speak(v?.headword ?? tool.text)} className="icon-btn icon-btn-outline" aria-label={t("listen")}>
           <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
         {v ? (
-          <button onClick={() => onToggleSave(v.id)} className={`rounded-lg border px-2 py-1 ${saved[v.id] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`} aria-label={t("save")}>
-            <I.IconStar className={`h-4 w-4 ${saved[v.id] ? "fill-current text-amber-500" : ""}`} />
+          <button onClick={() => onToggleSave(v.id)} className={`icon-btn icon-btn-outline ${saved[v.id] ? "is-on" : ""}`} aria-label={t("save")}>
+            <I.IconStar />
           </button>
         ) : (
           <button
             onClick={() => onSaveTerm(mine?.term ?? entry?.headword ?? tool.text, context, entry ? parseDictEntry(entry.html, entry.headword) : undefined)}
-            className={`rounded-lg border px-2 py-1 ${savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
+            className={`icon-btn icon-btn-outline ${savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "is-on" : ""}`}
             aria-label={t("save")}
           >
-            <I.IconStar className={`h-4 w-4 ${savedTerms[(mine?.term ?? entry?.headword ?? tool.text).toLowerCase()] ? "fill-current text-amber-500" : ""}`} />
+            <I.IconStar />
           </button>
         )}
       </div>
@@ -179,11 +179,11 @@ function Lookup({
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => onAskAi({ mode: "ai", action: "explain_word", selection: tool.text, context, anchor: tool.anchor })}
-          className="min-h-10 rounded-xl bg-accent px-3 text-sm font-medium text-on-accent"
+          className="btn btn-primary"
         >
           <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("askMore")}
         </button>
-        <Link href={`/dictionary?q=${encodeURIComponent(tool.text)}`} className="flex min-h-10 items-center rounded-xl border border-line px-3 text-sm">
+        <Link href={`/dictionary?q=${encodeURIComponent(tool.text)}`} className="btn btn-secondary">
           {t("openDictionary")}
         </Link>
       </div>
@@ -233,7 +233,7 @@ function CardForm({ initial, onSave }: { initial: WordCard; onSave: (c: WordCard
           await onSave(card);
           setState("saved");
         }}
-        className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50"
+        className="btn btn-primary"
       >
         <I.IconStar className={`inline-block h-4 w-4 align-[-0.2em] ${state === "saved" ? "fill-current" : ""}`} /> {state === "saved" ? t("saved") : t("saveWord")}
       </button>
@@ -301,25 +301,25 @@ function AiAsk({
             onClick={() => setAction(a)}
             disabled={ai.loading}
             aria-pressed={action === a}
-            className={`min-h-8 rounded-full border px-3 text-sm ${action === a ? "border-accent bg-accent text-on-accent" : "border-line hover:border-accent"}`}
+            className={`chip ${action === a ? "chip-on" : ""}`}
           >
             {t(`actions.${a}`)}
           </button>
         ))}
       </div>
       {action === "custom" && (
-        <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder={t("askPlaceholder")} className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-base" />
+        <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder={t("askPlaceholder")} className="field w-full text-base" />
       )}
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={generate}
           disabled={ai.loading || (action === "custom" && !question.trim())}
-          className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50"
+          className="btn btn-primary"
         >
           <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("generate")}
         </button>
         {providers.length > 1 && (
-          <select value={override} onChange={(e) => setOverride(e.target.value)} className="min-h-9 max-w-[11rem] rounded-lg border border-line bg-paper px-2 text-xs" aria-label={t("model")}>
+          <select value={override} onChange={(e) => setOverride(e.target.value)} className="field field-sm max-w-[11rem]" aria-label={t("model")}>
             <option value="">{t("modelDefault")}</option>
             {providers.map((p) => (
               <option key={p.id} value={p.id}>
@@ -329,7 +329,7 @@ function AiAsk({
           </select>
         )}
         {ai.loading && (
-          <button onClick={ai.stop} className="min-h-9 rounded-xl border border-line px-3 text-sm">
+          <button onClick={ai.stop} className="btn btn-sm btn-secondary">
             <I.IconStop className="inline-block h-4 w-4 align-[-0.2em]" /> {t("stop")}
           </button>
         )}
@@ -362,7 +362,7 @@ function AiAsk({
               await onPin(ai.messageId!, ai.text, tool.anchor, tool.annotationId, action as AiMsg["action"]);
               setPinned(true);
             }}
-            className="min-h-9 rounded-xl border border-line px-3 text-sm disabled:opacity-60"
+            className="btn btn-sm btn-secondary"
           >
             <I.IconPin className="inline-block h-4 w-4 align-[-0.2em]" /> {pinned ? t("pinned") : t("pin")}
           </button>

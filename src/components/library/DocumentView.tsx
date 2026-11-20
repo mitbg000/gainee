@@ -124,7 +124,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
       )}
 
       {firstOpen && (
-        <Link href={`/lessons/${firstOpen.id}`} className="mt-5 flex min-h-12 items-center justify-center rounded-xl bg-accent font-medium text-on-accent sm:inline-flex sm:px-6">
+        <Link href={`/lessons/${firstOpen.id}`} className="btn btn-lg btn-primary mt-5 w-full sm:w-auto">
           {doc.lessons.some((l) => l.completedAt) ? t("continue", { n: firstOpen.position }) : t("start")} →
         </Link>
       )}
@@ -159,7 +159,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
                     e.preventDefault();
                     regen([l.id]);
                   }}
-                  className="min-h-9 rounded-lg border border-line px-3 text-sm"
+                  className="btn btn-sm btn-secondary"
                 >
                   {t("retry")}
                 </button>
@@ -173,7 +173,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
 
       <div className="mt-6 flex flex-wrap gap-2 text-sm">
         {failed.length > 1 && !busy && (
-          <button onClick={() => regen(failed.map((l) => l.id))} className="min-h-10 rounded-xl border border-line px-3">
+          <button onClick={() => regen(failed.map((l) => l.id))} className="btn btn-secondary">
             {t("retryAll", { n: failed.length })}
           </button>
         )}

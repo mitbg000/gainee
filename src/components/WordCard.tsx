@@ -118,10 +118,10 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
           {imgError && <p className="mt-1 text-xs text-red-600">{t("imageFailed")}</p>}
         </div>
         <div className="mt-3 flex gap-2">
-          <button disabled={busy || !form.term?.trim()} onClick={save} className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50">
+          <button disabled={busy || !form.term?.trim()} onClick={save} className="btn btn-primary">
             {t("save")}
           </button>
-          <button onClick={() => setEditing(false)} className="min-h-10 rounded-xl border border-line px-4 text-sm">
+          <button onClick={() => setEditing(false)} className="btn btn-secondary">
             {t("cancel")}
           </button>
         </div>
@@ -152,13 +152,13 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
         {!word.meaningVi && !word.ipa && <button onClick={start} className="mt-1 text-sm text-accent underline">{t("addDetails")}</button>}
       </div>
       <div className="flex flex-none gap-1">
-        <button onClick={() => speak(word.term)} className="min-h-9 rounded-lg border border-line px-2" aria-label={t("listen")}>
+        <button onClick={() => speak(word.term)} className="icon-btn icon-btn-outline" aria-label={t("listen")}>
           <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
-        <button onClick={start} className="min-h-9 rounded-lg border border-line px-2.5 text-sm">
+        <button onClick={start} className="icon-btn icon-btn-outline">
           <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
-        <button onClick={remove} className="min-h-9 rounded-lg border border-line px-2.5 text-sm text-muted hover:text-ink" aria-label={t("remove")}>
+        <button onClick={remove} className="icon-btn icon-btn-outline" aria-label={t("remove")}>
           <I.IconTrash className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
       </div>

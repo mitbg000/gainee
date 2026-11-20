@@ -65,14 +65,14 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
       <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
         {t("total", { n: rows.length })}
         {rows.length > 0 && (
-          <Link href="/practice" className="rounded-lg border border-accent px-2.5 py-1 text-accent">
+          <Link href="/practice" className="btn btn-sm btn-outline">
             <I.IconTarget className="inline-block h-4 w-4 align-[-0.2em]" /> {t("practice")}
           </Link>
         )}
       </p>
       <form className="mt-3 flex gap-2">
-        <input name="q" defaultValue={q} placeholder={t("search")} className="min-h-10 flex-1 rounded-xl border border-line bg-card px-3 text-sm outline-none focus:border-accent" />
-        <button className="min-h-10 rounded-xl border border-line px-4 text-sm">{t("searchBtn")}</button>
+        <input name="q" defaultValue={q} placeholder={t("search")} className="field flex-1" />
+        <button className="btn btn-secondary">{t("searchBtn")}</button>
       </form>
       <AddWord />
       {rows.length === 0 && <p className="mt-4 text-muted">{q ? t("noResults") : t("empty")}</p>}

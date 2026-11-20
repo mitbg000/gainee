@@ -280,14 +280,14 @@ export default function ReadPane(props: Props) {
         </span>
         <span className="text-muted">{t("hint")}</span>
         <span className="ml-auto flex gap-1">
-          <button onClick={() => setFont(-1)} className="min-h-9 rounded-lg border border-line px-2.5" aria-label="A-">
+          <button onClick={() => setFont(-1)} className="btn btn-sm btn-secondary" aria-label="A-">
             A−
           </button>
-          <button onClick={() => setFont(1)} className="min-h-9 rounded-lg border border-line px-2.5" aria-label="A+">
+          <button onClick={() => setFont(1)} className="btn btn-sm btn-secondary" aria-label="A+">
             A+
           </button>
           {!desktop && (
-            <button onClick={() => setNotesOpen(true)} className="min-h-9 rounded-lg border border-line px-2.5">
+            <button onClick={() => setNotesOpen(true)} className="btn btn-sm btn-secondary">
               <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> {noteCount}
             </button>
           )}
@@ -338,7 +338,7 @@ export default function ReadPane(props: Props) {
                 <span className="text-muted">{timer.wpm < 150 ? t("wpmSlow") : timer.wpm < 250 ? t("wpmOk") : t("wpmFast")}</span>
               </p>
             ) : (
-              <button onClick={finishReading} className="min-h-11 rounded-xl bg-accent px-5 font-medium text-on-accent">
+              <button onClick={finishReading} className="btn btn-primary">
                 ✓ {t("finish")}
               </button>
             )}
@@ -431,7 +431,7 @@ export default function ReadPane(props: Props) {
                 props.onSaveTerm(sel.quote, sel.context);
                 clearSel();
               }}
-              className="min-h-9 rounded-lg px-2 text-sm hover:bg-paper"
+              className="btn btn-sm btn-ghost"
             >
               <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" /> <span className="hidden sm:inline">{t("save")}</span>
             </button>

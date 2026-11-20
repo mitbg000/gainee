@@ -72,12 +72,12 @@ export default function InstallPrompt() {
                 await evt.userChoice;
                 setHidden(true);
               }}
-              className="rounded-lg bg-accent px-3 py-2 font-medium text-on-accent"
+              className="btn btn-primary"
             >
               {t("install")}
             </button>
           )}
-          <button onClick={dismiss} className="rounded-lg px-3 py-2 text-muted hover:text-ink">
+          <button onClick={dismiss} className="btn btn-ghost">
             {t("dismiss")}
           </button>
         </div>

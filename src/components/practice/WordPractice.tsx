@@ -79,7 +79,7 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
                     localStorage.setItem("practice_mode", m);
                   } catch {}
                 }}
-                className={`rounded-xl border p-3 text-left ${mode === m ? "border-accent bg-accent/10" : "border-line hover:border-accent"}`}
+                className={`rounded-xl border p-3 text-left transition-colors ${mode === m ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent/50"}`}
               >
                 <b className="text-sm">{t(`mode.${m}`)}</b>
                 <span className="block text-xs text-muted">{t(`modeHint.${m}`)}</span>
@@ -91,13 +91,13 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
           <p className="mb-2 text-sm font-semibold">{t("sizeLabel")}</p>
           <div className="flex flex-wrap gap-2">
             {[10, 20, 50, 0].map((n) => (
-              <button key={n} onClick={() => setSize(n)} className={`min-h-10 rounded-xl border px-4 text-sm ${size === n ? "border-accent bg-accent text-on-accent" : "border-line"}`}>
+              <button key={n} onClick={() => setSize(n)} className={`chip ${size === n ? "chip-on" : ""}`}>
                 {n ? n : t("allWords", { n: words.length })}
               </button>
             ))}
           </div>
         </div>
-        <button onClick={() => start(words)} className="min-h-11 rounded-xl bg-accent px-6 font-medium text-on-accent">
+        <button onClick={() => start(words)} className="btn btn-primary">
           ▶ {t("start")}
         </button>
       </div>
@@ -127,14 +127,14 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
         )}
         <div className="mt-5 flex flex-wrap gap-2">
           {wrong.length > 0 && (
-            <button onClick={() => start([...new Map(wrong.map((w) => [w.id, w])).values()])} className="min-h-11 rounded-xl bg-accent px-5 font-medium text-on-accent">
+            <button onClick={() => start([...new Map(wrong.map((w) => [w.id, w])).values()])} className="btn btn-primary">
               ↻ {t("retryWrong")}
             </button>
           )}
-          <button onClick={() => start(words)} className="min-h-11 rounded-xl border border-line px-5">
+          <button onClick={() => start(words)} className="btn btn-secondary">
             {t("again")}
           </button>
-          <button onClick={() => setQs(null)} className="min-h-11 rounded-xl border border-line px-5">
+          <button onClick={() => setQs(null)} className="btn btn-secondary">
             {t("change")}
           </button>
         </div>
@@ -216,7 +216,7 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
             className={`min-h-12 flex-1 rounded-xl border bg-paper px-3 text-lg outline-none ${given === null ? "border-line focus:border-accent" : right ? "border-green-500" : "border-red-400"}`}
           />
           {given === null && (
-            <button disabled={!typed.trim()} className="min-h-12 rounded-xl bg-accent px-5 font-medium text-on-accent disabled:opacity-40">
+            <button disabled={!typed.trim()} className="btn btn-lg btn-primary">
               {t("check")}
             </button>
           )}
@@ -232,7 +232,7 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
             <span>{w.meaningVi || w.definitionEn}</span>
           </p>
           {w.context && <p className="mt-1 font-serif text-[15px] italic text-muted">“{w.context}”</p>}
-          <button onClick={next} autoFocus className="mt-3 min-h-10 rounded-xl bg-accent px-5 text-sm font-medium text-on-accent">
+          <button onClick={next} autoFocus className="btn btn-primary mt-3">
             {t("next")} ↵
           </button>
         </div>

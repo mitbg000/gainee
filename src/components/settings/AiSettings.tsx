@@ -216,7 +216,7 @@ function AddProvider({ onAdded }: { onAdded: () => void }) {
               setLabel(PROVIDER_PRESETS[k].label);
               setBaseUrl(PROVIDER_PRESETS[k].baseUrl);
             }}
-            className={`min-h-9 rounded-full border px-3 text-sm ${preset === k ? "border-accent bg-accent text-on-accent" : "border-line"}`}
+            className={`chip ${preset === k ? "chip-on" : ""}`}
           >
             {PROVIDER_PRESETS[k].label}
           </button>
@@ -287,7 +287,7 @@ function TaskRoute({
       </div>
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
-          <select className="min-h-10 rounded-lg border border-line bg-paper px-2 text-sm" value={value?.providerId ?? ""} onChange={(e) => (e.target.value ? pick(Number(e.target.value)) : onChange(null))}>
+          <select className="field" value={value?.providerId ?? ""} onChange={(e) => (e.target.value ? pick(Number(e.target.value)) : onChange(null))}>
             <option value="">{t("auto")}</option>
             {providers.map((p) => (
               <option key={p.id} value={p.id}>
@@ -297,7 +297,7 @@ function TaskRoute({
           </select>
           {value && (
             <input
-              className="min-h-10 min-w-0 flex-1 rounded-lg border border-line bg-paper px-3 text-sm"
+              className="field min-w-0 flex-1"
               value={model}
               list={`task-models-${task}`}
               onChange={(e) => setModel(e.target.value)}

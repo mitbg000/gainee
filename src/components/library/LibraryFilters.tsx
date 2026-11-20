@@ -35,7 +35,7 @@ export default function LibraryFilters({ labels }: { labels: LabelRef[] }) {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={t("search")}
-        className="w-full rounded-xl border border-line bg-card px-4 py-2.5 text-base outline-none focus:border-accent"
+        className="field w-full text-base"
       />
       {labels.length > 0 && (
         <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">

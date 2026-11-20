@@ -43,10 +43,10 @@ export function VocabPane({
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <button onClick={() => (setHide(!hide), setShown(new Set()))} className={`min-h-10 rounded-xl border px-3 text-sm ${hide ? "border-ink bg-ink text-paper" : "border-line"}`}>
+        <button onClick={() => (setHide(!hide), setShown(new Set()))} className={`btn btn-secondary ${hide ? "is-on" : ""}`}>
           <I.IconEyeOff className="inline-block h-4 w-4 align-[-0.2em]" /> {t("hide")}
         </button>
-        <button onClick={onSaveAll} className="min-h-10 rounded-xl border border-line px-3 text-sm">
+        <button onClick={onSaveAll} className="btn btn-secondary">
           <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" /> {t("saveAll")}
         </button>
         <span className="ml-auto text-sm text-muted">{t("count", { n: vocab.length })}</span>
@@ -73,15 +73,15 @@ export function VocabPane({
                     {v.definitionEn && <span className="block text-sm text-muted">{v.definitionEn}</span>}
                   </button>
                 </div>
-                <button onClick={() => speak(v.headword)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
+                <button onClick={() => speak(v.headword)} className="icon-btn icon-btn-outline" aria-label={t("listen")}>
                   <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
                 </button>
                 <button
                   onClick={() => onToggleSave(v.id)}
-                  className={`rounded-lg border px-2 py-1 ${saved[v.id] ? "border-amber-400 bg-amber-50 dark:bg-amber-950" : "border-line"}`}
+                  className={`icon-btn icon-btn-outline ${saved[v.id] ? "is-on" : ""}`}
                   aria-label={t("save")}
                 >
-                  <I.IconStar className={`h-4 w-4 ${saved[v.id] ? "fill-current text-amber-500" : ""}`} />
+                  <I.IconStar />
                 </button>
               </div>
               {v.context && <p className="mt-2 rounded-lg bg-paper px-3 py-2 font-serif text-[15px]">“{v.context}”</p>}
@@ -108,11 +108,11 @@ export function VocabPane({
                   {w.definitionEn && <div className="text-sm text-muted">{w.definitionEn}</div>}
                   {w.context && <p className="mt-1 rounded-lg bg-paper px-3 py-2 font-serif text-[15px]">“{w.context}”</p>}
                 </div>
-                <button onClick={() => speak(w.term)} className="rounded-lg border border-line px-2 py-1" aria-label={t("listen")}>
+                <button onClick={() => speak(w.term)} className="icon-btn icon-btn-outline" aria-label={t("listen")}>
                   <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
                 </button>
-                <button onClick={() => onRemoveTerm(w)} className="rounded-lg border border-amber-400 bg-amber-50 px-2 py-1 dark:bg-amber-950" aria-label={t("save")}>
-                  <I.IconStar className="inline-block h-4 w-4 align-[-0.2em] fill-current text-amber-500" />
+                <button onClick={() => onRemoveTerm(w)} className="icon-btn icon-btn-outline is-on" aria-label={t("save")}>
+                  <I.IconStar />
                 </button>
               </li>
             ))}
@@ -232,7 +232,7 @@ export function ExercisesPane({
                         key={o}
                         disabled={checked}
                         onClick={() => setTf((s) => ({ ...s, [i]: o }))}
-                        className={`min-h-10 rounded-xl border px-4 text-sm ${tf[i] === o ? "border-accent bg-accent text-on-accent" : "border-line bg-card"}`}
+                        className={`btn ${tf[i] === o ? "btn-primary" : "btn-secondary"}`}
                       >
                         {t(`tf.${o}`)}
                       </button>
@@ -329,11 +329,11 @@ export function ExercisesPane({
 
       <div className="flex flex-wrap items-center gap-2">
         {!checked ? (
-          <button onClick={submit} className="min-h-11 rounded-xl bg-accent px-5 font-medium text-on-accent">
+          <button onClick={submit} className="btn btn-primary">
             {t("submit")}
           </button>
         ) : (
-          <button onClick={reset} className="min-h-11 rounded-xl border border-line px-5">
+          <button onClick={reset} className="btn btn-secondary">
             {t("retry")}
           </button>
         )}
@@ -361,7 +361,7 @@ function useAutoSaveText({ lessonId, kind, prompt, initial, placeholder, rows = 
     }, 900);
     return () => clearTimeout(id);
   }, [v, saved, lessonId, kind, prompt]);
-  return { value: v, el: <textarea value={v} onChange={(e) => setV(e.target.value)} rows={rows} placeholder={placeholder} className="w-full rounded-xl border border-line bg-card p-3 text-base leading-relaxed outline-none focus:border-accent" /> };
+  return { value: v, el: <textarea value={v} onChange={(e) => setV(e.target.value)} rows={rows} placeholder={placeholder} className="field w-full p-3 text-base leading-relaxed" /> };
 }
 
 function Feedback({ lessonId, kind, prompt, answer }: { lessonId: number; kind: string; prompt: string; answer: string }) {
@@ -372,7 +372,7 @@ function Feedback({ lessonId, kind, prompt, answer }: { lessonId: number; kind: 
       <button
         disabled={!answer.trim() || ai.loading}
         onClick={() => ai.ask({ action: "feedback", selection: answer, prompt, feedbackKind: kind, lessonId })}
-        className="min-h-10 rounded-xl border border-accent px-3 text-sm font-medium text-accent disabled:opacity-40"
+        className="btn btn-outline"
       >
         <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {ai.loading ? t("checking") : t("feedback")}
       </button>
@@ -442,7 +442,7 @@ export function PracticePane({
           <p className="mb-2 rounded-xl border-l-4 border-accent bg-card p-3 font-serif text-[17px]">“{content.paraphrase.source}”</p>
           {para.el}
           <div className="mt-2 flex flex-wrap gap-2">
-            <button onClick={() => setShowModel(!showModel)} className="min-h-10 rounded-xl border border-line px-3 text-sm">
+            <button onClick={() => setShowModel(!showModel)} className="btn btn-secondary">
               <I.IconEye className="inline-block h-4 w-4 align-[-0.2em]" /> {t("model")}
             </button>
           </div>
@@ -482,7 +482,7 @@ export function PracticePane({
           onChange={(e) => setLessonNotes(e.target.value)}
           rows={5}
           placeholder={t("notesPlaceholder")}
-          className="mt-2 w-full rounded-xl border border-line bg-card p-3 text-base leading-relaxed outline-none focus:border-accent"
+          className="field mt-2 w-full p-3 text-base leading-relaxed"
         />
       </section>
     </div>

@@ -23,7 +23,7 @@ export default function GoalsEditor({ targets }: { targets: Record<string, numbe
               max={1000}
               value={v[k]}
               onChange={(e) => (setV({ ...v, [k]: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) }), setState(""))}
-              className="w-full rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm"
+              className="field w-full"
             />
           </label>
         ))}

@@ -94,10 +94,10 @@ export default function SplitPassage({
   return (
     <>
       <div className="mb-2 flex items-center justify-end gap-1 font-sans text-sm">
-        <button onClick={() => changeFont(-1)} className="min-h-8 rounded-lg border border-line px-2" aria-label="A-">
+        <button onClick={() => changeFont(-1)} className="btn btn-sm btn-secondary" aria-label="A-">
           A−
         </button>
-        <button onClick={() => changeFont(1)} className="min-h-8 rounded-lg border border-line px-2" aria-label="A+">
+        <button onClick={() => changeFont(1)} className="btn btn-sm btn-secondary" aria-label="A+">
           A+
         </button>
       </div>
@@ -153,7 +153,7 @@ export default function SplitPassage({
               onDelete(hit.id);
               setHit(null);
             }}
-            className="min-h-8 rounded-lg px-2 text-sm hover:bg-paper"
+            className="btn btn-sm btn-ghost"
           >
             <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" /> {t("unhighlight")}
           </button>

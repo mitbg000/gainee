@@ -41,14 +41,14 @@ export default function LessonEditor({ lessonId, paragraphs, hasNext, onClose }:
         </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="flex flex-wrap items-center gap-2">
-          <button disabled={busy || !text.trim()} onClick={() => run(post(`/api/lessons/${lessonId}/text`, "PUT", { text, regenerate: regen }))} className="min-h-11 rounded-xl bg-accent px-5 text-sm font-medium text-on-accent disabled:opacity-50">
+          <button disabled={busy || !text.trim()} onClick={() => run(post(`/api/lessons/${lessonId}/text`, "PUT", { text, regenerate: regen }))} className="btn btn-primary">
             {busy ? "…" : t("save")}
           </button>
-          <button disabled={busy} onClick={onClose} className="min-h-11 rounded-xl border border-line px-4 text-sm">
+          <button disabled={busy} onClick={onClose} className="btn btn-secondary">
             {t("cancel")}
           </button>
           {hasNext && (
-            <button disabled={busy} onClick={() => confirm(t("mergeConfirm")) && run(post(`/api/lessons/${lessonId}/merge`, "POST"))} className="ml-auto min-h-11 rounded-xl border border-line px-4 text-sm">
+            <button disabled={busy} onClick={() => confirm(t("mergeConfirm")) && run(post(`/api/lessons/${lessonId}/merge`, "POST"))} className="btn btn-secondary ml-auto">
               {t("merge")}
             </button>
           )}

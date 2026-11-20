@@ -40,7 +40,7 @@ export default function JobsPanel() {
           <h2 className="font-serif text-xl font-bold">{t("title")}</h2>
           <p className="text-sm text-muted">{t("intro")}</p>
         </div>
-        <button onClick={runTest} className="min-h-11 whitespace-nowrap rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent">
+        <button onClick={runTest} className="btn btn-primary whitespace-nowrap">
           {t("test")}
         </button>
       </div>

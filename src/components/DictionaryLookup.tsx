@@ -66,9 +66,9 @@ export default function DictionaryLookup({ initialQuery = "", autoFocus = false 
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t("placeholder")}
-          className="min-w-0 flex-1 rounded-xl border border-line bg-card px-4 py-3 text-base outline-none focus:border-accent"
+          className="field min-w-0 flex-1 py-3 text-base"
         />
-        <button className="rounded-xl bg-accent px-5 font-medium text-on-accent">{t("search")}</button>
+        <button className="btn btn-primary">{t("search")}</button>
       </form>
 
       {history.length > 1 && (
@@ -94,7 +94,7 @@ export default function DictionaryLookup({ initialQuery = "", autoFocus = false 
             <article key={e.id} className="mb-3 rounded-2xl border border-line bg-card p-5">
               <header className="mb-2 flex items-center gap-3">
                 <h2 className="font-serif text-2xl font-bold">{e.headword}</h2>
-                <button onClick={() => speak(e.headword)} aria-label={t("listen")} className="rounded-lg border border-line px-2 py-1 text-sm">
+                <button onClick={() => speak(e.headword)} aria-label={t("listen")} className="icon-btn icon-btn-outline">
                   <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
                 </button>
                 {result.via !== "exact" && (

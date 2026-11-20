@@ -264,10 +264,10 @@ function LookupCard({
             )}
           </div>
         </div>
-        <button onClick={() => speak(entry?.headword || hit.text)} aria-label={t("listen")} className="rounded-lg border border-line px-2 py-1 text-sm">
+        <button onClick={() => speak(entry?.headword || hit.text)} aria-label={t("listen")} className="icon-btn icon-btn-outline">
           <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
-        <button onClick={onClose} aria-label={t("close")} className="rounded-lg px-2 py-1 text-muted hover:text-ink">
+        <button onClick={onClose} aria-label={t("close")} className="icon-btn">
           <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
       </div>
@@ -289,17 +289,17 @@ function LookupCard({
 
       <div className="mt-3 flex flex-wrap gap-2 text-sm">
         {entry && (expanded || overflows || more) && (
-          <button onClick={() => setExpanded(!expanded)} className="rounded-lg border border-line px-3 py-1.5">
+          <button onClick={() => setExpanded(!expanded)} className="btn btn-sm btn-secondary">
             {expanded ? t("less") : more ? t("moreEntries", { n: result!.entries.length }) : t("more")}
           </button>
         )}
-        <Link href={`/dictionary?q=${encodeURIComponent(hit.text)}`} className="rounded-lg border border-line px-3 py-1.5">
+        <Link href={`/dictionary?q=${encodeURIComponent(hit.text)}`} className="btn btn-sm btn-secondary">
           {t("openDictionary")}
         </Link>
-        <button disabled title={t("soon")} className="rounded-lg border border-line px-3 py-1.5 text-muted/60">
+        <button disabled title={t("soon")} className="btn btn-sm btn-secondary">
           <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("askAi")} <span className="text-[10px]">· {t("soon")}</span>
         </button>
-        <button disabled title={t("soon")} className="rounded-lg border border-line px-3 py-1.5 text-muted/60">
+        <button disabled title={t("soon")} className="btn btn-sm btn-secondary">
           <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" /> {t("saveWord")}
         </button>
       </div>

@@ -138,7 +138,7 @@ export default function ReviewSession({ doc }: { doc?: number }) {
                 localStorage.setItem("review_mode", m);
               } catch {}
             }}
-            className={`min-h-8 rounded-full border px-3 text-sm ${mode === m ? "border-ink bg-ink text-paper" : "border-line"}`}
+            className={`chip ${mode === m ? "chip-on" : ""}`}
           >
             {t(`modes.${m}`)}
           </button>
@@ -164,7 +164,7 @@ export default function ReviewSession({ doc }: { doc?: number }) {
             {card.example && <p className="text-sm italic"><I.IconQuote className="inline-block h-4 w-4 align-[-0.2em] text-muted" /> {card.example}</p>}
             {card.note && <p className="text-sm text-muted"><I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {card.note}</p>}
             <div className="flex justify-center">
-              <button onClick={() => speak(card.term)} className="rounded-lg border border-line px-3 py-1 text-sm">
+              <button onClick={() => speak(card.term)} className="btn btn-sm btn-secondary">
                 <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" /> {t("listen")}
               </button>
             </div>

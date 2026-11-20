@@ -161,7 +161,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
             key={k}
             onClick={() => setKind(k)}
             disabled={!!grade}
-            className={`min-h-10 rounded-xl border px-3 text-sm ${kind === k ? "border-accent bg-accent text-on-accent" : "border-line bg-card disabled:opacity-50"}`}
+            className={`chip disabled:opacity-40 ${kind === k ? "chip-on" : ""}`}
           >
             {t(`kind.${k}`)}
           </button>
@@ -176,18 +176,18 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("question")}</h2>
           <span className="ml-auto flex gap-2">
-            <button onClick={newPrompt} disabled={!!busy || !!grade} className="min-h-9 rounded-lg border border-accent px-3 text-sm text-accent disabled:opacity-40">
+            <button onClick={newPrompt} disabled={!!busy || !!grade} className="btn btn-sm btn-outline">
               <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {busy === "prompt" ? t("generating") : t("aiPrompt")}
             </button>
             {!grade && (
-              <button onClick={() => setEditPrompt(!editPrompt)} className="min-h-9 rounded-lg border border-line px-3 text-sm">
+              <button onClick={() => setEditPrompt(!editPrompt)} className="btn btn-sm btn-secondary">
                 {editPrompt ? t("done") : <><I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> {t("editPrompt")}</>}
               </button>
             )}
           </span>
         </div>
         {editPrompt ? (
-          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={t("promptPlaceholder")} className="w-full rounded-xl border border-line bg-paper p-3 text-base outline-none focus:border-accent" />
+          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={t("promptPlaceholder")} className="field w-full p-3 text-base" />
         ) : (
           <Markdown text={prompt} className="text-[15px] leading-relaxed" />
         )}
@@ -222,16 +222,16 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
           className="w-full rounded-2xl border border-line bg-card p-4 font-serif text-[17px] leading-relaxed outline-none focus:border-accent"
         />
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <button onClick={doGrade} disabled={!!busy || !body.trim() || !prompt.trim()} className="min-h-11 rounded-xl bg-accent px-5 font-medium text-on-accent disabled:opacity-40">
+          <button onClick={doGrade} disabled={!!busy || !body.trim() || !prompt.trim()} className="btn btn-primary">
             <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {busy === "grade" ? t("grading") : grade ? t("regrade") : t("grade")}
           </button>
           {grade && (
-            <Link href="/writing?new=1" className="min-h-11 rounded-xl border border-line px-4 py-2.5 text-sm">
+            <Link href="/writing?new=1" className="btn btn-secondary">
               <I.IconPlus className="inline-block h-4 w-4 align-[-0.2em]" /> {t("new")}
             </Link>
           )}
           {id && (
-            <button onClick={remove} className="ml-auto min-h-11 rounded-xl px-3 text-sm text-muted hover:text-red-600">
+            <button onClick={remove} className="btn btn-danger ml-auto">
               <I.IconTrash className="inline-block h-4 w-4 align-[-0.2em]" /> {t("delete")}
             </button>
           )}

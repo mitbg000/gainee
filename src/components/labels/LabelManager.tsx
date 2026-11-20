@@ -60,7 +60,7 @@ export default function LabelManager() {
           onDelete={(id) => call(`/api/labels/${id}`, "DELETE")}
           extra={
             kind === "topic" && loaded && !hasTopics ? (
-              <button onClick={() => call("/api/labels", "POST", { preset: "ielts_topics" })} className="min-h-10 rounded-xl border border-dashed border-accent px-3 text-sm text-accent">
+              <button onClick={() => call("/api/labels", "POST", { preset: "ielts_topics" })} className="btn btn-outline">
                 <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("addIelts")}
               </button>
             ) : null
@@ -125,7 +125,7 @@ function Section({
         <div className="flex gap-2">
           {extra}
           {!adding && (
-            <button onClick={() => setAdding(true)} className="min-h-10 rounded-xl bg-accent px-3 text-sm font-medium text-on-accent">
+            <button onClick={() => setAdding(true)} className="btn btn-primary">
               + {t("add")}
             </button>
           )}
@@ -162,12 +162,12 @@ function Section({
                 <span className="text-xs text-muted">{t("counts", { documents: l.documents, words: l.words })}</span>
                 {l.description && <span className="w-full text-sm text-muted sm:w-auto">{l.description}</span>}
                 <span className="ml-auto flex gap-1">
-                  <button onClick={() => setEditing(l.id)} className="min-h-9 rounded-lg px-2.5 text-sm text-muted hover:bg-paper hover:text-ink">
+                  <button onClick={() => setEditing(l.id)} className="btn btn-sm btn-ghost">
                     {t("edit")}
                   </button>
                   <button
                     onClick={() => confirm(t("confirmDelete", { name: l.name })) && onDelete(l.id)}
-                    className="min-h-9 rounded-lg px-2.5 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                    className="btn btn-sm btn-danger"
                   >
                     {t("delete")}
                   </button>
@@ -213,7 +213,7 @@ function LabelForm({
           value={d.emoji}
           maxLength={8}
           onChange={(e) => set({ emoji: e.target.value })}
-          className="w-14 rounded-lg border border-line bg-paper px-2 py-2 text-center text-base"
+          className="field w-14 text-center text-base"
         />
         <input
           autoFocus
@@ -222,7 +222,7 @@ function LabelForm({
           value={d.name}
           maxLength={100}
           onChange={(e) => set({ name: e.target.value })}
-          className="min-w-0 flex-1 rounded-lg border border-line bg-paper px-3 py-2 text-base"
+          className="field min-w-0 flex-1 text-base"
         />
       </div>
       <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t("color")}>
@@ -244,7 +244,7 @@ function LabelForm({
           <select
             value={d.parentId ?? ""}
             onChange={(e) => set({ parentId: e.target.value ? Number(e.target.value) : null })}
-            className="rounded-lg border border-line bg-paper px-2 py-1.5"
+            className="field"
           >
             <option value="">{t("noParent")}</option>
             {topics.map((tp) => (
@@ -261,11 +261,11 @@ function LabelForm({
         value={d.description}
         maxLength={500}
         onChange={(e) => set({ description: e.target.value })}
-        className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm"
+        className="field w-full"
       />
       <div className="flex items-center gap-2">
         <button className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent">{t("save")}</button>
-        <button type="button" onClick={onCancel} className="min-h-10 rounded-xl px-3 text-sm text-muted hover:text-ink">
+        <button type="button" onClick={onCancel} className="btn btn-ghost">
           {t("cancel")}
         </button>
         {d.name && <LabelChip name={d.name} emoji={d.emoji} color={d.color} className="ml-auto" />}

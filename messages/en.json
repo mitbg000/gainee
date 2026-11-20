@@ -110,9 +110,14 @@
     "notImported": "No dictionary imported yet – see README → “Offline dictionary”."
   },
   "install": {
+    "title": "Install Gainee on this device",
+    "android": "Open it like a normal app – full screen, from your home screen.",
+    "ios": "In Safari, tap <share></share> <b>Share</b>, then <b>Add to Home Screen</b>.",
+    "install": "Install",
+    "dismiss": "Not now",
     "button": "Install app",
-    "ios": "On iPhone/iPad: open this page in Safari, tap the Share button (square with an up arrow) in the bottom bar, then “Add to Home Screen”.",
-    "safari": "In Safari on Mac: File menu → “Add to Dock”. Or open it in Chrome/Edge and press Install app."
+    "iosHelp": "On iPhone/iPad: open this page in Safari, tap the Share button (square with an up arrow) in the bottom bar, then “Add to Home Screen”.",
+    "safariHelp": "In Safari on Mac: File menu → “Add to Dock”. Or open it in Chrome/Edge and press Install app."
   },
   "reader": {
     "tryTitle": "Try it: Kindle-style look-up",
@@ -326,10 +331,10 @@
     "part": "Part {n} of {total}",
     "words": "{n, number} words",
     "tabs": {
-      "read": "📖 Read",
-      "vocab": "🔤 Vocabulary",
-      "ex": "✍️ Exercises",
-      "practice": "🗣 Practice"
+      "read": "Read",
+      "vocab": "Vocabulary",
+      "ex": "Exercises",
+      "practice": "Practice"
     },
     "prev": "Previous",
     "next": "Next part",

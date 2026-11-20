@@ -34,7 +34,7 @@ export default function AddWord() {
           </label>
         ))}
       </div>
-      <button disabled={busy || !f.term.trim()} onClick={add} className="mt-3 min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50">
+      <button disabled={busy || !f.term.trim()} onClick={add} className="btn btn-primary mt-3">
         {t("save")}
       </button>
     </details>

@@ -13,6 +13,7 @@ import type { AiMsg, Anchor, Annotation, HlColor, LessonData, WordCard } from ".
 import * as I from "@/components/icons";
 
 type Tab = "read" | "vocab" | "ex" | "practice";
+const TAB_ICON: Record<Tab, React.ReactNode> = { read: <I.IconBook />, vocab: <I.IconWords />, ex: <I.IconChecklist />, practice: <I.IconMic /> };
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
 export default function LessonReader({ data }: { data: LessonData }) {
@@ -235,10 +236,11 @@ export default function LessonReader({ data }: { data: LessonData }) {
             role="tab"
             aria-selected={tab === k}
             onClick={() => setTab(k)}
-            className={`min-h-11 whitespace-nowrap border-b-2 px-3 text-sm font-medium ${tab === k ? "border-accent2 text-ink" : "border-transparent text-muted"}`}
+            className="tab"
           >
+            {TAB_ICON[k]}
             {t(`tabs.${k}`)}
-            {k === "vocab" && <span className="ml-1 text-xs text-muted">{vocab.length + termWords.length}</span>}
+            {k === "vocab" && <span className="rounded-full bg-ink/5 px-1.5 text-xs tabular-nums text-muted">{vocab.length + termWords.length}</span>}
           </button>
         ))}
       </div>
@@ -307,18 +309,18 @@ export default function LessonReader({ data }: { data: LessonData }) {
 
       <div className="mx-auto mt-10 flex max-w-6xl flex-wrap items-center gap-2 border-t border-line pt-5">
         {prev && (
-          <Link href={`/lessons/${prev.id}`} className="flex min-h-11 items-center rounded-xl border border-line px-4 text-sm">
+          <Link href={`/lessons/${prev.id}`} className="btn btn-secondary">
             ← {t("prev")}
           </Link>
         )}
-        <button onClick={toggleComplete} className={`min-h-11 rounded-xl border px-4 text-sm ${completed ? "border-green-500 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-300" : "border-line"}`}>
+        <button onClick={toggleComplete} className={`btn btn-secondary ${completed ? "border-green-500 bg-green-50 text-green-800 hover:bg-green-50 dark:bg-green-950 dark:text-green-300" : ""}`}>
           {completed ? `✓ ${t("completed")}` : t("markComplete")}
         </button>
         {next && (
           <Link
             href={`/lessons/${next.id}`}
             onClick={() => !completed && toggleComplete()}
-            className="ml-auto flex min-h-11 items-center rounded-xl bg-accent px-4 text-sm font-medium text-on-accent"
+            className="btn btn-primary ml-auto"
           >
             {t("next")} →
           </Link>

@@ -60,13 +60,13 @@ export default function InstallApp() {
 
   return (
     <div className="text-sm">
-      <button onClick={install} className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-accent px-3 font-medium text-accent hover:bg-accent/10">
+      <button onClick={install} className="btn btn-outline w-full">
         <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
           <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
         </svg>
         {t("button")}
       </button>
-      {help && platform && <p className="mt-2 rounded-xl bg-paper p-3 text-xs leading-relaxed text-muted">{t(platform)}</p>}
+      {help && platform && <p className="mt-2 rounded-xl bg-paper p-3 text-xs leading-relaxed text-muted">{t(platform === "ios" ? "iosHelp" : "safariHelp")}</p>}
     </div>
   );
 }

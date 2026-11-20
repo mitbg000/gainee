@@ -74,7 +74,7 @@ export default function ImportForm({ sources }: { sources: string[] }) {
               setMode(m);
               setPreview(null);
             }}
-            className={`min-h-10 rounded-lg px-4 text-sm font-medium ${mode === m ? "bg-ink text-paper" : "text-muted"}`}
+            className={`btn btn-sm ${mode === m ? "bg-card text-ink shadow-sm" : "btn-ghost"}`}
           >
             {t(`mode.${m}`)}
           </button>
@@ -174,10 +174,10 @@ export default function ImportForm({ sources }: { sources: string[] }) {
       )}
 
       <div className="flex flex-wrap gap-2">
-        <button disabled={!ready || !!busy} onClick={() => send("preview")} className="min-h-11 rounded-xl border border-line bg-card px-5 font-medium disabled:opacity-50">
+        <button disabled={!ready || !!busy} onClick={() => send("preview")} className="btn btn-secondary">
           {busy === "preview" ? t("reading") : t("preview")}
         </button>
-        <button disabled={!ready || !!busy} onClick={() => send("create")} className="min-h-11 rounded-xl bg-accent px-5 font-medium text-on-accent disabled:opacity-50">
+        <button disabled={!ready || !!busy} onClick={() => send("create")} className="btn btn-primary">
           {busy === "create" ? t("creating") : t("create")}
         </button>
       </div>

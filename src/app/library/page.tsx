@@ -28,7 +28,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
           <p className="text-xs font-bold uppercase tracking-widest text-accent2">{t("kicker")}</p>
           <h1 className="mt-1 font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
         </div>
-        <Link href="/import" className="flex min-h-11 items-center rounded-xl bg-accent px-4 text-sm font-medium text-on-accent">
+        <Link href="/import" className="btn btn-primary">
           + {t("add")}
         </Link>
       </div>

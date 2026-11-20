@@ -11,7 +11,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
   const doc = Number((await searchParams).doc) || undefined;
   const groups = await dueByDocument();
   const total = groups.reduce((a, g) => a + g.n, 0);
-  const chip = (active: boolean) => `flex min-h-9 items-center rounded-full border px-3 text-sm ${active ? "border-accent bg-accent text-on-accent" : "border-line bg-card hover:border-accent"}`;
+  const chip = (active: boolean) => `chip ${active ? "chip-on" : ""}`;
 
   return (
     <Shell>

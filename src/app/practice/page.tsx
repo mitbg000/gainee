@@ -24,7 +24,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
   const groups = new Map<number, { title: string; n: number }>();
   for (const r of rows) if (r.docId) groups.set(r.docId, { title: r.docTitle!, n: (groups.get(r.docId)?.n ?? 0) + 1 });
   const pool = doc ? rows.filter((r) => r.docId === doc) : rows;
-  const chip = (active: boolean) => `flex min-h-9 items-center rounded-full border px-3 text-sm ${active ? "border-accent bg-accent text-on-accent" : "border-line bg-card hover:border-accent"}`;
+  const chip = (active: boolean) => `chip ${active ? "chip-on" : ""}`;
 
   return (
     <Shell>

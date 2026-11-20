@@ -116,7 +116,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
   const btn = "min-h-9 rounded-lg px-2.5 text-sm hover:bg-paper";
   const list = (
     <div className="flex min-h-0 flex-1 flex-col gap-1">
-      <button onClick={startNew} className="mb-2 flex min-h-10 items-center gap-2 rounded-xl border border-line px-3 text-sm font-medium hover:bg-card">
+      <button onClick={startNew} className="btn btn-secondary mb-2">
         <I.IconPlus className="inline-block h-4 w-4 align-[-0.2em]" /> {t("newChat")}
       </button>
       <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted">{t("history")}</p>
@@ -137,7 +137,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
   );
 
   const contextSelect = (
-    <select value={lessonId ?? ""} onChange={(e) => setLessonId(Number(e.target.value) || null)} aria-label={t("context")} className="min-h-9 min-w-0 max-w-[16rem] truncate rounded-lg border border-line bg-card px-2 text-sm">
+    <select value={lessonId ?? ""} onChange={(e) => setLessonId(Number(e.target.value) || null)} aria-label={t("context")} className="field field-sm min-w-0 max-w-[16rem] truncate">
       <option value="">📄 {t("noContext")}</option>
       {docs.map((d) => (
         <optgroup key={d.id} label={d.title}>

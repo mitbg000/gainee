@@ -26,7 +26,7 @@ export default function ChatBubble({ docs }: { docs: TreeDoc[] }) {
         >
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <b className="text-sm"><I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("title")}</b>
-            <button onClick={() => setOpen(false)} aria-label={t("close")} className="min-h-8 rounded-lg px-2 text-sm hover:bg-card">
+            <button onClick={() => setOpen(false)} aria-label={t("close")} className="icon-btn">
               <I.IconClose className="inline-block h-4 w-4 align-[-0.2em]" />
             </button>
           </div>

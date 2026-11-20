@@ -54,7 +54,7 @@ function Form({ theme }: { theme: Theme }) {
         spellCheck={false}
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        className="mt-1 w-full rounded-lg border border-line bg-card px-3 py-2.5 text-base outline-none focus:border-accent"
+        className="field mt-1 w-full text-base"
       />
       <label className="mt-4 block text-sm font-medium" htmlFor="password">{t("login.password")}</label>
       <input
@@ -63,10 +63,10 @@ function Form({ theme }: { theme: Theme }) {
         autoComplete="current-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="mt-1 w-full rounded-lg border border-line px-3 py-2.5 text-base outline-none focus:border-accent"
+        className="field mt-1 w-full text-base"
       />
       {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{t(`login.errors.${error}`)}</p>}
-      <button type="submit" disabled={busy || !username || !password} className="mt-5 min-h-11 w-full rounded-xl bg-accent py-2.5 font-medium text-on-accent disabled:opacity-50">
+      <button type="submit" disabled={busy || !username || !password} className="btn btn-primary mt-5 w-full">
         {busy ? t("login.checking") : t("login.submit")}
       </button>
     </form>

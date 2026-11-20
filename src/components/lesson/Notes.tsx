@@ -100,7 +100,7 @@ export function NoteCard({ a, ai, active, autoFocus, onActivate, onPatch, onDele
               e.stopPropagation();
               onDelete();
             }}
-            className="ml-auto rounded-lg px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+            className="btn btn-sm btn-danger ml-auto text-xs"
           >
             {t("delete")}
           </button>

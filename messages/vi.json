@@ -110,9 +110,14 @@
     "notImported": "Chưa nhập từ điển – xem README → “Offline dictionary”."
   },
   "install": {
+    "title": "Cài Gainee lên thiết bị này",
+    "android": "Mở như một ứng dụng bình thường – toàn màn hình, ngay từ màn hình chính.",
+    "ios": "Trong Safari, bấm <share></share> <b>Chia sẻ</b>, rồi chọn <b>Thêm vào MH chính</b>.",
+    "install": "Cài đặt",
+    "dismiss": "Để sau",
     "button": "Cài ứng dụng",
-    "ios": "Trên iPhone/iPad: mở trang bằng Safari, bấm nút Chia sẻ (ô vuông có mũi tên lên) ở thanh dưới, rồi chọn “Thêm vào MH chính”.",
-    "safari": "Trên Safari (Mac): mở menu Tệp (File) → “Thêm vào Dock”. Hoặc mở bằng Chrome/Edge rồi bấm Cài ứng dụng."
+    "iosHelp": "Trên iPhone/iPad: mở trang bằng Safari, bấm nút Chia sẻ (ô vuông có mũi tên lên) ở thanh dưới, rồi chọn “Thêm vào MH chính”.",
+    "safariHelp": "Trên Safari (Mac): mở menu Tệp (File) → “Thêm vào Dock”. Hoặc mở bằng Chrome/Edge rồi bấm Cài ứng dụng."
   },
   "reader": {
     "tryTitle": "Thử tra từ kiểu Kindle",
@@ -326,10 +331,10 @@
     "part": "Phần {n}/{total}",
     "words": "{n, number} từ",
     "tabs": {
-      "read": "📖 Đọc",
-      "vocab": "🔤 Từ vựng",
-      "ex": "✍️ Bài tập",
-      "practice": "🗣 Luyện tập"
+      "read": "Đọc",
+      "vocab": "Từ vựng",
+      "ex": "Bài tập",
+      "practice": "Luyện tập"
     },
     "prev": "Phần trước",
     "next": "Phần tiếp",
