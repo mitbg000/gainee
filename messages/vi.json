@@ -392,7 +392,8 @@
         "translate": "Dịch",
         "paraphrase": "Paraphrase",
         "custom": "Câu hỏi",
-        "feedback": "Nhận xét"
+        "feedback": "Nhận xét",
+        "vocab_card": "Thẻ từ vựng"
       },
       "askPlaceholder": "Hỏi bất cứ điều gì về đoạn này…",
       "send": "Hỏi",
@@ -403,7 +404,10 @@
       "pinned": "Đã ghim",
       "stop": "Dừng",
       "model": "Model",
-      "modelDefault": "Model: theo cài đặt"
+      "modelDefault": "Model: theo cài đặt",
+      "choose": "Bạn muốn AI làm gì?",
+      "generate": "Tạo",
+      "cardFailed": "Không đọc được câu trả lời của AI thành thẻ từ. Bấm Tạo để thử lại."
     },
     "vocab": {
       "hide": "Che nghĩa",
@@ -499,6 +503,8 @@
       "example": "Ví dụ",
       "note": "Ghi chú",
       "context": "Câu trong bài"
-    }
+    },
+    "saveWord": "Lưu từ",
+    "saved": "Đã lưu"
   }
 }

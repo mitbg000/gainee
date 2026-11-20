@@ -9,7 +9,7 @@ import LessonEditor from "./LessonEditor";
 import { locateQuote } from "./marks";
 import { ExercisesPane, PracticePane, VocabPane, type TermWord } from "./Panes";
 import ReadPane from "./ReadPane";
-import type { AiMsg, Anchor, Annotation, HlColor, LessonData } from "./types";
+import type { AiMsg, Anchor, Annotation, HlColor, LessonData, WordCard } from "./types";
 
 type Tab = "read" | "vocab" | "ex" | "practice";
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -150,6 +150,26 @@ export default function LessonReader({ data }: { data: LessonData }) {
     [savedTerms, lesson.id, t],
   );
 
+  /** Save an AI-generated (and possibly edited) vocabulary card; updates the word if it is already saved. */
+  const saveCard = useCallback(
+    async (c: WordCard, context: string) => {
+      const key = c.term.toLowerCase().slice(0, 191);
+      const fields = { term: c.term.slice(0, 191), ipa: c.ipa, pos: c.pos.slice(0, 32), meaningVi: c.meaningVi, definitionEn: c.definitionEn, example: c.example, note: c.note, context };
+      const id = savedTerms[key];
+      if (id) {
+        const r = await fetch(`/api/words/${id}`, { method: "PATCH", ...json(fields) });
+        if (r.ok) setTermWords((ws) => ws.map((w) => (w.id === id ? { ...w, meaningVi: c.meaningVi || null } : w)));
+        return say(r.ok ? t("saved") : t("error"));
+      }
+      const r = await fetch("/api/words", { method: "POST", ...json({ ...fields, lessonId: lesson.id }) });
+      if (!r.ok) return say(t("error"));
+      const { id: newId } = await r.json();
+      setTermWords((ws) => [{ id: newId, term: fields.term, meaningVi: c.meaningVi || null, context }, ...ws]);
+      say(t("saved"));
+    },
+    [savedTerms, lesson.id, t],
+  );
+
   async function toggleComplete() {
     const v = !completed;
     setCompleted(v);
@@ -221,6 +241,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
             onToggleSave={toggleSave}
             onSaveTerm={toggleTerm}
             savedTerms={savedTerms}
+            onSaveCard={saveCard}
           />
         )}
         {tab !== "read" && (

@@ -6,7 +6,7 @@ import type { RichPara } from "@/lib/text/rich";
 import { findAll, offsetIn, segments, sentenceAt, type Mark } from "./marks";
 import { MarginNotes, NoteCard } from "./Notes";
 import ToolPanel from "./ToolPanel";
-import { HL_COLORS, HL_DOT, type AiMsg, type Anchor, type Annotation, type HlColor, type Tool, type Vocab } from "./types";
+import { HL_COLORS, HL_DOT, type AiMsg, type Anchor, type Annotation, type HlColor, type Tool, type Vocab, type WordCard } from "./types";
 
 type Props = {
   lessonId: number;
@@ -22,6 +22,7 @@ type Props = {
   aiMessages: AiMsg[];
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
+  onSaveCard: (card: WordCard, context: string) => Promise<void>;
   flash: { p: number; start: number; end: number } | null;
   onCreateAnnotation: (a: Omit<Annotation, "id" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix">) => Promise<number | null>;
   onPatchAnnotation: (id: number, patch: { note?: string | null; color?: HlColor }) => void;
@@ -256,6 +257,7 @@ export default function ReadPane(props: Props) {
         setTool(next);
       }}
       onPin={props.onPin}
+      onSaveCard={props.onSaveCard}
     />
   );
 

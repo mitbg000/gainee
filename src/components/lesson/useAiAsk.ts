@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 
 export type AskInput = {
-  action: "explain_word" | "explain_sentence" | "grammar" | "translate" | "paraphrase" | "custom" | "feedback";
+  action: "explain_word" | "explain_sentence" | "grammar" | "translate" | "paraphrase" | "custom" | "feedback" | "vocab_card";
   selection: string;
   context?: string;
   question?: string;

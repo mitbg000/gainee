@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import { parseDictEntry } from "@/lib/dictionary/parse";
 import type { DictResult } from "@/lib/dictionary/lookup";
 import Markdown from "./Markdown";
-import type { Anchor, Tool, Vocab } from "./types";
+import type { AiMsg, Anchor, Tool, Vocab, WordCard } from "./types";
 import { useAiAsk, type AskInput } from "./useAiAsk";
 import { speak } from "@/lib/speech";
 
 type Provider = { id: number; label: string; defaultModel: string; enabled: boolean };
-const ACTIONS: AskInput["action"][] = ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase"];
+const ACTIONS: AskInput["action"][] = ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase", "vocab_card", "custom"];
 
 let providerCache: Provider[] | null = null;
 
@@ -27,6 +27,7 @@ export default function ToolPanel({
   onClose,
   onAskAi,
   onPin,
+  onSaveCard,
 }: {
   tool: NonNullable<Tool>;
   lessonId: number;
@@ -37,7 +38,8 @@ export default function ToolPanel({
   onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null }) => void;
   onClose: () => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
-  onPin: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AskInput["action"]) => Promise<void>;
+  onPin: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
+  onSaveCard: (card: WordCard, context: string) => Promise<void>;
 }) {
   const t = useTranslations("lesson.tool");
   return (
@@ -51,7 +53,7 @@ export default function ToolPanel({
       {tool.mode === "lookup" ? (
         <Lookup tool={tool} vocab={vocab} saved={saved} savedTerms={savedTerms} onToggleSave={onToggleSave} onSaveTerm={onSaveTerm} onAskAi={onAskAi} />
       ) : (
-        <AiAsk key={`${tool.selection}-${tool.action}`} tool={tool} lessonId={lessonId} onPin={onPin} />
+        <AiAsk key={`${tool.selection}-${tool.action}`} tool={tool} lessonId={lessonId} onPin={onPin} onSaveCard={onSaveCard} />
       )}
     </div>
   );
@@ -165,10 +167,71 @@ function Lookup({
   );
 }
 
-function AiAsk({ tool, lessonId, onPin }: { tool: Extract<Tool, { mode: "ai" }>; lessonId: number; onPin: (id: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AskInput["action"]) => Promise<void> }) {
+/** Pull the first {...} out of an AI reply and turn it into a card (null if it is not valid). */
+function parseCard(text: string, fallbackTerm: string): WordCard | null {
+  const m = /\{[\s\S]*\}/.exec(text);
+  if (!m) return null;
+  try {
+    const o = JSON.parse(m[0]) as Record<string, unknown>;
+    const g = (k: string) => (typeof o[k] === "string" ? (o[k] as string).trim() : "");
+    return { term: g("term") || fallbackTerm, ipa: g("ipa"), pos: g("pos"), meaningVi: g("meaningVi"), definitionEn: g("definitionEn"), example: g("example"), note: g("note") };
+  } catch {
+    return null;
+  }
+}
+
+const CARD_FIELDS = ["term", "ipa", "pos", "meaningVi", "definitionEn", "example", "note"] as const;
+
+/** AI-generated vocabulary card: every field can be edited before saving. */
+function CardForm({ initial, onSave }: { initial: WordCard; onSave: (c: WordCard) => Promise<void> }) {
+  const t = useTranslations("wordList");
+  const [card, setCard] = useState(initial);
+  const [state, setState] = useState<"" | "saving" | "saved">("");
+  const field = "w-full rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm outline-none focus:border-accent";
+  return (
+    <div className="space-y-2">
+      <div className="grid gap-2 sm:grid-cols-2">
+        {CARD_FIELDS.map((k) => (
+          <label key={k} className={`text-xs text-muted ${["definitionEn", "example", "note"].includes(k) ? "sm:col-span-2" : ""}`}>
+            {t(`field.${k}`)}
+            {["definitionEn", "example", "note"].includes(k) ? (
+              <textarea rows={2} className={field} value={card[k]} onChange={(e) => (setCard({ ...card, [k]: e.target.value }), setState(""))} />
+            ) : (
+              <input className={field} value={card[k]} onChange={(e) => (setCard({ ...card, [k]: e.target.value }), setState(""))} />
+            )}
+          </label>
+        ))}
+      </div>
+      <button
+        disabled={!card.term.trim() || state === "saving"}
+        onClick={async () => {
+          setState("saving");
+          await onSave(card);
+          setState("saved");
+        }}
+        className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50"
+      >
+        {state === "saved" ? `★ ${t("saved")}` : `☆ ${t("saveWord")}`}
+      </button>
+    </div>
+  );
+}
+
+function AiAsk({
+  tool,
+  lessonId,
+  onPin,
+  onSaveCard,
+}: {
+  tool: Extract<Tool, { mode: "ai" }>;
+  lessonId: number;
+  onPin: (id: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
+  onSaveCard: (card: WordCard, context: string) => Promise<void>;
+}) {
   const t = useTranslations("lesson.tool");
   const ai = useAiAsk();
-  const [action, setAction] = useState(tool.action);
+  const [action, setAction] = useState<AskInput["action"]>(tool.action === "feedback" ? "explain_word" : tool.action);
+  const [started, setStarted] = useState(false);
   const [question, setQuestion] = useState("");
   const [providers, setProviders] = useState<Provider[]>(providerCache ?? []);
   const [override, setOverride] = useState<string>("");
@@ -185,89 +248,54 @@ function AiAsk({ tool, lessonId, onPin }: { tool: Extract<Tool, { mode: "ai" }>;
         .catch(() => {});
   }, []);
 
-  const run = (a: AskInput["action"], q?: string) => {
-    setAction(a);
+  // nothing is sent until the learner picks what they want and presses "Generate"
+  const generate = () => {
+    setStarted(true);
     setPinned(false);
     const p = providers.find((x) => String(x.id) === override);
     ai.ask({
-      action: a,
+      action,
       selection: tool.selection,
       context: tool.context,
-      question: q,
+      question: action === "custom" ? question.trim() : undefined,
       lessonId,
       annotationId: tool.annotationId,
       override: p ? { providerId: p.id, model: p.defaultModel } : undefined,
     });
   };
-
-  useEffect(() => {
-    if (tool.action !== "custom") run(tool.action);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const isCard = action === "vocab_card";
+  const card = isCard && started && !ai.loading && ai.text ? parseCard(ai.text, tool.selection) : null;
 
   return (
     <div className="space-y-3">
       <blockquote className="max-h-24 overflow-auto border-l-4 border-accent/40 pl-3 font-serif text-[15px] italic">{tool.selection}</blockquote>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">{t("choose")}</p>
       <div className="flex flex-wrap gap-1.5">
         {ACTIONS.map((a) => (
           <button
             key={a}
-            onClick={() => run(a)}
+            onClick={() => setAction(a)}
             disabled={ai.loading}
-            className={`min-h-8 rounded-full border px-3 text-sm ${action === a && (ai.text || ai.loading) ? "border-accent bg-accent text-on-accent" : "border-line hover:border-accent"}`}
+            aria-pressed={action === a}
+            className={`min-h-8 rounded-full border px-3 text-sm ${action === a ? "border-accent bg-accent text-on-accent" : "border-line hover:border-accent"}`}
           >
             {t(`actions.${a}`)}
           </button>
         ))}
       </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (question.trim()) run("custom", question.trim());
-        }}
-        className="flex gap-2"
-      >
-        <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder={t("askPlaceholder")} className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-2 text-base" />
-        <button disabled={!question.trim() || ai.loading} className="rounded-xl border border-line px-3 text-sm disabled:opacity-50">
-          {t("send")}
+      {action === "custom" && (
+        <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder={t("askPlaceholder")} className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-base" />
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={generate}
+          disabled={ai.loading || (action === "custom" && !question.trim())}
+          className="min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50"
+        >
+          ✨ {t("generate")}
         </button>
-      </form>
-
-      <div className="min-h-12 text-[15px] leading-relaxed">
-        {ai.notConfigured ? (
-          <p className="text-sm">
-            {t("notConfigured")}{" "}
-            <Link href="/settings" className="text-accent underline">
-              {t("openSettings")}
-            </Link>
-          </p>
-        ) : ai.text ? (
-          <Markdown text={ai.text} />
-        ) : ai.loading ? (
-          <p className="animate-pulse text-sm text-muted">{t("thinking")}</p>
-        ) : null}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
-        {ai.messageId && !ai.loading && ai.text && !ai.text.startsWith("⚠️") && (
-          <button
-            disabled={pinned}
-            onClick={async () => {
-              await onPin(ai.messageId!, ai.text, tool.anchor, tool.annotationId, action);
-              setPinned(true);
-            }}
-            className="min-h-9 rounded-xl border border-line px-3 text-sm disabled:opacity-60"
-          >
-            {pinned ? `📌 ${t("pinned")}` : `📌 ${t("pin")}`}
-          </button>
-        )}
-        {ai.loading && (
-          <button onClick={ai.stop} className="min-h-9 rounded-xl border border-line px-3 text-sm">
-            ■ {t("stop")}
-          </button>
-        )}
         {providers.length > 1 && (
-          <select value={override} onChange={(e) => setOverride(e.target.value)} className="ml-auto min-h-9 max-w-[11rem] rounded-lg border border-line bg-paper px-2 text-xs" aria-label={t("model")}>
+          <select value={override} onChange={(e) => setOverride(e.target.value)} className="min-h-9 max-w-[11rem] rounded-lg border border-line bg-paper px-2 text-xs" aria-label={t("model")}>
             <option value="">{t("modelDefault")}</option>
             {providers.map((p) => (
               <option key={p.id} value={p.id}>
@@ -276,7 +304,46 @@ function AiAsk({ tool, lessonId, onPin }: { tool: Extract<Tool, { mode: "ai" }>;
             ))}
           </select>
         )}
+        {ai.loading && (
+          <button onClick={ai.stop} className="min-h-9 rounded-xl border border-line px-3 text-sm">
+            ■ {t("stop")}
+          </button>
+        )}
       </div>
+
+      <div className="min-h-6 text-[15px] leading-relaxed">
+        {ai.notConfigured ? (
+          <p className="text-sm">
+            {t("notConfigured")}{" "}
+            <Link href="/settings" className="text-accent underline">
+              {t("openSettings")}
+            </Link>
+          </p>
+        ) : card ? (
+          <CardForm key={ai.messageId} initial={card} onSave={(c) => onSaveCard(c, tool.context)} />
+        ) : ai.loading ? (
+          <p className="animate-pulse text-sm text-muted">{t("thinking")}</p>
+        ) : isCard && started && ai.text ? (
+          <p className="text-sm text-red-600">{t("cardFailed")}</p>
+        ) : ai.text ? (
+          <Markdown text={ai.text} />
+        ) : null}
+      </div>
+
+      {!isCard && ai.messageId && !ai.loading && ai.text && !ai.text.startsWith("⚠️") && (
+        <div className="border-t border-line pt-3">
+          <button
+            disabled={pinned}
+            onClick={async () => {
+              await onPin(ai.messageId!, ai.text, tool.anchor, tool.annotationId, action as AiMsg["action"]);
+              setPinned(true);
+            }}
+            className="min-h-9 rounded-xl border border-line px-3 text-sm disabled:opacity-60"
+          >
+            {pinned ? `📌 ${t("pinned")}` : `📌 ${t("pin")}`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

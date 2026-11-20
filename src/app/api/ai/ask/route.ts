@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     .values({
       lessonId: data.lessonId ?? null,
       annotationId: data.annotationId ?? null,
-      action: data.action,
+      action: data.action === "vocab_card" ? "custom" : data.action, // DB enum predates vocab cards
       selection: data.selection.slice(0, 6000),
       context: data.context ?? null,
       question: data.question ?? null,

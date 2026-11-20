@@ -392,7 +392,8 @@
         "translate": "Translate",
         "paraphrase": "Paraphrase",
         "custom": "Question",
-        "feedback": "Feedback"
+        "feedback": "Feedback",
+        "vocab_card": "Vocabulary card"
       },
       "askPlaceholder": "Ask anything about this…",
       "send": "Ask",
@@ -403,7 +404,10 @@
       "pinned": "Pinned",
       "stop": "Stop",
       "model": "Model",
-      "modelDefault": "Model: from settings"
+      "modelDefault": "Model: from settings",
+      "choose": "What do you want from the AI?",
+      "generate": "Generate",
+      "cardFailed": "The AI reply could not be read as a card. Press Generate to try again."
     },
     "vocab": {
       "hide": "Hide meanings",
@@ -499,6 +503,8 @@
       "example": "Example",
       "note": "Note",
       "context": "Sentence from the text"
-    }
+    },
+    "saveWord": "Save word",
+    "saved": "Saved"
   }
 }
