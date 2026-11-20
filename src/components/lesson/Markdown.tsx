@@ -10,13 +10,25 @@ export function renderMarkdown(md: string): string {
   const escaped = md.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const lines = escaped.split(/\r?\n/);
   const out: string[] = [];
-  let list: "ul" | "ol" | null = null;
+  let list: "ul" | "ol" | "table" | null = null;
   const close = () => {
-    if (list) out.push(`</${list}>`);
+    if (list) out.push(list === "table" ? "</tbody></table>" : `</${list}>`);
     list = null;
   };
   for (const raw of lines) {
     const line = raw.trimEnd();
+    if (/^\s*\|.*\|\s*$/.test(line)) {
+      // Markdown table row; the |---| separator line is skipped
+      if (/^[\s|:-]+$/.test(line)) continue;
+      const cells = line.trim().slice(1, -1).split("|").map((c) => `<td>${inline(c.trim())}</td>`).join("");
+      if (list !== "table") {
+        close();
+        out.push("<table><tbody>");
+        list = "table";
+      }
+      out.push(`<tr>${cells}</tr>`);
+      continue;
+    }
     const ul = line.match(/^\s*[-*•]\s+(.*)$/);
     const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
     const h = line.match(/^#{1,4}\s+(.*)$/);

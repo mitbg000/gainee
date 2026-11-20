@@ -61,7 +61,14 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
   return (
     <Shell>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("total", { n: rows.length })}</p>
+      <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
+        {t("total", { n: rows.length })}
+        {rows.length > 0 && (
+          <Link href="/practice" className="rounded-lg border border-accent px-2.5 py-1 text-accent">
+            🎯 {t("practice")}
+          </Link>
+        )}
+      </p>
       <form className="mt-3 flex gap-2">
         <input name="q" defaultValue={q} placeholder={t("search")} className="min-h-10 flex-1 rounded-xl border border-line bg-card px-3 text-sm outline-none focus:border-accent" />
         <button className="min-h-10 rounded-xl border border-line px-4 text-sm">{t("searchBtn")}</button>

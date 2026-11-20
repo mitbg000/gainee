@@ -101,6 +101,18 @@ body {
 .ai-md ol {
   list-style: decimal;
 }
+.ai-md table {
+  margin: 0.5rem 0;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.ai-md td {
+  border: 1px solid var(--line);
+  padding: 0.25rem 0.6rem;
+}
+.ai-md tr:first-child td {
+  font-weight: 600;
+}
 .ai-md code {
   background: var(--paper);
   border-radius: 4px;

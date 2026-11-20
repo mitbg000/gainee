@@ -31,7 +31,9 @@
     "labels": "Phân loại",
     "collapse": "Thu nhỏ",
     "expand": "Mở rộng thanh bên",
-    "tree": "Bài đọc"
+    "tree": "Bài đọc",
+    "practice": "Luyện từ đã lưu",
+    "writing": "Luyện Writing"
   },
   "login": {
     "username": "Tên đăng nhập",
@@ -517,7 +519,8 @@
     "images": "Ảnh",
     "imagesHint": "Dán (Ctrl/Cmd+V), kéo thả hoặc chọn ảnh – PNG, JPG, GIF, WebP tối đa 8 MB.",
     "imageFailed": "Một số ảnh không thêm được.",
-    "removeImage": "Xóa ảnh"
+    "removeImage": "Xóa ảnh",
+    "practice": "Luyện tập các từ này"
   },
   "review": {
     "title": "Ôn tập hôm nay",
@@ -625,5 +628,85 @@
       "weekly_lessons": "Bài học tuần này",
       "weekly_words": "Từ mới tuần này"
     }
+  },
+  "practice": {
+    "title": "Luyện từ đã lưu",
+    "intro": "Làm trắc nghiệm với các từ bạn đã lưu. Phần này không ảnh hưởng lịch ôn tập.",
+    "all": "Tất cả",
+    "empty": "Bạn chưa lưu từ nào. Hãy lưu từ khi đọc bài.",
+    "modeLabel": "Kiểu luyện",
+    "sizeLabel": "Số câu",
+    "allWords": "Tất cả ({n})",
+    "start": "Bắt đầu",
+    "mode": {
+      "mix": "Trộn",
+      "meaning": "Chọn nghĩa",
+      "term": "Chọn từ",
+      "spell": "Nghe và viết",
+      "cloze": "Điền vào câu"
+    },
+    "modeHint": {
+      "mix": "Trộn cả 4 kiểu",
+      "meaning": "Thấy từ → chọn nghĩa đúng",
+      "term": "Thấy nghĩa → chọn từ đúng",
+      "spell": "Nghe phát âm → gõ lại từ",
+      "cloze": "Câu gốc bị che từ → gõ từ còn thiếu"
+    },
+    "ask": {
+      "meaning": "Nghĩa của từ này là gì?",
+      "term": "Từ nào có nghĩa này?",
+      "spell": "Nghe và gõ lại từ",
+      "cloze": "Điền từ còn thiếu"
+    },
+    "listen": "Nghe",
+    "typeHere": "Gõ từ…",
+    "check": "Kiểm tra",
+    "right": "Chính xác!",
+    "answerIs": "Đáp án:",
+    "next": "Tiếp",
+    "stop": "Dừng",
+    "wrongList": "Các từ làm sai",
+    "retryWrong": "Luyện lại từ sai",
+    "again": "Vòng mới",
+    "change": "Đổi kiểu luyện"
+  },
+  "writing": {
+    "title": "Luyện Writing",
+    "intro": "Viết bài IELTS Task 1, Task 2 hoặc viết tự do. AI ra đề và chấm điểm theo 4 tiêu chí.",
+    "history": "Bài đã viết",
+    "new": "Bài mới",
+    "noHistory": "Chưa có bài nào.",
+    "words": "{n} từ",
+    "kind": {
+      "task1": "Task 1",
+      "task2": "Task 2",
+      "free": "Viết tự do"
+    },
+    "question": "Đề bài",
+    "aiPrompt": "Đề do AI ra",
+    "generating": "Đang ra đề…",
+    "editPrompt": "Tự nhập đề",
+    "done": "Xong",
+    "promptPlaceholder": "Dán hoặc gõ đề bài vào đây…",
+    "bodyPlaceholder": "Bắt đầu viết… Đồng hồ chạy từ lúc bạn gõ chữ đầu tiên.",
+    "timer": "Thời gian gợi ý: {n} phút",
+    "saved": "Đã lưu",
+    "saving": "Đang lưu…",
+    "grade": "Chấm điểm",
+    "regrade": "Chấm lại",
+    "grading": "Đang chấm… (có thể mất 30–60 giây)",
+    "delete": "Xóa",
+    "deleteConfirm": "Xóa bài viết này?",
+    "overall": "Điểm tổng",
+    "criteria": {
+      "ta": "Task Achievement",
+      "tr": "Task Response",
+      "cc": "Coherence & Cohesion",
+      "lr": "Lexical Resource",
+      "gra": "Grammar"
+    },
+    "notConfigured": "Chưa cấu hình nhà cung cấp AI trong Cài đặt.",
+    "aiError": "AI bị lỗi, hãy thử lại.",
+    "saveError": "Không lưu được bài, hãy thử lại."
   }
 }

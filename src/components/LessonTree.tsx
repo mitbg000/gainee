@@ -2,13 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { TreeDoc } from "@/lib/documents/queries";
 
 /** Nested under "Library" in the sidebar: text → lessons. The text holding the current page is open by default. */
 export default function LessonTree({ docs }: { docs: TreeDoc[] }) {
   const path = usePathname();
-  const [manual, setManual] = useState<Record<number, boolean>>({});
+  const [manual, setManualState] = useState<Record<number, boolean>>({});
+  // kept across pages (each page mounts a new sidebar)
+  useEffect(() => {
+    try {
+      setManualState(JSON.parse(localStorage.getItem("sb_tree_open") ?? "{}"));
+    } catch {}
+  }, []);
+  const setManual = (m: Record<number, boolean>) => {
+    setManualState(m);
+    try {
+      localStorage.setItem("sb_tree_open", JSON.stringify(m));
+    } catch {}
+  };
   if (!docs.length) return null;
 
   const lessonId = /^\/lessons\/(\d+)/.exec(path)?.[1];

@@ -1,0 +1,217 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import Markdown from "@/components/lesson/Markdown";
+import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/ModelPicker";
+import type { Grade, WritingKind } from "@/lib/writing";
+
+const KINDS: WritingKind[] = ["task2", "task1", "free"];
+const MIN_WORDS: Record<WritingKind, number> = { task1: 150, task2: 250, free: 0 };
+const MINUTES: Record<WritingKind, number> = { task1: 20, task2: 40, free: 0 };
+const countWords = (s: string) => (s.trim() ? s.trim().split(/\s+/).length : 0);
+const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+
+type Initial = { id: number; kind: WritingKind; prompt: string; body: string; grade: Grade | null } | null;
+
+/** Write an IELTS answer: AI question or your own, word count + timer, auto-save, AI band scores. */
+export default function WritingStudio({ initial }: { initial: Initial }) {
+  const t = useTranslations("writing");
+  const router = useRouter();
+  const [id, setId] = useState<number | null>(initial?.id ?? null);
+  const [kind, setKind] = useState<WritingKind>(initial?.kind ?? "task2");
+  const [prompt, setPrompt] = useState(initial?.prompt ?? "");
+  const [editPrompt, setEditPrompt] = useState(!initial?.prompt);
+  const [body, setBody] = useState(initial?.body ?? "");
+  const [grade, setGrade] = useState<Grade | null>(initial?.grade ?? null);
+  const [model, setModel] = useState<ModelChoice>(null);
+  const [busy, setBusy] = useState<"" | "prompt" | "grade">("");
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(true);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [now, setNow] = useState(0);
+  const savedRef = useRef(JSON.stringify({ kind, prompt, body }));
+  const idRef = useRef(id);
+
+  useEffect(() => setModel(loadModelChoice()), []);
+  useEffect(() => {
+    if (!startedAt) return;
+    const i = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, [startedAt]);
+
+  async function save() {
+    const snap = JSON.stringify({ kind, prompt, body });
+    if (snap === savedRef.current || (!prompt.trim() && !body.trim())) return true;
+    const r = idRef.current
+      ? await fetch(`/api/writings/${idRef.current}`, { method: "PUT", ...json({ kind, prompt, body }) })
+      : await fetch("/api/writings", { method: "POST", ...json({ kind, prompt, body }) });
+    if (!r.ok) return false;
+    if (!idRef.current) {
+      idRef.current = (await r.json()).id;
+      setId(idRef.current);
+    }
+    savedRef.current = snap;
+    setSaved(true);
+    return true;
+  }
+  // auto-save a moment after typing stops
+  useEffect(() => {
+    if (JSON.stringify({ kind, prompt, body }) === savedRef.current) return;
+    setSaved(false);
+    const h = setTimeout(save, 1200);
+    return () => clearTimeout(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- save() reads the same state
+  }, [kind, prompt, body]);
+
+  async function newPrompt() {
+    setBusy("prompt");
+    setError("");
+    const r = await fetch("/api/writings/prompt", { method: "POST", ...json({ kind, override: model ?? undefined }) });
+    setBusy("");
+    if (!r.ok) return setError((await r.json().catch(() => ({}))).error === "ai_not_configured" ? t("notConfigured") : t("aiError"));
+    setPrompt((await r.json()).prompt);
+    setEditPrompt(false);
+  }
+
+  async function doGrade() {
+    setBusy("grade");
+    setError("");
+    if (!(await save()) || !idRef.current) {
+      setBusy("");
+      return setError(t("saveError"));
+    }
+    const r = await fetch(`/api/writings/${idRef.current}/grade`, { method: "POST", ...json({ override: model ?? undefined }) });
+    setBusy("");
+    if (!r.ok) {
+      const e = (await r.json().catch(() => ({}))).error;
+      return setError(e === "ai_not_configured" ? t("notConfigured") : `${t("aiError")} ${e ?? ""}`);
+    }
+    setGrade(await r.json());
+    router.refresh(); // update the band in the history list
+  }
+
+  async function remove() {
+    if (!idRef.current || !confirm(t("deleteConfirm"))) return;
+    await fetch(`/api/writings/${idRef.current}`, { method: "DELETE" });
+    router.push("/writing");
+    router.refresh();
+  }
+
+  const words = countWords(body);
+  const min = MIN_WORDS[kind];
+  const limit = MINUTES[kind] * 60;
+  const elapsed = startedAt ? Math.floor((now - startedAt) / 1000) : 0;
+  const left = limit - elapsed;
+  const clock = (s: number) => `${Math.floor(Math.abs(s) / 60)}:${String(Math.abs(s) % 60).padStart(2, "0")}`;
+
+  return (
+    <div className="min-w-0 space-y-4">
+      {/* task type + model */}
+      <div className="flex flex-wrap items-center gap-2">
+        {KINDS.map((k) => (
+          <button
+            key={k}
+            onClick={() => setKind(k)}
+            disabled={!!grade}
+            className={`min-h-10 rounded-xl border px-3 text-sm ${kind === k ? "border-accent bg-accent text-on-accent" : "border-line bg-card disabled:opacity-50"}`}
+          >
+            {t(`kind.${k}`)}
+          </button>
+        ))}
+        <span className="ml-auto">
+          <ModelPicker value={model} onChange={setModel} />
+        </span>
+      </div>
+
+      {/* question */}
+      <section className="rounded-2xl border border-line bg-card p-4">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("question")}</h2>
+          <span className="ml-auto flex gap-2">
+            <button onClick={newPrompt} disabled={!!busy || !!grade} className="min-h-9 rounded-lg border border-accent px-3 text-sm text-accent disabled:opacity-40">
+              🎲 {busy === "prompt" ? t("generating") : t("aiPrompt")}
+            </button>
+            {!grade && (
+              <button onClick={() => setEditPrompt(!editPrompt)} className="min-h-9 rounded-lg border border-line px-3 text-sm">
+                {editPrompt ? t("done") : `✎ ${t("editPrompt")}`}
+              </button>
+            )}
+          </span>
+        </div>
+        {editPrompt ? (
+          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={t("promptPlaceholder")} className="w-full rounded-xl border border-line bg-paper p-3 text-base outline-none focus:border-accent" />
+        ) : (
+          <Markdown text={prompt} className="text-[15px] leading-relaxed" />
+        )}
+      </section>
+
+      {/* answer */}
+      <section>
+        <div className="mb-2 flex flex-wrap items-center gap-3 text-sm">
+          <span className={`font-semibold ${min && words < min ? "text-amber-600" : "text-green-600"}`}>
+            {t("words", { n: words })}
+            {min ? ` / ${min}` : ""}
+          </span>
+          {limit > 0 && (
+            <span className={`rounded-lg bg-card px-2 py-0.5 font-mono tabular-nums ${startedAt && left < 0 ? "text-red-600" : "text-muted"}`} title={t("timer", { n: MINUTES[kind] })}>
+              ⏱ {startedAt ? `${left < 0 ? "+" : ""}${clock(left)}` : clock(limit)}
+            </span>
+          )}
+          <span className="ml-auto text-xs text-muted">{saved ? (id ? t("saved") : "") : t("saving")}</span>
+        </div>
+        <textarea
+          value={body}
+          onChange={(e) => {
+            setBody(e.target.value);
+            if (!startedAt) {
+              setStartedAt(Date.now());
+              setNow(Date.now());
+            }
+          }}
+          rows={16}
+          spellCheck={false}
+          placeholder={t("bodyPlaceholder")}
+          className="w-full rounded-2xl border border-line bg-card p-4 font-serif text-[17px] leading-relaxed outline-none focus:border-accent"
+        />
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button onClick={doGrade} disabled={!!busy || !body.trim() || !prompt.trim()} className="min-h-11 rounded-xl bg-accent px-5 font-medium text-on-accent disabled:opacity-40">
+            ✨ {busy === "grade" ? t("grading") : grade ? t("regrade") : t("grade")}
+          </button>
+          {grade && (
+            <Link href="/writing" className="min-h-11 rounded-xl border border-line px-4 py-2.5 text-sm">
+              ＋ {t("new")}
+            </Link>
+          )}
+          {id && (
+            <button onClick={remove} className="ml-auto min-h-11 rounded-xl px-3 text-sm text-muted hover:text-red-600">
+              🗑 {t("delete")}
+            </button>
+          )}
+        </div>
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      </section>
+
+      {/* result */}
+      {grade && (
+        <section className="rounded-2xl border border-line bg-card p-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted">{t("overall")}</p>
+              <p className="font-serif text-4xl font-bold text-accent">{grade.overall}</p>
+            </div>
+            {grade.criteria.map((c) => (
+              <div key={c.key} className="min-w-20 rounded-xl bg-paper px-3 py-2">
+                <p className="text-xs text-muted">{t(`criteria.${c.key as "ta" | "tr" | "cc" | "lr" | "gra"}`)}</p>
+                <p className="text-xl font-bold">{c.band}</p>
+              </div>
+            ))}
+          </div>
+          <Markdown text={grade.feedback} className="mt-4 text-[15px] leading-relaxed" />
+        </section>
+      )}
+    </div>
+  );
+}

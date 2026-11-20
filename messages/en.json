@@ -31,7 +31,9 @@
     "labels": "Categories",
     "collapse": "Collapse",
     "expand": "Expand sidebar",
-    "tree": "Texts"
+    "tree": "Texts",
+    "practice": "Practise saved words",
+    "writing": "Writing practice"
   },
   "login": {
     "username": "Username",
@@ -517,7 +519,8 @@
     "images": "Images",
     "imagesHint": "Paste (Ctrl/Cmd+V), drop or pick images – PNG, JPG, GIF, WebP up to 8 MB.",
     "imageFailed": "Some images could not be added.",
-    "removeImage": "Remove image"
+    "removeImage": "Remove image",
+    "practice": "Practise these words"
   },
   "review": {
     "title": "Today's review",
@@ -625,5 +628,85 @@
       "weekly_lessons": "Lessons this week",
       "weekly_words": "New words this week"
     }
+  },
+  "practice": {
+    "title": "Practise saved words",
+    "intro": "Quizzes with the words you saved. This does not change your review schedule.",
+    "all": "All",
+    "empty": "No saved words yet. Save words while reading.",
+    "modeLabel": "Practice type",
+    "sizeLabel": "Questions",
+    "allWords": "All ({n})",
+    "start": "Start",
+    "mode": {
+      "mix": "Mixed",
+      "meaning": "Choose the meaning",
+      "term": "Choose the word",
+      "spell": "Listen and type",
+      "cloze": "Fill the sentence"
+    },
+    "modeHint": {
+      "mix": "All four types",
+      "meaning": "See the word → pick its meaning",
+      "term": "See the meaning → pick the word",
+      "spell": "Hear it → type the word",
+      "cloze": "The original sentence with the word hidden → type it"
+    },
+    "ask": {
+      "meaning": "What does this word mean?",
+      "term": "Which word has this meaning?",
+      "spell": "Listen and type the word",
+      "cloze": "Fill in the missing word"
+    },
+    "listen": "Listen",
+    "typeHere": "Type the word…",
+    "check": "Check",
+    "right": "Correct!",
+    "answerIs": "Answer:",
+    "next": "Next",
+    "stop": "Stop",
+    "wrongList": "Words you missed",
+    "retryWrong": "Practise missed words",
+    "again": "New round",
+    "change": "Change type"
+  },
+  "writing": {
+    "title": "Writing practice",
+    "intro": "Write IELTS Task 1, Task 2 or free writing. The AI sets questions and scores you on the four criteria.",
+    "history": "Your writing",
+    "new": "New",
+    "noHistory": "Nothing yet.",
+    "words": "{n} words",
+    "kind": {
+      "task1": "Task 1",
+      "task2": "Task 2",
+      "free": "Free writing"
+    },
+    "question": "Question",
+    "aiPrompt": "AI question",
+    "generating": "Writing a question…",
+    "editPrompt": "Type my own",
+    "done": "Done",
+    "promptPlaceholder": "Paste or type the question here…",
+    "bodyPlaceholder": "Start writing… The timer starts with your first word.",
+    "timer": "Suggested time: {n} minutes",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "grade": "Score it",
+    "regrade": "Score again",
+    "grading": "Scoring… (may take 30–60 seconds)",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this writing?",
+    "overall": "Overall",
+    "criteria": {
+      "ta": "Task Achievement",
+      "tr": "Task Response",
+      "cc": "Coherence & Cohesion",
+      "lr": "Lexical Resource",
+      "gra": "Grammar"
+    },
+    "notConfigured": "No AI provider is configured in Settings.",
+    "aiError": "The AI failed, please try again.",
+    "saveError": "Could not save, please try again."
   }
 }

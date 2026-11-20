@@ -24,3 +24,5 @@ export const IconSun = base(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2M1
 export const IconMoon = base(<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />);
 export const IconMonitor = base(<><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></>);
 export const IconTag = base(<><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" /><circle cx="7.5" cy="7.5" r="1.5" /></>);
+export const IconTarget = base(<><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="0.5" /></>);
+export const IconPen = base(<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />);

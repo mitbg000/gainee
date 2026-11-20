@@ -11,7 +11,7 @@ import * as I from "./icons";
 
 const ICONS: Record<string, (p: { className?: string }) => React.ReactElement> = {
   home: I.IconHome, book: I.IconBook, plus: I.IconPlus, dict: I.IconDict, words: I.IconWords,
-  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag,
+  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag, target: I.IconTarget, pen: I.IconPen,
 };
 
 function isActive(path: string, href: string) {
@@ -22,9 +22,21 @@ function isActive(path: string, href: string) {
 export function SidebarNav({ tree }: { tree: TreeDoc[] }) {
   const t = useTranslations("nav");
   const path = usePathname();
-  const inLibrary = path.startsWith("/library") || path.startsWith("/lessons");
-  const [libOpen, setLibOpen] = useState<boolean | null>(null); // null = follow the current page
-  const open = libOpen ?? inLibrary;
+  // Every page renders its own Shell, so the choice is kept in localStorage to survive navigation.
+  const [libOpen, setLibOpenState] = useState<boolean | null>(null); // null = not chosen yet → open
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("sb_lib_open");
+      if (v) setLibOpenState(v === "1");
+    } catch {}
+  }, []);
+  const setLibOpen = (v: boolean) => {
+    setLibOpenState(v);
+    try {
+      localStorage.setItem("sb_lib_open", v ? "1" : "0");
+    } catch {}
+  };
+  const open = libOpen ?? true;
   return (
     <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar">
       {NAV.map((n) => {
