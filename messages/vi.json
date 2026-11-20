@@ -465,7 +465,8 @@
       "merge": "Gộp với bài sau",
       "mergeConfirm": "Gộp với bài sau và tạo lại bài tập?",
       "failed": "Không lưu được, hãy thử lại"
-    }
+    },
+    "askAssistant": "Hỏi trợ lý về bài này"
   },
   "editor": {
     "bold": "In đậm",
@@ -581,10 +582,9 @@
   },
   "assistant": {
     "title": "Trợ lý AI",
-    "intro": "Hỏi bất cứ điều gì về tiếng Anh, IELTS hay bài đọc của bạn. Cuộc trò chuyện chỉ lưu trên trình duyệt này.",
+    "intro": "Hỏi bất cứ điều gì về tiếng Anh, IELTS hay một bài đọc của bạn. Các cuộc trò chuyện được lưu lại.",
     "placeholder": "Đặt câu hỏi… (Enter để gửi, Shift+Enter xuống dòng)",
     "send": "Gửi",
-    "clear": "Xóa cuộc trò chuyện",
     "thinking": "Đang nghĩ…",
     "notConfigured": "Chưa cấu hình nhà cung cấp AI.",
     "openSettings": "Mở cài đặt",
@@ -592,7 +592,14 @@
       "s1": "Làm sao paraphrase tốt hơn trong IELTS Reading?",
       "s2": "Phân biệt “affect” và “effect”",
       "s3": "Cho tôi 5 từ nối nâng cao cho Writing Task 2"
-    }
+    },
+    "history": "Cuộc trò chuyện",
+    "newChat": "Cuộc trò chuyện mới",
+    "new": "Mới",
+    "delete": "Xóa cuộc trò chuyện",
+    "deleteConfirm": "Xóa cuộc trò chuyện này?",
+    "context": "Về bài đọc:",
+    "noContext": "Không chọn bài (câu hỏi chung)"
   },
   "goals": {
     "edit": "Đổi mục tiêu",

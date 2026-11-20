@@ -203,6 +203,9 @@ export default function LessonReader({ data }: { data: LessonData }) {
       <button onClick={() => setEditing(true)} className="mt-2 text-sm text-accent underline">
         ✎ {t("edit.open")}
       </button>
+      <Link href={`/assistant?lesson=${lesson.id}`} className="ml-4 mt-2 inline-block text-sm text-accent underline">
+        💬 {t("askAssistant")}
+      </Link>
       {editing && <LessonEditor lessonId={lesson.id} paragraphs={lesson.paragraphs} hasNext={!!next} onClose={() => setEditing(false)} />}
 
       <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-5 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-0 md:mx-0 md:px-0">

@@ -465,7 +465,8 @@
       "merge": "Merge with next lesson",
       "mergeConfirm": "Merge with the next lesson and regenerate the exercises?",
       "failed": "Could not save, please try again"
-    }
+    },
+    "askAssistant": "Ask the assistant about this text"
   },
   "editor": {
     "bold": "Bold",
@@ -581,10 +582,9 @@
   },
   "assistant": {
     "title": "AI assistant",
-    "intro": "Ask anything about English, IELTS or your texts. The conversation stays in this browser.",
+    "intro": "Ask anything about English, IELTS or one of your texts. Conversations are saved.",
     "placeholder": "Ask a question… (Enter to send, Shift+Enter for a new line)",
     "send": "Send",
-    "clear": "Clear conversation",
     "thinking": "Thinking…",
     "notConfigured": "No AI provider is set up yet.",
     "openSettings": "Open settings",
@@ -592,7 +592,14 @@
       "s1": "How can I paraphrase better in IELTS Reading?",
       "s2": "Explain the difference between “affect” and “effect”",
       "s3": "Give me 5 advanced linking words for Writing Task 2"
-    }
+    },
+    "history": "Conversations",
+    "newChat": "New conversation",
+    "new": "New",
+    "delete": "Delete conversation",
+    "deleteConfirm": "Delete this conversation?",
+    "context": "About the text:",
+    "noContext": "No text (general questions)"
   },
   "goals": {
     "edit": "Change goals",

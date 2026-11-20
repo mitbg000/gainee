@@ -4,13 +4,18 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "@/components/lesson/Markdown";
+import type { TreeDoc } from "@/lib/documents/queries";
 
 type Msg = { role: "user" | "assistant"; content: string };
-const KEY = "assistant_chat";
+type ChatInfo = { id: string; title: string; lessonId: number | null; updatedAt: string };
+const newId = () => crypto.randomUUID();
 
-/** Chat with the AI tutor. The conversation is kept in this browser only. */
-export default function AssistantChat() {
+/** Chat with the AI tutor. Conversations are saved on the server; a lesson can be attached as context. */
+export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc[]; initialLessonId: number | null }) {
   const t = useTranslations("assistant");
+  const [chatId, setChatId] = useState(newId);
+  const [chats, setChats] = useState<ChatInfo[]>([]);
+  const [lessonId, setLessonId] = useState<number | null>(initialLessonId);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,18 +23,43 @@ export default function AssistantChat() {
   const ctrl = useRef<AbortController | null>(null);
   const end = useRef<HTMLDivElement>(null);
 
+  const loadList = () =>
+    fetch("/api/assistant/chats", { cache: "no-store" })
+      .then((r) => r.json())
+      .then(setChats)
+      .catch(() => {});
   useEffect(() => {
-    try {
-      const v = JSON.parse(localStorage.getItem(KEY) ?? "[]");
-      if (Array.isArray(v)) setMsgs(v);
-    } catch {}
+    loadList();
   }, []);
   useEffect(() => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(msgs.slice(-60)));
-    } catch {}
     end.current?.scrollIntoView({ block: "end" });
   }, [msgs]);
+
+  async function open(id: string) {
+    if (busy) return;
+    const c = await fetch(`/api/assistant/chats/${id}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null));
+    if (!c) return;
+    setChatId(id);
+    setMsgs(c.messages);
+    setLessonId(c.lessonId);
+  }
+  function startNew() {
+    if (busy) return;
+    setChatId(newId());
+    setMsgs([]);
+  }
+  async function remove() {
+    if (!confirm(t("deleteConfirm"))) return;
+    await fetch(`/api/assistant/chats/${chatId}`, { method: "DELETE" });
+    startNew();
+    loadList();
+  }
+  const persist = (messages: Msg[]) =>
+    fetch(`/api/assistant/chats/${chatId}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: (messages.find((m) => m.role === "user")?.content ?? "").slice(0, 120), lessonId, messages: messages.slice(-200) }),
+    }).then(loadList);
 
   async function send() {
     const text = input.trim();
@@ -44,7 +74,7 @@ export default function AssistantChat() {
     let acc = "";
     const put = (s: string) => setMsgs([...history, { role: "assistant", content: s }]);
     try {
-      const r = await fetch("/api/ai/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: history.filter((m) => m.content).slice(-20) }), signal: c.signal });
+      const r = await fetch("/api/ai/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ lessonId, messages: history.filter((m) => m.content).slice(-20) }), signal: c.signal });
       if (!r.ok || !r.body) return put(`⚠️ HTTP ${r.status}`);
       const reader = r.body.getReader();
       const dec = new TextDecoder();
@@ -62,11 +92,46 @@ export default function AssistantChat() {
       if ((e as Error).name !== "AbortError") put(`${acc}\n\n⚠️ ${(e as Error).message}`);
     } finally {
       setBusy(false);
+      if (acc && !acc.startsWith("⚠️")) persist([...history, { role: "assistant", content: acc }]);
     }
   }
 
+  const sel = "min-h-9 max-w-full rounded-lg border border-line bg-card px-2 text-sm";
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <select value={chats.some((c) => c.id === chatId) ? chatId : ""} onChange={(e) => (e.target.value ? open(e.target.value) : startNew())} className={`${sel} min-w-0 flex-1`} aria-label={t("history")}>
+          <option value="">{t("newChat")}</option>
+          {chats.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.title || "…"}
+            </option>
+          ))}
+        </select>
+        <button onClick={startNew} className="min-h-9 rounded-lg border border-line px-3 text-sm">
+          ＋ {t("new")}
+        </button>
+        {chats.some((c) => c.id === chatId) && (
+          <button onClick={remove} className="min-h-9 rounded-lg border border-line px-3 text-sm text-muted" aria-label={t("delete")}>
+            🗑
+          </button>
+        )}
+      </div>
+      <label className="flex flex-wrap items-center gap-2 text-sm text-muted">
+        {t("context")}
+        <select value={lessonId ?? ""} onChange={(e) => setLessonId(Number(e.target.value) || null)} className={`${sel} min-w-0 flex-1`}>
+          <option value="">{t("noContext")}</option>
+          {docs.map((d) => (
+            <optgroup key={d.id} label={d.title}>
+              {d.lessons.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.position}. {l.title}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </label>
       {msgs.length === 0 && (
         <div className="flex flex-wrap gap-2">
           {(["s1", "s2", "s3"] as const).map((k) => (
@@ -128,11 +193,6 @@ export default function AssistantChat() {
           </button>
         )}
       </form>
-      {msgs.length > 0 && !busy && (
-        <button onClick={() => setMsgs([])} className="self-start text-sm text-muted underline">
-          {t("clear")}
-        </button>
-      )}
     </div>
   );
 }
