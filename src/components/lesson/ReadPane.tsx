@@ -119,11 +119,17 @@ export default function ReadPane(props: Props) {
         for (const [s, e] of findAll(p, v.match)) out[i].push({ start: s, end: e, kind: "vocab", id: v.id });
       });
     }
+    // words the learner saved from look-ups get the same dotted underline as the AI's suggestions
+    for (const term of Object.keys(props.savedTerms)) {
+      paragraphs.forEach((p, i) => {
+        for (const [s, e] of findAll(p, term)) out[i].push({ start: s, end: e, kind: "term", id: props.savedTerms[term] });
+      });
+    }
     props.blocks.forEach((b, i) => b.styles.forEach((st) => out[i]?.push({ start: st.start, end: st.end, kind: "fmt", id: 0, color: st.kind })));
     for (const a of annotations) if (out[a.paragraph]) out[a.paragraph].push({ start: a.startOffset, end: a.endOffset, kind: "ann", id: a.id, color: a.color });
     if (props.flash) out[props.flash.p]?.push({ start: props.flash.start, end: props.flash.end, kind: "flash", id: 0 });
     return out;
-  }, [paragraphs, props.blocks, vocab, annotations, props.flash]);
+  }, [paragraphs, props.blocks, props.savedTerms, vocab, annotations, props.flash]);
 
   useEffect(() => {
     if (!props.flash) return;
@@ -295,12 +301,13 @@ export default function ReadPane(props: Props) {
                 if (!seg.marks.length) return seg.text;
                 const ann = [...seg.marks].reverse().find((m) => m.kind === "ann");
                 const voc = seg.marks.find((m) => m.kind === "vocab");
+                const trm = seg.marks.some((m) => m.kind === "term");
                 const flash = seg.marks.some((m) => m.kind === "flash");
                 const a = ann ? annById.get(ann.id) : undefined;
                 const noteEnd = a && (a.note || aiByAnn.get(a.id)?.length) && seg.end === a.endOffset;
                 const bold = seg.marks.some((m) => m.kind === "fmt" && m.color === "b");
                 const ital = seg.marks.some((m) => m.kind === "fmt" && m.color === "i");
-                const cls = [ann ? `hl hl-${ann.color}` : "", ann && ann.id === activeAnn ? "active" : "", voc ? "vw" : "", flash ? "flash" : "", bold ? "font-bold" : "", ital ? "italic" : ""].join(" ").trim();
+                const cls = [ann ? `hl hl-${ann.color}` : "", ann && ann.id === activeAnn ? "active" : "", voc || trm ? "vw" : "", flash ? "flash" : "", bold ? "font-bold" : "", ital ? "italic" : ""].join(" ").trim();
                 return (
                   <span
                     key={seg.start}
