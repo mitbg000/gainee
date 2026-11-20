@@ -4,14 +4,19 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "@/components/lesson/Markdown";
+import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/ModelPicker";
 import type { TreeDoc } from "@/lib/documents/queries";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type ChatInfo = { id: string; title: string; lessonId: number | null; updatedAt: string };
 const newId = () => crypto.randomUUID();
 
-/** Chat with the AI tutor. Conversations are saved on the server; a lesson can be attached as context. */
-export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc[]; initialLessonId: number | null }) {
+/**
+ * Chat with the AI tutor. Conversations are saved on the server; a lesson can be attached as context.
+ * `compact` = the floating bubble panel; otherwise the full ChatGPT-style page with a conversation list.
+ * The parent gives it a fixed height; messages scroll inside.
+ */
+export default function AssistantChat({ docs, initialLessonId, compact = false }: { docs: TreeDoc[]; initialLessonId: number | null; compact?: boolean }) {
   const t = useTranslations("assistant");
   const [chatId, setChatId] = useState(newId);
   const [chats, setChats] = useState<ChatInfo[]>([]);
@@ -20,8 +25,10 @@ export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [notConfigured, setNotConfigured] = useState(false);
+  const [model, setModel] = useState<ModelChoice>(null);
+  const [listOpen, setListOpen] = useState(false); // conversation list on small screens / in the bubble
   const ctrl = useRef<AbortController | null>(null);
-  const end = useRef<HTMLDivElement>(null);
+  const scroller = useRef<HTMLDivElement>(null);
 
   const loadList = () =>
     fetch("/api/assistant/chats", { cache: "no-store" })
@@ -30,9 +37,11 @@ export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc
       .catch(() => {});
   useEffect(() => {
     loadList();
+    setModel(loadModelChoice());
   }, []);
+  useEffect(() => setLessonId(initialLessonId), [initialLessonId]);
   useEffect(() => {
-    end.current?.scrollIntoView({ block: "end" });
+    scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
   }, [msgs]);
 
   async function open(id: string) {
@@ -42,16 +51,18 @@ export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc
     setChatId(id);
     setMsgs(c.messages);
     setLessonId(c.lessonId);
+    setListOpen(false);
   }
   function startNew() {
     if (busy) return;
     setChatId(newId());
     setMsgs([]);
+    setListOpen(false);
   }
-  async function remove() {
+  async function remove(id: string) {
     if (!confirm(t("deleteConfirm"))) return;
-    await fetch(`/api/assistant/chats/${chatId}`, { method: "DELETE" });
-    startNew();
+    await fetch(`/api/assistant/chats/${id}`, { method: "DELETE" });
+    if (id === chatId) startNew();
     loadList();
   }
   const persist = (messages: Msg[]) =>
@@ -61,8 +72,8 @@ export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc
       body: JSON.stringify({ title: (messages.find((m) => m.role === "user")?.content ?? "").slice(0, 120), lessonId, messages: messages.slice(-200) }),
     }).then(loadList);
 
-  async function send() {
-    const text = input.trim();
+  async function send(textArg?: string) {
+    const text = (textArg ?? input).trim();
     if (!text || busy) return;
     const history: Msg[] = [...msgs, { role: "user", content: text }];
     setMsgs([...history, { role: "assistant", content: "" }]);
@@ -74,7 +85,12 @@ export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc
     let acc = "";
     const put = (s: string) => setMsgs([...history, { role: "assistant", content: s }]);
     try {
-      const r = await fetch("/api/ai/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ lessonId, messages: history.filter((m) => m.content).slice(-20) }), signal: c.signal });
+      const r = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ lessonId, messages: history.filter((m) => m.content).slice(-20), override: model ?? undefined }),
+        signal: c.signal,
+      });
       if (!r.ok || !r.body) return put(`⚠️ HTTP ${r.status}`);
       const reader = r.body.getReader();
       const dec = new TextDecoder();
@@ -96,103 +112,154 @@ export default function AssistantChat({ docs, initialLessonId }: { docs: TreeDoc
     }
   }
 
-  const sel = "min-h-9 max-w-full rounded-lg border border-line bg-card px-2 text-sm";
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <select value={chats.some((c) => c.id === chatId) ? chatId : ""} onChange={(e) => (e.target.value ? open(e.target.value) : startNew())} className={`${sel} min-w-0 flex-1`} aria-label={t("history")}>
-          <option value="">{t("newChat")}</option>
-          {chats.map((c) => (
-            <option key={c.id} value={c.id}>
+  const btn = "min-h-9 rounded-lg px-2.5 text-sm hover:bg-paper";
+  const list = (
+    <div className="flex min-h-0 flex-1 flex-col gap-1">
+      <button onClick={startNew} className="mb-2 flex min-h-10 items-center gap-2 rounded-xl border border-line px-3 text-sm font-medium hover:bg-card">
+        ＋ {t("newChat")}
+      </button>
+      <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted">{t("history")}</p>
+      <ul className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
+        {chats.map((c) => (
+          <li key={c.id} className={`group/c flex items-center rounded-lg ${c.id === chatId ? "bg-accent/10 text-accent" : "hover:bg-card"}`}>
+            <button onClick={() => open(c.id)} className="min-h-9 min-w-0 flex-1 truncate px-2 text-left text-sm" title={c.title}>
               {c.title || "…"}
+            </button>
+            <button onClick={() => remove(c.id)} aria-label={t("delete")} className="px-2 text-xs text-muted opacity-0 hover:text-red-600 group-hover/c:opacity-100 focus:opacity-100">
+              🗑
+            </button>
+          </li>
+        ))}
+        {chats.length === 0 && <li className="px-2 py-1 text-sm text-muted">{t("noChats")}</li>}
+      </ul>
+    </div>
+  );
+
+  const contextSelect = (
+    <select value={lessonId ?? ""} onChange={(e) => setLessonId(Number(e.target.value) || null)} aria-label={t("context")} className="min-h-9 min-w-0 max-w-[16rem] truncate rounded-lg border border-line bg-card px-2 text-sm">
+      <option value="">📄 {t("noContext")}</option>
+      {docs.map((d) => (
+        <optgroup key={d.id} label={d.title}>
+          {d.lessons.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.position}. {l.title}
             </option>
           ))}
-        </select>
-        <button onClick={startNew} className="min-h-9 rounded-lg border border-line px-3 text-sm">
-          ＋ {t("new")}
-        </button>
-        {chats.some((c) => c.id === chatId) && (
-          <button onClick={remove} className="min-h-9 rounded-lg border border-line px-3 text-sm text-muted" aria-label={t("delete")}>
-            🗑
-          </button>
-        )}
-      </div>
-      <label className="flex flex-wrap items-center gap-2 text-sm text-muted">
-        {t("context")}
-        <select value={lessonId ?? ""} onChange={(e) => setLessonId(Number(e.target.value) || null)} className={`${sel} min-w-0 flex-1`}>
-          <option value="">{t("noContext")}</option>
-          {docs.map((d) => (
-            <optgroup key={d.id} label={d.title}>
-              {d.lessons.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.position}. {l.title}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </label>
-      {msgs.length === 0 && (
-        <div className="flex flex-wrap gap-2">
-          {(["s1", "s2", "s3"] as const).map((k) => (
-            <button key={k} onClick={() => setInput(t(`suggest.${k}`))} className="rounded-full border border-line bg-card px-3 py-1.5 text-left text-sm hover:border-accent">
-              {t(`suggest.${k}`)}
-            </button>
-          ))}
+        </optgroup>
+      ))}
+    </select>
+  );
+
+  return (
+    <div className="relative flex h-full min-h-0">
+      {/* conversation list: always visible on the wide page, a drawer otherwise */}
+      {!compact && <aside className="hidden w-64 flex-none flex-col border-r border-line bg-paper p-3 md:flex">{list}</aside>}
+      {listOpen && (
+        <div className="absolute inset-0 z-20 flex">
+          <div className="flex w-72 max-w-[85%] flex-col border-r border-line bg-paper p-3 shadow-xl">{list}</div>
+          <button aria-label={t("closeList")} className="flex-1 bg-black/30" onClick={() => setListOpen(false)} />
         </div>
       )}
-      <div className="space-y-3">
-        {msgs.map((m, i) =>
-          m.role === "user" ? (
-            <div key={i} className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-on-accent">
-              {m.content}
-            </div>
-          ) : (
-            <div key={i} className="max-w-[92%] rounded-2xl rounded-bl-md border border-line bg-card px-4 py-3 text-[15px] leading-relaxed">
-              {m.content ? <Markdown text={m.content} /> : <span className="animate-pulse text-muted">{t("thinking")}</span>}
-            </div>
-          ),
-        )}
-        <div ref={end} />
-      </div>
-      {notConfigured && (
-        <p className="text-sm">
-          {t("notConfigured")}{" "}
-          <Link href="/settings" className="text-accent underline">
-            {t("openSettings")}
-          </Link>
-        </p>
-      )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send();
-        }}
-        className="sticky bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] flex items-end gap-2 rounded-2xl border border-line bg-card p-2 md:bottom-4"
-      >
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              send();
-            }
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* top bar */}
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-line px-3 py-2">
+          <button onClick={() => setListOpen(true)} className={`${btn} ${compact ? "" : "md:hidden"}`} aria-label={t("history")}>
+            ☰
+          </button>
+          <ModelPicker value={model} onChange={setModel} />
+          {!compact && contextSelect}
+          <span className="ml-auto flex items-center">
+            <button onClick={startNew} className={btn} title={t("newChat")} aria-label={t("newChat")}>
+              ✎
+            </button>
+            {compact && (
+              <Link href={lessonId ? `/assistant?lesson=${lessonId}` : "/assistant"} className={btn} title={t("openFull")} aria-label={t("openFull")}>
+                ⤢
+              </Link>
+            )}
+          </span>
+          {compact && <div className="w-full">{contextSelect}</div>}
+        </div>
+
+        {/* messages */}
+        <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
+          <div className={`mx-auto w-full ${compact ? "px-3" : "max-w-3xl px-4"} py-5`}>
+            {msgs.length === 0 ? (
+              <div className={`flex flex-col items-center text-center ${compact ? "pt-6" : "pt-[12vh]"}`}>
+                <div className="text-4xl">✨</div>
+                <h2 className={`mt-2 font-serif font-bold ${compact ? "text-xl" : "text-3xl"}`}>{t("hello")}</h2>
+                <p className="mt-1 max-w-md text-sm text-muted">{t("intro")}</p>
+                <div className={`mt-6 grid w-full gap-2 ${compact ? "" : "sm:grid-cols-3"}`}>
+                  {(["s1", "s2", "s3"] as const).map((k) => (
+                    <button key={k} onClick={() => send(t(`suggest.${k}`))} className="rounded-2xl border border-line bg-card px-3 py-2.5 text-left text-sm hover:border-accent">
+                      {t(`suggest.${k}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {msgs.map((m, i) =>
+                  m.role === "user" ? (
+                    <div key={i} className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-3xl bg-card px-4 py-2.5">
+                      {m.content}
+                    </div>
+                  ) : (
+                    <div key={i} className="flex gap-3 text-[15px] leading-relaxed">
+                      <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full border border-line text-sm">✨</span>
+                      <div className="min-w-0 flex-1">{m.content ? <Markdown text={m.content} /> : <span className="animate-pulse text-muted">{t("thinking")}</span>}</div>
+                    </div>
+                  ),
+                )}
+              </div>
+            )}
+            {notConfigured && (
+              <p className="mt-4 text-sm">
+                {t("notConfigured")}{" "}
+                <Link href="/settings" className="text-accent underline">
+                  {t("openSettings")}
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* composer */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
           }}
-          rows={2}
-          placeholder={t("placeholder")}
-          className="min-h-11 flex-1 resize-none bg-transparent px-2 py-1.5 text-base outline-none"
-        />
-        {busy ? (
-          <button type="button" onClick={() => ctrl.current?.abort()} className="min-h-11 rounded-xl border border-line px-4 text-sm">
-            ■
-          </button>
-        ) : (
-          <button disabled={!input.trim()} className="min-h-11 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50">
-            {t("send")}
-          </button>
-        )}
-      </form>
+          className={`mx-auto w-full ${compact ? "p-2" : "max-w-3xl px-4 pb-4"}`}
+        >
+          <div className="flex items-end gap-2 rounded-3xl border border-line bg-card p-2 shadow-sm focus-within:border-accent">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              rows={1}
+              placeholder={t("placeholder")}
+              className="max-h-48 min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-base outline-none [field-sizing:content]"
+            />
+            {busy ? (
+              <button type="button" onClick={() => ctrl.current?.abort()} aria-label={t("stop")} className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-ink text-paper">
+                ■
+              </button>
+            ) : (
+              <button disabled={!input.trim()} aria-label={t("send")} className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-accent text-lg text-on-accent disabled:opacity-40">
+                ↑
+              </button>
+            )}
+          </div>
+          {!compact && <p className="mt-1.5 text-center text-xs text-muted">{t("disclaimer")}</p>}
+        </form>
+      </div>
     </div>
   );
 }

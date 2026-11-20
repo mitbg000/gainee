@@ -12,6 +12,7 @@ export const maxDuration = 120;
 
 const Input = z.object({
   lessonId: z.number().int().positive().nullable().optional(),
+  override: z.object({ providerId: z.number().int().positive(), model: z.string().trim().min(1).max(100) }).optional(),
   messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(8000) })).min(1).max(40),
 });
 
@@ -44,7 +45,7 @@ Use short Markdown (bold, italics, bullet lists). Be concise.${await lessonConte
     async start(controller) {
       let any = false;
       try {
-        const gen = chatStream({ task: "chat", messages, temperature: 0.6, maxTokens: 1500, timeoutMs: 90_000 }, req.signal);
+        const gen = chatStream({ task: "chat", messages, temperature: 0.6, maxTokens: 1500, override: data.override, timeoutMs: 90_000 }, req.signal);
         for (let step = await gen.next(); !step.done; step = await gen.next()) {
           any = true;
           controller.enqueue(enc.encode(step.value));

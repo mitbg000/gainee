@@ -603,7 +603,16 @@
     "delete": "Delete conversation",
     "deleteConfirm": "Delete this conversation?",
     "context": "About the text:",
-    "noContext": "No text (general questions)"
+    "noContext": "No lesson",
+    "model": "Model",
+    "modelDefault": "Default model (Settings)",
+    "noChats": "No conversations yet",
+    "closeList": "Close list",
+    "openFull": "Open full page",
+    "hello": "How can I help?",
+    "stop": "Stop",
+    "disclaimer": "AI can make mistakes – check important information.",
+    "close": "Close"
   },
   "goals": {
     "edit": "Change goals",

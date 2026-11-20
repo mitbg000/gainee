@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
 import { getTheme } from "@/theme/server";
+import ChatBubble from "./ChatBubble";
 import CollapsibleSidebar from "./CollapsibleSidebar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import LogoutButton from "./LogoutButton";
@@ -54,6 +55,8 @@ export default async function Shell({ children, wide = false, full = false }: { 
       >
         <div className={full ? "" : `mx-auto ${wide ? "max-w-6xl" : "max-w-4xl"}`}>{children}</div>
       </main>
+
+      <ChatBubble docs={tree} />
 
       <MobileTabBar>
         <div className="flex flex-col gap-4">

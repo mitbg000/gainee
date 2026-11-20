@@ -603,7 +603,16 @@
     "delete": "Xóa cuộc trò chuyện",
     "deleteConfirm": "Xóa cuộc trò chuyện này?",
     "context": "Về bài đọc:",
-    "noContext": "Không chọn bài (câu hỏi chung)"
+    "noContext": "Không chọn bài",
+    "model": "Model",
+    "modelDefault": "Model mặc định (Cài đặt)",
+    "noChats": "Chưa có cuộc trò chuyện",
+    "closeList": "Đóng danh sách",
+    "openFull": "Mở toàn trang",
+    "hello": "Mình giúp gì được cho bạn?",
+    "stop": "Dừng",
+    "disclaimer": "AI có thể sai – hãy kiểm tra lại thông tin quan trọng.",
+    "close": "Đóng"
   },
   "goals": {
     "edit": "Đổi mục tiêu",
