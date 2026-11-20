@@ -8,8 +8,8 @@ export const NAV: NavItem[] = [
   { href: "/dictionary", key: "dictionary", icon: "dict", mobileTab: true },
   { href: "/words", key: "words", icon: "words" },
   { href: "/labels", key: "labels", icon: "tag" },
-  { href: "/review", key: "review", icon: "cards", phase: 2, mobileTab: true },
-  { href: "/progress", key: "progress", icon: "chart", phase: 2 },
-  { href: "/assistant", key: "assistant", icon: "spark", phase: 3 },
+  { href: "/review", key: "review", icon: "cards", mobileTab: true },
+  { href: "/progress", key: "progress", icon: "chart" },
+  { href: "/assistant", key: "assistant", icon: "spark" },
   { href: "/settings", key: "settings", icon: "gear" },
 ];

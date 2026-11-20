@@ -506,5 +506,74 @@
     },
     "saveWord": "Lưu từ",
     "saved": "Đã lưu"
+  },
+  "review": {
+    "title": "Ôn tập hôm nay",
+    "due": "{n, plural, =0 {Chưa có từ nào cần ôn} other {# từ cần ôn}}",
+    "all": "Tất cả",
+    "loading": "Đang tải…",
+    "nothing": "Hiện chưa có từ cần ôn. Lưu từ khi đọc thì chúng sẽ xuất hiện ở đây.",
+    "finished": "Xong! Bạn đã ôn {n} từ.",
+    "openNotebook": "Mở sổ tay từ vựng",
+    "left": "còn {n}",
+    "show": "Hiện đáp án",
+    "listen": "Nghe",
+    "noMeaning": "Chưa có nghĩa – sửa từ này trong Sổ tay từ vựng.",
+    "modes": {
+      "recognize": "Từ → nghĩa",
+      "recall": "Nghĩa → từ",
+      "cloze": "Điền vào câu",
+      "listen": "Nghe"
+    },
+    "rating": {
+      "1": "Quên",
+      "2": "Khó",
+      "3": "Nhớ",
+      "4": "Dễ"
+    }
+  },
+  "progress": {
+    "title": "Tiến độ",
+    "totals": {
+      "streak": "Chuỗi ngày",
+      "xp": "Tổng XP",
+      "lessonsDone": "Bài đã học",
+      "words": "Từ đã lưu",
+      "mastered": "Từ đã thuộc"
+    },
+    "activity": "Hoạt động (26 tuần)",
+    "activityHint": "Ô càng đậm = ngày đó càng nhiều XP.",
+    "cell": "{day}: {xp} XP, {reviews} lượt ôn",
+    "reviews": "Lượt ôn – 14 ngày qua",
+    "speed": "Tốc độ đọc",
+    "speedSummary": "Lần gần nhất {last} từ/phút · trung bình {avg} từ/phút",
+    "lookups": "{n} lần tra / 100 từ",
+    "noReading": "Bấm “Đọc xong” ở cuối bài để ghi lại tốc độ đọc.",
+    "accuracy": "Độ chính xác theo dạng câu hỏi",
+    "noAnswers": "Làm bài tập để xem độ chính xác.",
+    "qtype": {
+      "tfng": "True / False / Not Given",
+      "ynng": "Yes / No / Not Given",
+      "mcq": "Trắc nghiệm",
+      "gap": "Điền từ",
+      "matching": "Nối",
+      "heading": "Chọn tiêu đề",
+      "short": "Trả lời ngắn"
+    }
+  },
+  "assistant": {
+    "title": "Trợ lý AI",
+    "intro": "Hỏi bất cứ điều gì về tiếng Anh, IELTS hay bài đọc của bạn. Cuộc trò chuyện chỉ lưu trên trình duyệt này.",
+    "placeholder": "Đặt câu hỏi… (Enter để gửi, Shift+Enter xuống dòng)",
+    "send": "Gửi",
+    "clear": "Xóa cuộc trò chuyện",
+    "thinking": "Đang nghĩ…",
+    "notConfigured": "Chưa cấu hình nhà cung cấp AI.",
+    "openSettings": "Mở cài đặt",
+    "suggest": {
+      "s1": "Làm sao paraphrase tốt hơn trong IELTS Reading?",
+      "s2": "Phân biệt “affect” và “effect”",
+      "s3": "Cho tôi 5 từ nối nâng cao cho Writing Task 2"
+    }
   }
 }

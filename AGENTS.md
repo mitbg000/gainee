@@ -33,8 +33,8 @@ Progress (reading speed, accuracy by question type, XP, streak) is recorded for 
 |---|---|---|
 | 0 | Foundation: auth (username + password), MySQL/Drizzle, i18n, theme, PWA, mobile layout, worker + job queue, offline dictionary, categories (labels), aaPanel deploy | ✅ done |
 | 1 | AI providers + per-task routing; import → clean → split → AI lesson generation with validation; library; full lesson reader (highlights, margin notes, quick-AI panel, dictionary, vocab, exercises, practice); XP/activity basics; dashboard | ✅ done |
-| 2 | Vocabulary notebook page (with **images**: paste/drag/upload/URL, compressed with `sharp`), FSRS reviews (`ts-fsrs`), review modes (recognize / recall / cloze / listen / image), progress dashboard (WPM trend, lookup rate, accuracy by question type, heat map), goals and achievements | next |
-| 3 | Assistant chat, writing grading with stored band scores (`writings.band_*`), AI cost dashboard | |
+| 2 | Vocabulary notebook page (with **images**: paste/drag/upload/URL, compressed with `sharp`), FSRS reviews (`ts-fsrs`), review modes (recognize / recall / cloze / listen / image), progress dashboard (WPM trend, lookup rate, accuracy by question type, heat map), goals and achievements | partly done: notebook (edit/search/grouped), FSRS review (`lib/review.ts`, recognize/recall/cloze/listen), progress page; images on words, goals, achievements still to do |
+| 3 | Assistant chat (basic version done: `/assistant`, history in the browser), writing grading with stored band scores (`writings.band_*`), AI cost dashboard | |
 | 4 | Reminders (web push, Telegram, email), weekly report, speaking practice with recording + transcription | |
 
 Detailed product design (metrics, motivation features, reader UX): **`docs/ROADMAP.md`**.

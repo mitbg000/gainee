@@ -506,5 +506,74 @@
     },
     "saveWord": "Save word",
     "saved": "Saved"
+  },
+  "review": {
+    "title": "Today's review",
+    "due": "{n, plural, =0 {Nothing due right now} one {# word due} other {# words due}}",
+    "all": "All",
+    "loading": "Loading…",
+    "nothing": "Nothing to review right now. Save words while reading and they will show up here.",
+    "finished": "Done! You reviewed {n} words.",
+    "openNotebook": "Open saved words",
+    "left": "{n} left",
+    "show": "Show answer",
+    "listen": "Listen",
+    "noMeaning": "No meaning saved – edit this word in Saved words.",
+    "modes": {
+      "recognize": "Word → meaning",
+      "recall": "Meaning → word",
+      "cloze": "Fill the gap",
+      "listen": "Listen"
+    },
+    "rating": {
+      "1": "Again",
+      "2": "Hard",
+      "3": "Good",
+      "4": "Easy"
+    }
+  },
+  "progress": {
+    "title": "Progress",
+    "totals": {
+      "streak": "Streak (days)",
+      "xp": "Total XP",
+      "lessonsDone": "Lessons done",
+      "words": "Saved words",
+      "mastered": "Words mastered"
+    },
+    "activity": "Activity (26 weeks)",
+    "activityHint": "Darker = more XP that day.",
+    "cell": "{day}: {xp} XP, {reviews} reviews",
+    "reviews": "Reviews – last 14 days",
+    "speed": "Reading speed",
+    "speedSummary": "Last {last} wpm · average {avg} wpm",
+    "lookups": "{n} look-ups per 100 words",
+    "noReading": "Press “Finish reading” at the end of a lesson to record your speed.",
+    "accuracy": "Accuracy by question type",
+    "noAnswers": "Do some exercises to see your accuracy.",
+    "qtype": {
+      "tfng": "True / False / Not Given",
+      "ynng": "Yes / No / Not Given",
+      "mcq": "Multiple choice",
+      "gap": "Gap fill",
+      "matching": "Matching",
+      "heading": "Headings",
+      "short": "Short answer"
+    }
+  },
+  "assistant": {
+    "title": "AI assistant",
+    "intro": "Ask anything about English, IELTS or your texts. The conversation stays in this browser.",
+    "placeholder": "Ask a question… (Enter to send, Shift+Enter for a new line)",
+    "send": "Send",
+    "clear": "Clear conversation",
+    "thinking": "Thinking…",
+    "notConfigured": "No AI provider is set up yet.",
+    "openSettings": "Open settings",
+    "suggest": {
+      "s1": "How can I paraphrase better in IELTS Reading?",
+      "s2": "Explain the difference between “affect” and “effect”",
+      "s3": "Give me 5 advanced linking words for Writing Task 2"
+    }
   }
 }

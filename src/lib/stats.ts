@@ -41,3 +41,34 @@ export async function nextLesson() {
     .limit(1);
   return row ?? null;
 }
+
+/** Everything the Progress page shows. */
+export async function progressData() {
+  const db = getDb();
+  const { readingSessions, answerLogs } = schema;
+  const since = new Date(`${today()}T00:00:00Z`);
+  since.setUTCDate(since.getUTCDate() - 7 * 26);
+  const [days, [w], [mastered], [done], sessions, acc, s] = await Promise.all([
+    db.select().from(activity).where(sql`${activity.day} >= ${since.toISOString().slice(0, 10)}`).orderBy(asc(activity.day)),
+    db.select({ n: count() }).from(words),
+    db.select({ n: count() }).from(words).where(sql`${words.state} = 2 and ${words.stability} >= 21`),
+    db.select({ n: count() }).from(lessons).where(isNotNull(lessons.completedAt)),
+    db.select({ at: readingSessions.createdAt, wpm: readingSessions.wpm, words: readingSessions.words, lookups: readingSessions.lookups }).from(readingSessions).orderBy(desc(readingSessions.id)).limit(20),
+    db
+      .select({ qtype: answerLogs.qtype, total: count(), correct: sql<number>`sum(${answerLogs.correct})` })
+      .from(answerLogs)
+      .groupBy(answerLogs.qtype),
+    streak(),
+  ]);
+  const [{ xp }] = await db.select({ xp: sql<number>`coalesce(sum(${activity.xp}), 0)` }).from(activity);
+  const read = sessions.reverse();
+  const totalWords = read.reduce((a, r) => a + r.words, 0);
+  return {
+    days,
+    since: since.toISOString().slice(0, 10),
+    totals: { streak: s, xp: Number(xp), words: w.n, mastered: mastered.n, lessonsDone: done.n },
+    wpm: read.map((r) => ({ at: r.at, wpm: r.wpm })),
+    lookupsPer100: totalWords ? Math.round((read.reduce((a, r) => a + r.lookups, 0) / totalWords) * 1000) / 10 : null,
+    accuracy: acc.map((a) => ({ qtype: a.qtype, total: a.total, pct: Math.round((Number(a.correct) / a.total) * 100) })),
+  };
+}
