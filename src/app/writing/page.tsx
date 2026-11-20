@@ -2,17 +2,18 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import WritingStudio from "@/components/writing/WritingStudio";
-import { getWriting, listWritings, type Grade, type WritingKind } from "@/lib/writing";
+import { getWriting, listWritings, type Grade, type WritingKind, WRITING_KINDS } from "@/lib/writing";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
-export default async function WritingPage({ searchParams }: { searchParams: Promise<{ id?: string; new?: string }> }) {
+export default async function WritingPage({ searchParams }: { searchParams: Promise<{ id?: string; new?: string; kind?: string }> }) {
   const t = await getTranslations("writing");
   const sp = await searchParams;
   const list = await listWritings();
-  // Without an id, continue the latest unscored draft; "New" (?new=1) starts a blank one.
-  const id = Number(sp.id) || (sp.new ? null : (list.find((w) => w.bandOverall == null)?.id ?? null));
+  // Each type keeps its own draft: without an id, continue the latest unscored draft (of ?kind= if given); ?new=1 starts a blank one.
+  const kind = (WRITING_KINDS as readonly string[]).includes(sp.kind ?? "") ? (sp.kind as WritingKind) : undefined;
+  const id = Number(sp.id) || (sp.new ? null : (list.find((w) => w.bandOverall == null && (!kind || w.kind === kind))?.id ?? null));
   const cur = id ? await getWriting(id) : undefined;
   const initial = cur ? { id: cur.id, kind: cur.kind as WritingKind, prompt: cur.prompt ?? "", body: cur.body, grade: (cur.feedback as Grade | null) ?? null } : null;
 
@@ -21,7 +22,7 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
       <p className="mt-1 text-sm text-muted">{t("intro")}</p>
       <div className="mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-6">
-        <WritingStudio key={id ?? "new"} initial={initial} />
+        <WritingStudio key={id ?? `new-${kind}`} initial={initial} kind={kind} />
         <aside className="mt-8 lg:mt-0">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-accent2">{t("history")}</h2>

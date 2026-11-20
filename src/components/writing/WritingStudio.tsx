@@ -19,11 +19,11 @@ const json = (body: unknown) => ({ headers: { "content-type": "application/json"
 type Initial = { id: number; kind: WritingKind; prompt: string; body: string; grade: Grade | null } | null;
 
 /** Write an IELTS answer: AI question or your own, word count + timer, auto-save, AI band scores. */
-export default function WritingStudio({ initial }: { initial: Initial }) {
+export default function WritingStudio({ initial, kind: startKind }: { initial: Initial; kind?: WritingKind }) {
   const t = useTranslations("writing");
   const router = useRouter();
   const [id, setId] = useState<number | null>(initial?.id ?? null);
-  const [kind, setKind] = useState<WritingKind>(initial?.kind ?? "task2");
+  const kind: WritingKind = initial?.kind ?? startKind ?? "task2"; // fixed per draft; the type chips open another draft
   const [prompt, setPrompt] = useState(initial?.prompt ?? "");
   const [editPrompt, setEditPrompt] = useState(!initial?.prompt);
   const [body, setBody] = useState(initial?.body ?? "");
@@ -142,7 +142,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
   async function remove() {
     if (!idRef.current || !confirm(t("deleteConfirm"))) return;
     await fetch(`/api/writings/${idRef.current}`, { method: "DELETE" });
-    router.push("/writing?new=1");
+    router.push(`/writing?new=1&kind=${kind}`);
     router.refresh();
   }
 
@@ -160,9 +160,14 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
         {KINDS.map((k) => (
           <button
             key={k}
-            onClick={() => setKind(k)}
-            disabled={!!grade}
-            className={`chip disabled:opacity-40 ${kind === k ? "chip-on" : ""}`}
+            onClick={async () => {
+              if (k === kind) return;
+              // another type opens its own draft (or a blank one) instead of reusing this text
+              await save();
+              router.push(`/writing?kind=${k}`);
+              router.refresh();
+            }}
+            className={`chip ${kind === k ? "chip-on" : ""}`}
           >
             {t(`kind.${k}`)}
           </button>
@@ -227,7 +232,7 @@ export default function WritingStudio({ initial }: { initial: Initial }) {
             <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {busy === "grade" ? t("grading") : grade ? t("regrade") : t("grade")}
           </button>
           {grade && (
-            <Link href="/writing?new=1" className="btn btn-secondary">
+            <Link href={`/writing?new=1&kind=${kind}`} className="btn btn-secondary">
               <I.IconPlus className="inline-block h-4 w-4 align-[-0.2em]" /> {t("new")}
             </Link>
           )}
