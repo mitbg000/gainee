@@ -27,7 +27,8 @@
       "library": "Thư viện",
       "dictionary": "Từ điển",
       "review": "Ôn tập"
-    }
+    },
+    "labels": "Phân loại"
   },
   "login": {
     "username": "Tên đăng nhập",
@@ -57,7 +58,8 @@
       "workerAlive": "Worker: đang hoạt động (tín hiệu {seconds}s trước)",
       "workerLost": "Worker: mất tín hiệu {seconds}s",
       "workerNever": "Worker: chưa khởi động"
-    }
+    },
+    "tryReader": "Thử tra từ kiểu Kindle →"
   },
   "jobs": {
     "title": "Việc nền",
@@ -99,5 +101,69 @@
     "ios": "Trong Safari, bấm <share></share> <b>Chia sẻ</b>, rồi chọn <b>Thêm vào MH chính</b>.",
     "install": "Cài đặt",
     "dismiss": "Để sau"
+  },
+  "reader": {
+    "tryTitle": "Thử tra từ kiểu Kindle",
+    "tryIntro": "Chạm vào một từ bất kỳ – hoặc bôi đen một từ, một cụm ngắn – để xem nghĩa từ từ điển offline. Không dùng AI.",
+    "demoTitle": "Bài đọc mẫu",
+    "listen": "Nghe",
+    "close": "Đóng",
+    "loading": "Đang tra…",
+    "notFound": "Không có trong từ điển offline.",
+    "baseForm": "cho “{word}”",
+    "more": "Xem thêm",
+    "less": "Thu gọn",
+    "moreEntries": "Cả {n} mục từ",
+    "openDictionary": "Mở trong từ điển",
+    "askAi": "Hỏi AI",
+    "saveWord": "Lưu từ",
+    "soon": "GĐ 1"
+  },
+  "labels": {
+    "kicker": "Sắp xếp",
+    "title": "Phân loại",
+    "intro": "Tự tạo chủ đề, nguồn và nhãn riêng, rồi gắn vào bài đọc và từ vựng để lọc và ôn tập theo nhóm.",
+    "kinds": {
+      "topic": {
+        "title": "Chủ đề",
+        "hint": "Bài đọc hoặc từ vựng nói về gì. Chủ đề có thể có chủ đề con (tối đa 3 cấp).",
+        "placeholder": "vd: Giáo dục"
+      },
+      "source": {
+        "title": "Nguồn",
+        "hint": "Lấy từ đâu: tạp chí, website, sách hay đề thi.",
+        "placeholder": "vd: The New Yorker"
+      },
+      "custom": {
+        "title": "Nhãn của tôi",
+        "hint": "Bất cứ thứ gì khác: “phải nhớ cho kỳ thi”, “cụm động từ”, “Speaking Part 2”…",
+        "placeholder": "vd: Speaking Part 2"
+      }
+    },
+    "add": "Thêm",
+    "addIelts": "Thêm các chủ đề IELTS phổ biến",
+    "empty": "Chưa có gì.",
+    "counts": "{documents, plural, =0 {chưa có bài} other {# bài}} · {words, plural, =0 {chưa có từ} other {# từ}}",
+    "edit": "Sửa",
+    "delete": "Xoá",
+    "save": "Lưu",
+    "cancel": "Huỷ",
+    "emoji": "Emoji",
+    "name": "Tên",
+    "color": "Màu",
+    "parent": "Nằm trong chủ đề",
+    "noParent": "— cấp cao nhất —",
+    "description": "Mô tả ngắn (không bắt buộc)",
+    "confirmDelete": "Xoá “{name}”? Nhãn sẽ được gỡ khỏi mọi bài đọc và từ vựng (bài và từ không bị xoá).",
+    "errors": {
+      "duplicate": "Đã có nhãn trùng tên.",
+      "too_deep": "Chủ đề chỉ lồng được tối đa 3 cấp.",
+      "cycle": "Một chủ đề không thể nằm trong chính nó.",
+      "invalid_parent": "Hãy chọn chủ đề cha hợp lệ.",
+      "parent_only_for_topics": "Chỉ chủ đề mới có chủ đề cha.",
+      "invalid": "Hãy kiểm tra lại thông tin.",
+      "not_found": "Nhãn này không còn tồn tại.",
+      "unknown": "Có lỗi xảy ra, hãy thử lại."
+    }
   }
 }

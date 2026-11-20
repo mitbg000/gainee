@@ -4,7 +4,8 @@ A personal (single-user) web app for learning English through reading. It turns 
 
 - **UI languages:** English and Vietnamese, switchable with the EN / VI toggle
 - **Light / dark / system theme**, a mobile-first layout, and installable as an app (PWA), including on iPhone/iPad
-- **Offline English–Vietnamese dictionary** (StarDict import); AI is only used when you ask for a deeper explanation
+- **Offline English–Vietnamese dictionary** (StarDict import) with **Kindle-style look-up**: tap a word or select a phrase while reading. AI is only used when you ask for a deeper explanation
+- **Your own categories** for texts and words: nested topics, sources and custom labels
 - **Stack:** Next.js 15 · TypeScript · Tailwind · Drizzle ORM · MySQL / MariaDB · PM2
 - **Hosting target:** aaPanel (Nginx + MySQL + Node.js manager); works on any Linux server with Node 20.6+ and MySQL
 
@@ -28,6 +29,8 @@ Files (word images, PDFs, audio) ─► UPLOAD_DIR (outside the app folder)
 | `src/db/schema.ts` | Full data model, including tables for later phases |
 | `src/i18n`, `messages/*.json` | Translations (`en`, `vi`) and locale detection |
 | `src/lib` | Auth (session, password), API-key encryption, job queue, settings |
+| `src/lib/labels.ts`, `src/components/labels` | Categories (topics / sources / labels) |
+| `src/components/reader` | Reader components (Kindle-style look-up) |
 | `src/lib/dictionary` | Offline dictionary: normalization, lemma rules, lookup, HTML sanitizer |
 | `src/lib/ai/tasks.ts` | Per-task AI routing (provider + model for each feature) |
 | `src/theme` | Light/dark theme cookie + no-flash init script |

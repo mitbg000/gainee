@@ -50,6 +50,30 @@ export const settings = mysqlTable("settings", {
 });
 
 /* =====================================================================
+ * Labels: user-defined categories for texts and words
+ *   kind "topic"  – e.g. Education › Teaching (can be nested)
+ *   kind "source" – e.g. The New Yorker, BBC, Cambridge IELTS 18
+ *   kind "custom" – anything else: "exam-must-know", "phrasal verbs", "Speaking P2"…
+ * ===================================================================== */
+export const LABEL_COLORS = ["gray", "red", "orange", "amber", "green", "teal", "blue", "indigo", "purple", "pink"] as const;
+
+export const labels = mysqlTable(
+  "labels",
+  {
+    id: pk(),
+    kind: mysqlEnum("kind", ["topic", "source", "custom"]).notNull(),
+    name: varchar("name", { length: 100 }).notNull(),
+    emoji: varchar("emoji", { length: 16 }),
+    color: mysqlEnum("color", LABEL_COLORS).notNull().default("gray"),
+    parentId: int("parent_id"), // topics only; self-reference (enforced in code)
+    description: varchar("description", { length: 500 }),
+    position: int("position").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("labels_kind_name").on(t.kind, t.name), index("labels_parent").on(t.parentId)],
+);
+
+/* =====================================================================
  * Content: documents → lessons → lesson vocabulary
  * ===================================================================== */
 export const documents = mysqlTable("documents", {
@@ -62,7 +86,6 @@ export const documents = mysqlTable("documents", {
   rawText: longtext("raw_text").notNull(),
   wordCount: int("word_count").notNull().default(0),
   level: varchar("level", { length: 8 }), // estimated CEFR: B1..C2
-  tags: jsonText<string[]>("tags"),
   status: mysqlEnum("status", ["draft", "processing", "ready", "error"]).notNull().default("draft"),
   error: text("error"),
   createdAt: createdAt(),
@@ -128,7 +151,6 @@ export const words = mysqlTable(
     example: text("example"),
     note: text("note"),
     mnemonic: text("mnemonic"), // personal memory hook
-    tags: jsonText<string[]>("tags"),
     lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
     lessonVocabId: int("lesson_vocab_id").references(() => lessonVocab.id, { onDelete: "set null" }),
     // FSRS card state
@@ -444,4 +466,25 @@ export const aiMessages = mysqlTable(
     createdAt: createdAt(),
   },
   (t) => [index("ai_messages_lesson").on(t.lessonId)],
+);
+
+/* =====================================================================
+ * Label assignments (many-to-many)
+ * ===================================================================== */
+export const documentLabels = mysqlTable(
+  "document_labels",
+  {
+    documentId: int("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+    labelId: int("label_id").notNull().references(() => labels.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.documentId, t.labelId] }), index("document_labels_label").on(t.labelId)],
+);
+
+export const wordLabels = mysqlTable(
+  "word_labels",
+  {
+    wordId: int("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
+    labelId: int("label_id").notNull().references(() => labels.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.wordId, t.labelId] }), index("word_labels_label").on(t.labelId)],
 );

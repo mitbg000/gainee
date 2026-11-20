@@ -1,5 +1,6 @@
 import { count } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import { getDb, schema } from "@/db";
 import { getSetting } from "@/lib/settings";
 import Shell from "@/components/Shell";
@@ -38,6 +39,13 @@ export default async function DashboardPage() {
       <p className="mt-2 text-muted">{t("intro")}</p>
 
       <InstallPrompt />
+
+      <Link
+        href="/read/demo"
+        className="mt-4 flex min-h-11 items-center rounded-2xl border border-line bg-card px-4 py-3 font-medium text-accent hover:border-accent"
+      >
+        {t("tryReader")}
+      </Link>
 
       <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
         {(["documents", "lessons", "words"] as const).map((k) => (

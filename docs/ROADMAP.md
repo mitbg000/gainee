@@ -4,7 +4,7 @@
 
 | Phase | Scope | Status |
 |---|---|---|
-| **0 – Foundation** | Next.js, MySQL + Drizzle, username + password login, EN/VI UI, light/dark theme, mobile layout + PWA (iOS & Android), offline StarDict dictionary, job queue + worker, PM2, aaPanel deploy, CI/CD | ✅ done |
+| **0 – Foundation** | Next.js, MySQL + Drizzle, username + password login, EN/VI UI, light/dark theme, mobile layout + PWA (iOS & Android), offline StarDict dictionary with **Kindle-style tap/select look-up**, **user-defined categories** (topics / sources / labels), job queue + worker, PM2, aaPanel deploy, CI/CD | ✅ done |
 | **1 – Texts → lessons + reader** | AI provider settings (all 4 providers, model per task); import (paste / PDF / DOCX / TXT); clean & split into ~500–800-word lessons; AI generates summary, vocabulary, TFNG / MCQ / gap / matching, structures, paraphrase, speaking/writing prompts, validated against the source text; **reader with margin notes, dictionary pop-up and quick-AI panel** (see below); exercises with explanations | next |
 | **2 – Vocabulary, progress, motivation** | Notebook with **images** and mnemonics; FSRS reviews in several modes; progress dashboard; streaks, XP, goals, achievements; "then vs. now" | |
 | **3 – Assistant & writing** | Fallback provider, cost dashboard, Writing Task 2 grading by criterion, free chat about a text | |
@@ -111,3 +111,49 @@ The reader keeps everything on one screen, so you never have to switch tabs whil
   The AI receives the selection, its sentence and its paragraph. Answers stream into the panel. Each answer can be **pinned** to the margin like a note, or turned into a vocabulary card. Everything is saved in `ai_messages`, so you can search old answers later.
 - **Model per task:** the quick-AI panel uses the `reader_quick` route from `ai.routing` (`src/lib/ai/tasks.ts`). In Settings you choose the provider and model for each task, e.g. a cheap DeepSeek model for quick questions, and a stronger model for lesson generation and writing feedback. A small model picker in the panel lets you override it for one question.
 - **Mobile:** the right panel becomes a bottom sheet. On phones, selecting text pops up the same toolbar. Tapping a highlight opens its note in the sheet.
+
+---
+
+## Categories (topics, sources, labels)
+
+You define categories yourself on the **Categories** page (`/labels`). There are three kinds:
+
+| Kind | Purpose | Examples |
+|---|---|---|
+| **Topic** | What it is about. Can be nested up to 3 levels | Education › Teaching › Coaching |
+| **Source** | Where it came from | The New Yorker, BBC Future, Cambridge IELTS 18 |
+| **My labels** | Anything else | must-know, phrasal verbs, Speaking Part 2 |
+
+- Each category has a name, an optional emoji, one of 10 colours and a short description. The page shows how many texts and words use it.
+- A text or word can have **any number** of categories (`document_labels`, `word_labels`).
+- Deleting a category only removes it from texts and words; nothing else is deleted. Its sub-topics move up one level.
+- One click adds a starter set of 12 common IELTS topics.
+
+**How categories are used later**
+
+- **Phase 1 (library):**
+  - when a text is imported, the AI *suggests* topics and the source (you confirm or change them);
+  - filter and search the library by topic, source or label.
+- **Phase 1 (reader):** words saved from a text inherit its topics automatically.
+- **Phase 2 (words, review, progress):**
+  - filter the notebook by category;
+  - start a review session for one topic, e.g. "Environment words only";
+  - progress per topic: words learned and retention for each topic, which shows which IELTS topics you are weak in.
+
+---
+
+## Kindle-style look-up (done)
+
+`src/components/reader/ReaderLookup.tsx` wraps any reading text:
+
+- **Tap or click a word** to see its offline dictionary entry. The word is selected visibly, as on a Kindle.
+- **Select a word or a short phrase** (up to 6 words), e.g. *take off*, to look it up the same way.
+- **Layout:** on desktop a small card appears next to the word; on phones a bottom sheet appears.
+- **In the card:**
+  - 🔊 pronunciation;
+  - *Show more* for long entries;
+  - links inside an entry open the linked word;
+  - *Open in dictionary*.
+- **Inflections:** the base form is found automatically, e.g. *studied → study*, *remembered → remember*.
+- *Ask AI* and *Save word* are already in the card; they start working in Phase 1.
+- **Try it:** `/read/demo`. The Phase 1 reader uses the same component for lessons.

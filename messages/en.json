@@ -27,7 +27,8 @@
       "library": "Library",
       "dictionary": "Dictionary",
       "review": "Review"
-    }
+    },
+    "labels": "Categories"
   },
   "login": {
     "username": "Username",
@@ -57,7 +58,8 @@
       "workerAlive": "Worker: running (last signal {seconds}s ago)",
       "workerLost": "Worker: no signal for {seconds}s",
       "workerNever": "Worker: not started yet"
-    }
+    },
+    "tryReader": "Try Kindle-style look-up →"
   },
   "jobs": {
     "title": "Background jobs",
@@ -99,5 +101,69 @@
     "ios": "In Safari, tap <share></share> <b>Share</b>, then <b>Add to Home Screen</b>.",
     "install": "Install",
     "dismiss": "Not now"
+  },
+  "reader": {
+    "tryTitle": "Try it: Kindle-style look-up",
+    "tryIntro": "Tap any word – or select a word or short phrase – to see its meaning from the offline dictionary. No AI is used.",
+    "demoTitle": "Sample reading",
+    "listen": "Listen",
+    "close": "Close",
+    "loading": "Looking up…",
+    "notFound": "Not in the offline dictionary.",
+    "baseForm": "for “{word}”",
+    "more": "Show more",
+    "less": "Show less",
+    "moreEntries": "All {n} entries",
+    "openDictionary": "Open in dictionary",
+    "askAi": "Ask AI",
+    "saveWord": "Save word",
+    "soon": "Phase 1"
+  },
+  "labels": {
+    "kicker": "Organize",
+    "title": "Categories",
+    "intro": "Create your own topics, sources and labels, then attach them to texts and words to filter and review by group.",
+    "kinds": {
+      "topic": {
+        "title": "Topics",
+        "hint": "What a text or word is about. Topics can have sub-topics (up to 3 levels).",
+        "placeholder": "e.g. Education"
+      },
+      "source": {
+        "title": "Sources",
+        "hint": "Where it came from: a magazine, website, book or test.",
+        "placeholder": "e.g. The New Yorker"
+      },
+      "custom": {
+        "title": "My labels",
+        "hint": "Anything else: “must-know for the exam”, “phrasal verbs”, “Speaking Part 2”…",
+        "placeholder": "e.g. Speaking Part 2"
+      }
+    },
+    "add": "Add",
+    "addIelts": "Add common IELTS topics",
+    "empty": "Nothing here yet.",
+    "counts": "{documents, plural, =0 {no texts} one {# text} other {# texts}} · {words, plural, =0 {no words} one {# word} other {# words}}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "emoji": "Emoji",
+    "name": "Name",
+    "color": "Colour",
+    "parent": "Inside topic",
+    "noParent": "— top level —",
+    "description": "Short description (optional)",
+    "confirmDelete": "Delete “{name}”? It will be removed from all texts and words (they are not deleted).",
+    "errors": {
+      "duplicate": "A label with this name already exists.",
+      "too_deep": "Topics can only be nested 3 levels deep.",
+      "cycle": "A topic cannot be inside itself.",
+      "invalid_parent": "Choose a valid parent topic.",
+      "parent_only_for_topics": "Only topics can have a parent.",
+      "invalid": "Please check the form.",
+      "not_found": "This label no longer exists.",
+      "unknown": "Something went wrong. Please try again."
+    }
   }
 }

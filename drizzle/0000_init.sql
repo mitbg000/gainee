@@ -34,6 +34,22 @@ CREATE TABLE `ai_calls` (
 	CONSTRAINT `ai_calls_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
+CREATE TABLE `ai_messages` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`lesson_id` int,
+	`annotation_id` int,
+	`action` enum('explain_word','explain_sentence','grammar','translate','paraphrase','custom') NOT NULL,
+	`selection` text,
+	`context` text,
+	`question` text,
+	`answer` longtext,
+	`provider_id` int,
+	`model` varchar(100),
+	`pinned` boolean NOT NULL DEFAULT false,
+	`created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+	CONSTRAINT `ai_messages_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
 CREATE TABLE `ai_providers` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`name` varchar(32) NOT NULL,
@@ -44,6 +60,22 @@ CREATE TABLE `ai_providers` (
 	`enabled` boolean NOT NULL DEFAULT true,
 	`created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 	CONSTRAINT `ai_providers_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `annotations` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`lesson_id` int NOT NULL,
+	`paragraph` int NOT NULL,
+	`start_offset` int NOT NULL,
+	`end_offset` int NOT NULL,
+	`quote` varchar(1000) NOT NULL,
+	`prefix` varchar(64),
+	`suffix` varchar(64),
+	`color` enum('yellow','green','blue','pink','purple') NOT NULL DEFAULT 'yellow',
+	`note` text,
+	`created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+	`updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+	CONSTRAINT `annotations_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `answer_logs` (
@@ -77,6 +109,29 @@ CREATE TABLE `attempts` (
 	CONSTRAINT `attempts_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
+CREATE TABLE `dict_aliases` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`dict` varchar(32) NOT NULL,
+	`lookup_key` varchar(191) NOT NULL,
+	`entry_id` int NOT NULL,
+	CONSTRAINT `dict_aliases_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `dict_entries` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`dict` varchar(32) NOT NULL,
+	`headword` varchar(191) NOT NULL,
+	`lookup_key` varchar(191) NOT NULL,
+	`html` longtext NOT NULL,
+	CONSTRAINT `dict_entries_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `document_labels` (
+	`document_id` int NOT NULL,
+	`label_id` int NOT NULL,
+	CONSTRAINT `document_labels_document_id_label_id_pk` PRIMARY KEY(`document_id`,`label_id`)
+);
+--> statement-breakpoint
 CREATE TABLE `documents` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`title` varchar(500) NOT NULL,
@@ -87,7 +142,6 @@ CREATE TABLE `documents` (
 	`raw_text` longtext NOT NULL,
 	`word_count` int NOT NULL DEFAULT 0,
 	`level` varchar(8),
-	`tags` json,
 	`status` enum('draft','processing','ready','error') NOT NULL DEFAULT 'draft',
 	`error` text,
 	`created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -120,6 +174,20 @@ CREATE TABLE `jobs` (
 	`finished_at` datetime(3),
 	`created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 	CONSTRAINT `jobs_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `labels` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`kind` enum('topic','source','custom') NOT NULL,
+	`name` varchar(100) NOT NULL,
+	`emoji` varchar(16),
+	`color` enum('gray','red','orange','amber','green','teal','blue','indigo','purple','pink') NOT NULL DEFAULT 'gray',
+	`parent_id` int,
+	`description` varchar(500),
+	`position` int NOT NULL DEFAULT 0,
+	`created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+	CONSTRAINT `labels_id` PRIMARY KEY(`id`),
+	CONSTRAINT `labels_kind_name` UNIQUE(`kind`,`name`)
 );
 --> statement-breakpoint
 CREATE TABLE `lesson_vocab` (
@@ -202,6 +270,12 @@ CREATE TABLE `settings` (
 	CONSTRAINT `settings_key` PRIMARY KEY(`key`)
 );
 --> statement-breakpoint
+CREATE TABLE `word_labels` (
+	`word_id` int NOT NULL,
+	`label_id` int NOT NULL,
+	CONSTRAINT `word_labels_word_id_label_id_pk` PRIMARY KEY(`word_id`,`label_id`)
+);
+--> statement-breakpoint
 CREATE TABLE `word_media` (
 	`word_id` int NOT NULL,
 	`media_id` int NOT NULL,
@@ -221,7 +295,6 @@ CREATE TABLE `words` (
 	`example` text,
 	`note` text,
 	`mnemonic` text,
-	`tags` json,
 	`lesson_id` int,
 	`lesson_vocab_id` int,
 	`due` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -269,12 +342,21 @@ CREATE TABLE `xp_events` (
 );
 --> statement-breakpoint
 ALTER TABLE `ai_calls` ADD CONSTRAINT `ai_calls_provider_id_ai_providers_id_fk` FOREIGN KEY (`provider_id`) REFERENCES `ai_providers`(`id`) ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `ai_messages` ADD CONSTRAINT `ai_messages_lesson_id_lessons_id_fk` FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `ai_messages` ADD CONSTRAINT `ai_messages_annotation_id_annotations_id_fk` FOREIGN KEY (`annotation_id`) REFERENCES `annotations`(`id`) ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `ai_messages` ADD CONSTRAINT `ai_messages_provider_id_ai_providers_id_fk` FOREIGN KEY (`provider_id`) REFERENCES `ai_providers`(`id`) ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `annotations` ADD CONSTRAINT `annotations_lesson_id_lessons_id_fk` FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `answer_logs` ADD CONSTRAINT `answer_logs_attempt_id_attempts_id_fk` FOREIGN KEY (`attempt_id`) REFERENCES `attempts`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `attempts` ADD CONSTRAINT `attempts_lesson_id_lessons_id_fk` FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `dict_aliases` ADD CONSTRAINT `dict_aliases_entry_id_dict_entries_id_fk` FOREIGN KEY (`entry_id`) REFERENCES `dict_entries`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `document_labels` ADD CONSTRAINT `document_labels_document_id_documents_id_fk` FOREIGN KEY (`document_id`) REFERENCES `documents`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `document_labels` ADD CONSTRAINT `document_labels_label_id_labels_id_fk` FOREIGN KEY (`label_id`) REFERENCES `labels`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `lesson_vocab` ADD CONSTRAINT `lesson_vocab_lesson_id_lessons_id_fk` FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `lessons` ADD CONSTRAINT `lessons_document_id_documents_id_fk` FOREIGN KEY (`document_id`) REFERENCES `documents`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `reading_sessions` ADD CONSTRAINT `reading_sessions_lesson_id_lessons_id_fk` FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `review_logs` ADD CONSTRAINT `review_logs_word_id_words_id_fk` FOREIGN KEY (`word_id`) REFERENCES `words`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `word_labels` ADD CONSTRAINT `word_labels_word_id_words_id_fk` FOREIGN KEY (`word_id`) REFERENCES `words`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `word_labels` ADD CONSTRAINT `word_labels_label_id_labels_id_fk` FOREIGN KEY (`label_id`) REFERENCES `labels`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `word_media` ADD CONSTRAINT `word_media_word_id_words_id_fk` FOREIGN KEY (`word_id`) REFERENCES `words`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `word_media` ADD CONSTRAINT `word_media_media_id_media_id_fk` FOREIGN KEY (`media_id`) REFERENCES `media`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `words` ADD CONSTRAINT `words_lesson_id_lessons_id_fk` FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -282,13 +364,22 @@ ALTER TABLE `words` ADD CONSTRAINT `words_lesson_vocab_id_lesson_vocab_id_fk` FO
 ALTER TABLE `writings` ADD CONSTRAINT `writings_lesson_id_lessons_id_fk` FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `writings` ADD CONSTRAINT `writings_audio_media_id_media_id_fk` FOREIGN KEY (`audio_media_id`) REFERENCES `media`(`id`) ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX `ai_calls_created` ON `ai_calls` (`created_at`);--> statement-breakpoint
+CREATE INDEX `ai_messages_lesson` ON `ai_messages` (`lesson_id`);--> statement-breakpoint
+CREATE INDEX `annotations_lesson` ON `annotations` (`lesson_id`,`paragraph`);--> statement-breakpoint
 CREATE INDEX `answer_logs_type` ON `answer_logs` (`qtype`);--> statement-breakpoint
 CREATE INDEX `assessments_kind` ON `assessments` (`kind`,`created_at`);--> statement-breakpoint
 CREATE INDEX `attempts_created` ON `attempts` (`created_at`);--> statement-breakpoint
+CREATE INDEX `dict_aliases_key` ON `dict_aliases` (`lookup_key`);--> statement-breakpoint
+CREATE INDEX `dict_aliases_dict` ON `dict_aliases` (`dict`);--> statement-breakpoint
+CREATE INDEX `dict_entries_key` ON `dict_entries` (`lookup_key`);--> statement-breakpoint
+CREATE INDEX `dict_entries_dict` ON `dict_entries` (`dict`);--> statement-breakpoint
+CREATE INDEX `document_labels_label` ON `document_labels` (`label_id`);--> statement-breakpoint
 CREATE INDEX `jobs_pick` ON `jobs` (`status`,`run_at`);--> statement-breakpoint
+CREATE INDEX `labels_parent` ON `labels` (`parent_id`);--> statement-breakpoint
 CREATE INDEX `lesson_vocab_lesson` ON `lesson_vocab` (`lesson_id`);--> statement-breakpoint
 CREATE INDEX `reading_sessions_created` ON `reading_sessions` (`created_at`);--> statement-breakpoint
 CREATE INDEX `review_logs_created` ON `review_logs` (`created_at`);--> statement-breakpoint
+CREATE INDEX `word_labels_label` ON `word_labels` (`label_id`);--> statement-breakpoint
 CREATE INDEX `words_due` ON `words` (`due`);--> statement-breakpoint
 CREATE INDEX `words_term` ON `words` (`term`);--> statement-breakpoint
 CREATE INDEX `xp_events_created` ON `xp_events` (`created_at`);
