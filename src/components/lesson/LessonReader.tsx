@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
+import LessonEditor from "./LessonEditor";
 import { locateQuote } from "./marks";
 import { ExercisesPane, PracticePane, VocabPane } from "./Panes";
 import ReadPane from "./ReadPane";
@@ -22,6 +23,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const [completed, setCompleted] = useState(!!lesson.completedAt);
   const [best, setBest] = useState<number | null>(lesson.bestScore);
   const [toast, setToast] = useState("");
+  const [editing, setEditing] = useState(false);
 
   const say = (m: string) => {
     setToast(m);
@@ -137,6 +139,10 @@ export default function LessonReader({ data }: { data: LessonData }) {
       </p>
       <h1 className="mt-1 font-serif text-3xl font-bold leading-tight md:text-4xl">{lesson.title}</h1>
       {lesson.titleVi && <p className="mt-1 text-muted">{lesson.titleVi}</p>}
+      <button onClick={() => setEditing(true)} className="mt-2 text-sm text-accent underline">
+        ✎ {t("edit.open")}
+      </button>
+      {editing && <LessonEditor lessonId={lesson.id} paragraphs={lesson.paragraphs} hasNext={!!next} onClose={() => setEditing(false)} />}
 
       <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-5 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-0 md:mx-0 md:px-0">
         {tabs.map((k) => (

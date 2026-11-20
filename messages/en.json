@@ -443,6 +443,17 @@
       "notConfigured": "Set up an AI provider in Settings to get feedback.",
       "myNotes": "My notes for this lesson",
       "notesPlaceholder": "Main ideas in your own words, questions, things to remember…"
+    },
+    "edit": {
+      "open": "Edit text / split / merge",
+      "title": "Edit lesson text",
+      "help": "Delete unrelated parts (author, date, links…) and fix the text. A blank line separates paragraphs. Put a line containing only --- where a new lesson should start.",
+      "regenerate": "Regenerate vocabulary and exercises from the new text",
+      "save": "Save",
+      "cancel": "Cancel",
+      "merge": "Merge with next lesson",
+      "mergeConfirm": "Merge with the next lesson and regenerate the exercises?",
+      "failed": "Could not save, please try again"
     }
   }
 }
