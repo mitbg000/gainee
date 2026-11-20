@@ -12,10 +12,11 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const url = req.nextUrl.clone();
-  url.pathname = "/login";
-  url.search = `?next=${encodeURIComponent(pathname)}`;
-  return NextResponse.redirect(url);
+  // Behind Nginx, req.nextUrl carries the internal 127.0.0.1:PORT origin, so build the redirect from the proxy headers.
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
+  const target = `/login?next=${encodeURIComponent(pathname)}`;
+  return NextResponse.redirect(host ? `${proto}://${host}${target}` : new URL(target, req.url));
 }
 
 export const config = {
