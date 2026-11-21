@@ -79,6 +79,35 @@ export function niceMax(v: number) {
 
 const fmt = (n: number) => String(+n.toFixed(2));
 
+/**
+ * Smooth SVG path through the points (monotone cubic, Fritsch–Carlson): soft curves that never swing
+ * above or below the real values, so 100 % stays 100 % and a flat stretch stays flat.
+ */
+export function smoothPath(p: [number, number][]): string {
+  if (p.length < 3) return p.map(([px, py], i) => `${i ? "L" : "M"}${px},${py}`).join("");
+  const n = p.length;
+  const d = p.slice(1).map(([px, py], i) => (py - p[i][1]) / (px - p[i][0])); // slope of each segment
+  const m = p.map((_, i) => (i === 0 ? d[0] : i === n - 1 ? d[n - 2] : d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2));
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) {
+      m[i] = m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i] / d[i], b = m[i + 1] / d[i], h = a * a + b * b;
+    if (h > 9) {
+      const t = 3 / Math.sqrt(h);
+      m[i] = t * a * d[i];
+      m[i + 1] = t * b * d[i];
+    }
+  }
+  let path = `M${p[0][0]},${p[0][1]}`;
+  for (let i = 0; i < n - 1; i++) {
+    const dx = (p[i + 1][0] - p[i][0]) / 3;
+    path += `C${p[i][0] + dx},${p[i][1] + m[i] * dx} ${p[i + 1][0] - dx},${p[i + 1][1] - m[i + 1] * dx} ${p[i + 1][0]},${p[i + 1][1]}`;
+  }
+  return path;
+}
+
 function Axes({ spec }: { spec: ChartSpec }) {
   const W = 600, H = 330, L = 52, R = 16, T = 30, B = 44;
   const max = spec.max ?? niceMax(Math.max(...spec.series.flatMap((s) => s.values.map((v) => v ?? 0))));
@@ -107,7 +136,7 @@ function Axes({ spec }: { spec: ChartSpec }) {
       {spec.type === "line"
         ? spec.series.map((s, k) => (
             <g key={k} stroke={COLORS[k % COLORS.length]} fill={COLORS[k % COLORS.length]}>
-              <polyline points={s.values.flatMap((v, i) => (v == null ? [] : [`${x(i)},${y(v)}`])).join(" ")} fill="none" strokeWidth={2.5} />
+              <path d={smoothPath(s.values.flatMap((v, i) => (v == null ? [] : [[x(i), y(v)] as [number, number]])))} fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
               {s.values.map((v, i) =>
                 v == null ? null : (
                   <circle key={i} cx={x(i)} cy={y(v)} r={3.5}>
