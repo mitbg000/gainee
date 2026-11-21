@@ -96,13 +96,17 @@ export default function ReadPane(props: Props) {
   const [showSummary, setShowSummary] = useState(false);
   const [timer, setTimer] = useState({ start: Date.now(), lookups: 0, done: false, wpm: 0, seconds: 0 });
   const [now, setNow] = useState(Date.now());
+  // paragraph the reader last clicked: a soft band shows where they were after a look-up
+  const [here, setHere] = useState<number | null>(null);
 
   useEffect(() => {
     try {
       const f = Number(localStorage.getItem("rl_font"));
       if (f >= 15 && f <= 26) setFontSize(f);
+      const h = localStorage.getItem(`rl_here_${props.lessonId}`);
+      if (h !== null) setHere(Number(h));
     } catch {}
-  }, []);
+  }, [props.lessonId]);
   useEffect(() => {
     if (timer.done) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -198,6 +202,14 @@ export default function ReadPane(props: Props) {
     const s = window.getSelection();
     if (s && !s.isCollapsed) return;
     const el = e.target as HTMLElement;
+    const at = el.closest("[data-p]");
+    if (at) {
+      const n = Number(at.getAttribute("data-p"));
+      setHere(n);
+      try {
+        localStorage.setItem(`rl_here_${props.lessonId}`, String(n));
+      } catch {}
+    }
     const annEl = el.closest("[data-ann]");
     const vocabEl = el.closest("[data-vocab]");
     const w = wordAt(e.clientX, e.clientY);
@@ -302,7 +314,11 @@ export default function ReadPane(props: Props) {
               // eslint-disable-next-line @next/next/no-img-element
               <img key={i} src={props.blocks[i].src} alt={props.blocks[i].alt ?? ""} loading="lazy" className="mx-auto my-4 max-h-[32rem] max-w-full rounded-xl" />
             ) : (
-            <p key={i} data-p={i} className={props.blocks[i].kind === "h" ? "mb-[0.7em] mt-[1.4em] font-sans text-[1.15em] font-bold leading-snug" : "mb-[1.1em]"}>
+            <p
+              key={i}
+              data-p={i}
+              className={`-mx-3 rounded-lg px-3 transition-[background-color,box-shadow] duration-300 ${props.blocks[i].kind === "h" ? "mb-[0.7em] mt-[1.4em] font-sans text-[1.15em] font-bold leading-snug" : "mb-[1.1em]"} ${here === i ? "bg-accent/[0.07] shadow-[inset_3px_0_0_var(--accent)]" : ""}`}
+            >
               {segments(p, marks[i]).map((seg) => {
                 if (!seg.marks.length) return seg.text;
                 const ann = [...seg.marks].reverse().find((m) => m.kind === "ann");
