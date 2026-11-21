@@ -210,9 +210,10 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const tabs: Tab[] = content ? ["read", "vocab", "ex", "practice"] : ["read"];
 
   return (
-    // one container for header, tabs, content and footer, so their left edges line up
-    <div className="mx-auto max-w-[88rem]">
-      <header className="max-w-4xl">
+    // one centred container for header, tabs, content and footer, so their edges line up:
+    // reading width on the Read tab, wider for the side-by-side passage + exercises of the other tabs
+    <div className={`mx-auto transition-[max-width] duration-300 ${tab === "read" ? "max-w-6xl" : "max-w-[88rem]"}`}>
+      <header>
         <Link href={`/library/${doc.id}`} className="line-clamp-1 text-sm text-muted hover:text-ink">
           ← {doc.title}
         </Link>
@@ -250,7 +251,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
 
       <div className="mt-5">
         {tab === "read" && (
-          <div className="max-w-6xl">
+          <div>
           <ReadPane
             lessonId={lesson.id}
             paragraphs={plain}
