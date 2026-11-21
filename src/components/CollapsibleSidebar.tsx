@@ -22,16 +22,20 @@ export default function CollapsibleSidebar({ children }: { children: React.React
   return (
     <aside
       data-collapsed={collapsed}
-      className={`group/sb hidden border-r border-line bg-card p-4 transition-[width] md:sticky md:top-0 md:flex md:h-dvh md:flex-none md:flex-col ${collapsed ? "md:w-[4.5rem] md:px-2" : "md:w-64"}`}
+      className={`chrome group/sb hidden border-r border-line bg-card p-4 transition-[width] md:sticky md:top-0 md:flex md:h-dvh md:flex-none md:flex-col ${collapsed ? "md:w-[4.5rem] md:px-2" : "md:w-64"}`}
     >
       {children}
       <button
         onClick={toggle}
         aria-label={collapsed ? t("expand") : t("collapse")}
         title={collapsed ? t("expand") : t("collapse")}
-        className={`${collapsed ? "mt-auto" : "mt-3"} flex min-h-10 items-center justify-center rounded-xl border border-line text-muted hover:bg-paper`}
+        className={`icon-btn mt-3 ${collapsed ? "mx-auto" : "self-end"}`}
       >
-        {collapsed ? "»" : "« " + t("collapse")}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <rect x="3" y="4" width="18" height="16" rx="3" />
+          <path d="M9 4v16" />
+          <path d={collapsed ? "M13 10l2 2-2 2" : "M16 10l-2 2 2 2"} />
+        </svg>
       </button>
     </aside>
   );

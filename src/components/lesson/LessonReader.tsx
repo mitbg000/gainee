@@ -210,26 +210,29 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const tabs: Tab[] = content ? ["read", "vocab", "ex", "practice"] : ["read"];
 
   return (
-    <div>
-      <div className="mx-auto max-w-6xl">
-      <Link href={`/library/${doc.id}`} className="text-sm text-muted hover:text-ink">
-        ← {doc.title}
-      </Link>
-      <p className="mt-3 text-xs font-bold uppercase tracking-widest text-accent2">
-        {t("part", { n: lesson.position, total: siblings.length })} · {t("words", { n: lesson.wordCount })}
-      </p>
-      <h1 className="mt-1 font-serif text-3xl font-bold leading-tight md:text-4xl">{lesson.title}</h1>
-      {lesson.titleVi && <p className="mt-1 text-muted">{lesson.titleVi}</p>}
-      <button onClick={() => setEditing(true)} className="mt-2 text-sm text-accent underline">
-        <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> {t("edit.open")}
-      </button>
-      <Link href={`/assistant?lesson=${lesson.id}`} className="ml-4 mt-2 inline-block text-sm text-accent underline">
-        <I.IconChat className="inline-block h-4 w-4 align-[-0.2em]" /> {t("askAssistant")}
-      </Link>
+    // one container for header, tabs, content and footer, so their left edges line up
+    <div className="mx-auto max-w-[88rem]">
+      <header className="max-w-4xl">
+        <Link href={`/library/${doc.id}`} className="line-clamp-1 text-sm text-muted hover:text-ink">
+          ← {doc.title}
+        </Link>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-accent2">
+          {t("part", { n: lesson.position, total: siblings.length })} · {t("words", { n: lesson.wordCount })}
+        </p>
+        <h1 className="mt-1.5 font-serif text-2xl font-bold leading-snug text-balance md:text-[2rem]">{lesson.title}</h1>
+        {lesson.titleVi && <p className="mt-1 text-[15px] text-muted">{lesson.titleVi}</p>}
+        <div className="-ml-3 mt-2 flex flex-wrap gap-1">
+          <button onClick={() => setEditing(true)} className="btn btn-sm btn-ghost">
+            <I.IconEdit /> {t("edit.open")}
+          </button>
+          <Link href={`/assistant?lesson=${lesson.id}`} className="btn btn-sm btn-ghost">
+            <I.IconChat /> {t("askAssistant")}
+          </Link>
+        </div>
+      </header>
       {editing && <LessonEditor lessonId={lesson.id} paragraphs={lesson.paragraphs} hasNext={!!next} onClose={() => setEditing(false)} />}
-      </div>
 
-      <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-5 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-0 md:mx-0 md:px-0">
+      <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-0 md:mx-0 md:px-0">
         {tabs.map((k) => (
           <button
             key={k}
@@ -247,7 +250,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
 
       <div className="mt-5">
         {tab === "read" && (
-          <div className="mx-auto max-w-6xl">
+          <div className="max-w-6xl">
           <ReadPane
             lessonId={lesson.id}
             paragraphs={plain}
@@ -307,7 +310,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
         )}
       </div>
 
-      <div className="mx-auto mt-10 flex max-w-6xl flex-wrap items-center gap-2 border-t border-line pt-5">
+      <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-line pt-5">
         {prev && (
           <Link href={`/lessons/${prev.id}`} className="btn btn-secondary">
             ← {t("prev")}

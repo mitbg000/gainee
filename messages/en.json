@@ -268,44 +268,61 @@
     },
     "look": {
       "mode": "Light / dark mode",
-      "palette": "Colour scheme",
-      "paletteHint": "Colour of buttons, links and labels",
-      "tone": "Background",
-      "toneHint": "Page paper colour (light / dark)",
-      "uiFont": "Interface font",
-      "uiFontHint": "Menus, buttons, general text",
-      "readFont": "Reading font",
-      "readFontHint": "Reading texts, headings, writing",
-      "size": "Text size",
-      "sizeHint": "Scale the whole interface",
-      "palettes": {
-        "navy": "Navy",
+      "lightThemes": "Light theme",
+      "darkThemes": "Dark theme",
+      "themesHint": "Page, text and frame colours – like the reading themes of Kindle and Apple Books. Pick one light and one dark theme; the app uses the one that fits the mode.",
+      "themes": {
+        "paper": "Paper",
+        "original": "Original",
+        "sepia": "Sepia",
+        "mint": "Mint",
+        "dusk": "Dusk",
+        "quiet": "Quiet",
+        "night": "Night (pure black)",
+        "cocoa": "Cocoa"
+      },
+      "accent": "Accent colour",
+      "accentHint": "Buttons, links, selected items. Left half: light mode, right half: dark mode.",
+      "accents": {
+        "blue": "Navy",
+        "orange": "Kindle orange",
         "teal": "Teal",
         "green": "Green",
         "purple": "Purple",
         "rose": "Rose",
         "graphite": "Graphite"
       },
-      "tones": {
-        "warm": "Warm cream",
-        "cool": "Cool white",
-        "sepia": "Sepia"
+      "side": "Sidebar",
+      "sideHint": "Colour of the left menu (and the top / bottom bars on phones).",
+      "sides": {
+        "match": "Match page",
+        "tint": "Accent tint",
+        "bold": "Bold"
       },
-      "fonts": {
-        "system": "System",
-        "rounded": "Rounded",
-        "serif": "Serif",
-        "charter": "Charter",
-        "georgia": "Georgia",
-        "palatino": "Palatino",
-        "sans": "Sans-serif"
+      "readFont": "Reading font",
+      "readFontHint": "Reading texts, headings, writing. All include Vietnamese letters.",
+      "uiFont": "Interface font",
+      "uiFontHint": "Menus, buttons and ordinary text.",
+      "system": "System",
+      "fontTag": {
+        "charter": "Apple Books style",
+        "literata": "Kindle style",
+        "bitter": "sturdy slab serif",
+        "garamond": "classic",
+        "nunito": "rounded",
+        "bevietnam": "made for Vietnamese"
       },
+      "size": "Text size",
+      "sizeHint": "Scale the whole interface.",
       "preview": "Preview",
-      "sample": "Reading a little every day widens your vocabulary and makes IELTS sentence structures familiar.",
-      "sampleButton": "Main button",
+      "sampleKicker": "Lesson 3 · Environment",
+      "sampleTitle": "The quiet return of the city forest",
+      "sample": "Reading a little every day widens your vocabulary and <mark>makes sentence structures familiar</mark> for the IELTS exam.",
+      "sampleButton": "Start reading",
+      "sampleSecondary": "Save word",
       "sampleChip": "Selected",
-      "sampleHighlight": "highlight",
-      "reset": "Reset to default"
+      "reset": "Reset to default",
+      "language": "Language"
     }
   },
   "import": {

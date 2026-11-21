@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
-import { getTheme } from "@/theme/server";
 import ChatBubble from "./ChatBubble";
 import CollapsibleSidebar from "./CollapsibleSidebar";
 import InstallApp from "./InstallApp";
-import LanguageSwitcher from "./LanguageSwitcher";
 import LogoutButton from "./LogoutButton";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
-import ThemeSwitcher from "./ThemeSwitcher";
+import { IconGear } from "./icons";
 
 /**
  * App frame.
@@ -16,14 +14,7 @@ import ThemeSwitcher from "./ThemeSwitcher";
  *  - Mobile: compact top bar + bottom tab bar; respects iPhone safe areas (notch / home indicator).
  */
 export default async function Shell({ children, wide = false, full = false }: { children: React.ReactNode; wide?: boolean; full?: boolean }) {
-  const [t, theme, tree] = await Promise.all([getTranslations(), getTheme(), sidebarTree().catch(() => [])]);
-
-  const controls = (
-    <div className="flex items-center justify-between gap-3">
-      <ThemeSwitcher initial={theme} />
-      <LanguageSwitcher />
-    </div>
-  );
+  const [t, tree] = await Promise.all([getTranslations(), sidebarTree().catch(() => [])]);
 
   return (
     <div className="min-h-dvh md:flex">
@@ -37,18 +28,19 @@ export default async function Shell({ children, wide = false, full = false }: { 
         <SidebarNav tree={tree} />
         <div className="mt-auto flex flex-col gap-3 pt-4 group-data-[collapsed=true]/sb:hidden">
           <InstallApp />
-          {controls}
           <LogoutButton />
         </div>
       </CollapsibleSidebar>
 
       {/* Mobile top bar */}
       <header
-        className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-card/95 px-4 backdrop-blur md:hidden"
+        className="chrome sticky top-0 z-30 flex items-center justify-between border-b border-line bg-card/95 px-4 backdrop-blur md:hidden"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <Link href="/" className="flex h-12 items-center font-serif text-xl font-bold">{t("app.name")}</Link>
-        <ThemeSwitcher initial={theme} />
+        <Link href="/settings" className="icon-btn" aria-label={t("nav.settings")} title={t("nav.settings")}>
+          <IconGear />
+        </Link>
       </header>
 
       <main
@@ -63,7 +55,6 @@ export default async function Shell({ children, wide = false, full = false }: { 
       <MobileTabBar>
         <div className="flex flex-col gap-4">
           <InstallApp />
-          <LanguageSwitcher />
           <LogoutButton />
         </div>
       </MobileTabBar>

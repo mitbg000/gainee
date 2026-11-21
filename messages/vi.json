@@ -268,44 +268,61 @@
     },
     "look": {
       "mode": "Chế độ sáng / tối",
-      "palette": "Phối màu",
-      "paletteHint": "Màu nút, liên kết và nhãn",
-      "tone": "Nền",
-      "toneHint": "Màu giấy của trang (sáng / tối)",
-      "uiFont": "Font giao diện",
-      "uiFontHint": "Menu, nút, nội dung chung",
-      "readFont": "Font bài đọc",
-      "readFontHint": "Bài đọc, tiêu đề, bài viết",
-      "size": "Cỡ chữ",
-      "sizeHint": "Phóng to / thu nhỏ toàn bộ giao diện",
-      "palettes": {
-        "navy": "Xanh navy",
+      "lightThemes": "Chủ đề khi sáng",
+      "darkThemes": "Chủ đề khi tối",
+      "themesHint": "Màu trang, chữ và khung – giống các chủ đề đọc của Kindle và Apple Books. Chọn một chủ đề sáng và một chủ đề tối; app tự dùng theo chế độ.",
+      "themes": {
+        "paper": "Giấy",
+        "original": "Nguyên bản",
+        "sepia": "Sepia",
+        "mint": "Xanh bạc hà",
+        "dusk": "Hoàng hôn",
+        "quiet": "Yên tĩnh",
+        "night": "Đêm (đen tuyền)",
+        "cocoa": "Ca cao"
+      },
+      "accent": "Màu nhấn",
+      "accentHint": "Nút, liên kết, mục đang chọn. Nửa trái: khi sáng, nửa phải: khi tối.",
+      "accents": {
+        "blue": "Xanh navy",
+        "orange": "Cam Kindle",
         "teal": "Xanh ngọc",
         "green": "Xanh lá",
         "purple": "Tím",
-        "rose": "Hồng đỏ",
+        "rose": "Đỏ hồng",
         "graphite": "Xám than"
       },
-      "tones": {
-        "warm": "Kem ấm",
-        "cool": "Trắng mát",
-        "sepia": "Sepia"
+      "side": "Thanh bên",
+      "sideHint": "Màu của thanh menu bên trái (và thanh trên / dưới trên điện thoại).",
+      "sides": {
+        "match": "Hoà nền",
+        "tint": "Nhuộm màu nhấn",
+        "bold": "Đậm"
       },
-      "fonts": {
-        "system": "Hệ thống",
-        "rounded": "Bo tròn",
-        "serif": "Có chân",
-        "charter": "Charter",
-        "georgia": "Georgia",
-        "palatino": "Palatino",
-        "sans": "Không chân"
+      "readFont": "Font bài đọc",
+      "readFontHint": "Bài đọc, tiêu đề, bài viết. Tất cả đều có đủ dấu tiếng Việt.",
+      "uiFont": "Font giao diện",
+      "uiFontHint": "Menu, nút và chữ thông thường.",
+      "system": "Hệ thống",
+      "fontTag": {
+        "charter": "kiểu Apple Books",
+        "literata": "kiểu Kindle",
+        "bitter": "chữ có chân dày",
+        "garamond": "cổ điển",
+        "nunito": "bo tròn",
+        "bevietnam": "thiết kế cho tiếng Việt"
       },
+      "size": "Cỡ chữ",
+      "sizeHint": "Phóng to / thu nhỏ toàn bộ giao diện.",
       "preview": "Xem trước",
-      "sample": "Đọc mỗi ngày một chút giúp bạn mở rộng vốn từ và quen với cấu trúc câu trong bài thi IELTS.",
-      "sampleButton": "Nút chính",
+      "sampleKicker": "Bài 3 · Môi trường",
+      "sampleTitle": "The quiet return of the city forest",
+      "sample": "Đọc mỗi ngày một chút giúp bạn mở rộng vốn từ và <mark>quen với cấu trúc câu</mark> trong bài thi IELTS.",
+      "sampleButton": "Bắt đầu đọc",
+      "sampleSecondary": "Lưu từ",
       "sampleChip": "Đang chọn",
-      "sampleHighlight": "đánh dấu",
-      "reset": "Khôi phục mặc định"
+      "reset": "Khôi phục mặc định",
+      "language": "Ngôn ngữ"
     }
   },
   "import": {
