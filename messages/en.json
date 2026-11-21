@@ -400,7 +400,17 @@
     "retry": "Retry",
     "retryAll": "Retry {n} failed lessons",
     "delete": "Delete text",
-    "confirmDelete": "Delete this text and all its lessons, notes and progress?"
+    "confirmDelete": "Delete this text and all its lessons, notes and progress?",
+    "editInfo": "Edit details",
+    "fTitle": "Title",
+    "fAuthor": "Author",
+    "fLevel": "Level (CEFR)",
+    "fSource": "Source",
+    "fSourceHint": "Publication, book or link",
+    "fLessons": "Part titles (English / Vietnamese)",
+    "fLessonTitle": "Title of part {n}",
+    "fLessonTitleVi": "Vietnamese title of part {n}",
+    "saving": "Saving…"
   },
   "lesson": {
     "part": "Part {n} of {total}",

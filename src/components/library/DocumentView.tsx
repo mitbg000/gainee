@@ -9,12 +9,39 @@ import LabelChip from "@/components/labels/LabelChip";
 import LabelPicker from "@/components/labels/LabelPicker";
 import * as I from "@/components/icons";
 
+type Info = { title: string; author: string; source: string; level: string; lessons: Record<number, { title: string; titleVi: string }> };
+
 export default function DocumentView({ initial }: { initial: DocumentDetail }) {
   const t = useTranslations("document");
   const router = useRouter();
   const [doc, setDoc] = useState(initial);
   const [editLabels, setEditLabels] = useState(false);
   const [labelIds, setLabelIds] = useState(initial.labels.map((l) => l.id));
+  const [info, setInfo] = useState<Info | null>(null); // the edit form, when open
+  const [saving, setSaving] = useState(false);
+
+  function openInfo() {
+    setInfo({
+      title: doc.title,
+      author: doc.author ?? "",
+      source: doc.source ?? "",
+      level: doc.level ?? "",
+      lessons: Object.fromEntries(doc.lessons.map((l) => [l.id, { title: l.title, titleVi: l.titleVi ?? "" }])),
+    });
+  }
+  async function saveInfo() {
+    if (!info || !info.title.trim()) return;
+    setSaving(true);
+    const json = { method: "PATCH", headers: { "content-type": "application/json" } };
+    const changed = doc.lessons.filter((l) => info.lessons[l.id] && (info.lessons[l.id].title.trim() !== l.title || info.lessons[l.id].titleVi.trim() !== (l.titleVi ?? "")));
+    await Promise.all(
+      changed.map((l) => fetch(`/api/lessons/${l.id}`, { ...json, body: JSON.stringify({ title: info.lessons[l.id].title.trim() || l.title, titleVi: info.lessons[l.id].titleVi.trim() || null }) })),
+    );
+    await patch({ title: info.title.trim(), author: info.author.trim() || null, source: info.source.trim() || null, level: info.level || null });
+    setSaving(false);
+    setInfo(null);
+    router.refresh(); // sidebar tree and library list show the new names
+  }
 
   const reload = useCallback(async () => {
     const r = await fetch(`/api/documents/${doc.id}`, { cache: "no-store" });
@@ -47,10 +74,86 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
       <Link href="/library" className="text-sm text-muted hover:text-ink">
         ← {t("back")}
       </Link>
-      <h1 className="mt-2 font-serif text-3xl font-bold leading-tight md:text-4xl">{doc.title}</h1>
+      <div className="mt-2 flex items-start gap-2">
+        <h1 className="flex-1 font-serif text-3xl font-bold leading-tight md:text-4xl">{doc.title}</h1>
+        {!info && (
+          <button onClick={openInfo} className="btn btn-sm btn-secondary mt-1">
+            <I.IconEdit /> {t("editInfo")}
+          </button>
+        )}
+      </div>
       <p className="mt-1 text-sm text-muted">
         {[doc.author, doc.source, doc.level, t("words", { n: doc.wordCount })].filter(Boolean).join(" · ")}
       </p>
+
+      {info && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveInfo();
+          }}
+          className="mt-4 space-y-4 rounded-2xl border border-line bg-card p-4"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-sm sm:col-span-2">
+              <span className="text-muted">{t("fTitle")}</span>
+              <input className="field mt-1 w-full" value={info.title} onChange={(e) => setInfo({ ...info, title: e.target.value })} required maxLength={500} />
+            </label>
+            <label className="text-sm">
+              <span className="text-muted">{t("fAuthor")}</span>
+              <input className="field mt-1 w-full" value={info.author} onChange={(e) => setInfo({ ...info, author: e.target.value })} maxLength={255} />
+            </label>
+            <label className="text-sm">
+              <span className="text-muted">{t("fLevel")}</span>
+              <select className="field mt-1 w-full" value={info.level} onChange={(e) => setInfo({ ...info, level: e.target.value })}>
+                <option value="">—</option>
+                {["A1", "A2", "B1", "B2", "C1", "C2"].map((l) => (
+                  <option key={l}>{l}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm sm:col-span-2">
+              <span className="text-muted">{t("fSource")}</span>
+              <input className="field mt-1 w-full" value={info.source} onChange={(e) => setInfo({ ...info, source: e.target.value })} maxLength={1000} placeholder={t("fSourceHint")} />
+            </label>
+          </div>
+          {doc.lessons.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold">{t("fLessons")}</p>
+              <ol className="mt-2 space-y-2">
+                {doc.lessons.map((l) => (
+                  <li key={l.id} className="grid gap-2 sm:grid-cols-[2rem_1fr_1fr] sm:items-center">
+                    <span className="text-sm text-muted">{l.position}</span>
+                    <input
+                      className="field-sm w-full"
+                      value={info.lessons[l.id].title}
+                      onChange={(e) => setInfo({ ...info, lessons: { ...info.lessons, [l.id]: { ...info.lessons[l.id], title: e.target.value } } })}
+                      aria-label={t("fLessonTitle", { n: l.position })}
+                      maxLength={500}
+                    />
+                    <input
+                      className="field-sm w-full"
+                      value={info.lessons[l.id].titleVi}
+                      onChange={(e) => setInfo({ ...info, lessons: { ...info.lessons, [l.id]: { ...info.lessons[l.id], titleVi: e.target.value } } })}
+                      aria-label={t("fLessonTitleVi", { n: l.position })}
+                      placeholder={t("fLessonTitleVi", { n: l.position })}
+                      maxLength={500}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button disabled={saving || !info.title.trim()} className="btn btn-primary">
+              {saving ? t("saving") : t("save")}
+            </button>
+            <button type="button" onClick={() => setInfo(null)} className="btn btn-ghost">
+              {t("cancel")}
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {doc.labels.map((l) => (

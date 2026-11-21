@@ -400,7 +400,17 @@
     "retry": "Thử lại",
     "retryAll": "Thử lại {n} bài lỗi",
     "delete": "Xoá bài đọc",
-    "confirmDelete": "Xoá bài đọc này cùng mọi bài học, ghi chú và tiến độ?"
+    "confirmDelete": "Xoá bài đọc này cùng mọi bài học, ghi chú và tiến độ?",
+    "editInfo": "Sửa thông tin",
+    "fTitle": "Tên bài đọc",
+    "fAuthor": "Tác giả",
+    "fLevel": "Trình độ (CEFR)",
+    "fSource": "Nguồn",
+    "fSourceHint": "Tên báo, sách hoặc đường dẫn",
+    "fLessons": "Tên các phần (tiếng Anh / tiếng Việt)",
+    "fLessonTitle": "Tên phần {n}",
+    "fLessonTitleVi": "Tên tiếng Việt phần {n}",
+    "saving": "Đang lưu…"
   },
   "lesson": {
     "part": "Phần {n}/{total}",

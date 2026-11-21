@@ -19,6 +19,7 @@ const Patch = z.object({
   title: z.string().trim().min(1).max(500).optional(),
   author: z.string().trim().max(255).nullable().optional(),
   source: z.string().trim().max(1000).nullable().optional(),
+  level: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]).nullable().optional(),
   labelIds: z.array(z.number().int().positive()).max(50).optional(),
   acceptSuggestions: z.object({ topics: z.array(z.string().max(100)).max(10), source: z.string().max(200).nullable() }).optional(),
   dismissSuggestions: z.literal(true).optional(),

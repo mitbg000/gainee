@@ -16,11 +16,11 @@ export async function GET(_req: Request, { params }: Ctx) {
   return data ? NextResponse.json(data) : bad("not_found", 404);
 }
 
-/** { notes?: string, completed?: boolean } */
+/** { notes?, completed?, title?, titleVi? } */
 export async function PATCH(req: Request, { params }: Ctx) {
   const id = idParam((await params).id);
   if (!id) return bad("invalid");
-  const [data, err] = await parseBody(req, z.object({ notes: z.string().max(20000).optional(), completed: z.boolean().optional() }));
+  const [data, err] = await parseBody(req, z.object({ notes: z.string().max(20000).optional(), completed: z.boolean().optional(), title: z.string().trim().min(1).max(500).optional(), titleVi: z.string().trim().max(500).nullable().optional() }));
   if (err) return err;
   const db = getDb();
   const [cur] = await db.select({ completedAt: schema.lessons.completedAt }).from(schema.lessons).where(eq(schema.lessons.id, id));
@@ -29,6 +29,8 @@ export async function PATCH(req: Request, { params }: Ctx) {
     .update(schema.lessons)
     .set({
       ...(data.notes !== undefined ? { notes: data.notes } : {}),
+      ...(data.title !== undefined ? { title: data.title } : {}),
+      ...(data.titleVi !== undefined ? { titleVi: data.titleVi || null } : {}),
       ...(data.completed !== undefined ? { completedAt: data.completed ? (cur.completedAt ?? new Date()) : null } : {}),
     })
     .where(eq(schema.lessons.id, id));
