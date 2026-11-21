@@ -37,7 +37,7 @@ Answer in ${lang} (keep English examples in English). Use short Markdown: **bold
     custom: `${sel}${ctx}\nQuestion: ${input.question ?? ""}`,
     vocab_card: "", // handled above
     feedback: `Task type: ${input.feedbackKind ?? "writing"}\nPrompt/source: """${input.prompt ?? input.source ?? ""}"""\nLearner's answer: """${input.selection}"""
-Give feedback as an IELTS examiner: estimated band (for paraphrase: meaning kept? natural?), 2–4 strengths/problems, corrected version of the weakest sentences, and 3 better word choices. Be encouraging but honest.`,
+Start your reply with a line exactly like "Band: 6.5" (0–9 in 0.5 steps). Then give feedback as an IELTS examiner: estimated band (for paraphrase: meaning kept? natural?), 2–4 strengths/problems, corrected version of the weakest sentences, and 3 better word choices. Be encouraging but honest.`,
   };
   return [
     { role: "system" as const, content: system },

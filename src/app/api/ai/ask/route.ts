@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       action: data.action === "vocab_card" ? "custom" : data.action, // DB enum predates vocab cards
       selection: data.selection.slice(0, 6000),
       context: data.context ?? null,
-      question: data.question ?? null,
+      question: data.action === "feedback" ? (data.feedbackKind ?? null) : (data.question ?? null), // feedback: the practice kind, for its history
     })
     .$returningId();
 

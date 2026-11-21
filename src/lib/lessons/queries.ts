@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import type { LessonContent } from "./generate";
 
@@ -24,6 +24,13 @@ export async function getLessonData(id: number) {
       .limit(50),
     db.select().from(writings).where(eq(writings.lessonId, id)),
   ]);
+  // every AI-checked answer of the practice tab (paraphrase / speaking / writing), newest first
+  const feedback = await db
+    .select({ id: aiMessages.id, kind: aiMessages.question, answer: aiMessages.selection, feedback: aiMessages.answer, at: aiMessages.createdAt })
+    .from(aiMessages)
+    .where(and(eq(aiMessages.lessonId, id), eq(aiMessages.action, "feedback"), isNotNull(aiMessages.answer)))
+    .orderBy(desc(aiMessages.id))
+    .limit(100);
   const saved = vocab.length
     ? await db.select({ id: words.id, lessonVocabId: words.lessonVocabId }).from(words).where(inArray(words.lessonVocabId, vocab.map((v) => v.id)))
     : [];
@@ -39,6 +46,7 @@ export async function getLessonData(id: number) {
     annotations: notes,
     aiMessages: ai,
     writings: writing,
+    feedback,
     savedTermWords: terms,
     lastAttempt: last ? { score: last.score, total: last.total, createdAt: last.createdAt, given: lastGiven.map((g) => g.given ?? "") } : null,
     savedVocab: Object.fromEntries(saved.map((s) => [s.lessonVocabId!, s.id])) as Record<number, number>,

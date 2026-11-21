@@ -546,7 +546,11 @@
       "checking": "Đang chấm…",
       "notConfigured": "Hãy cài đặt nhà cung cấp AI trong Cài đặt để nhận nhận xét.",
       "myNotes": "Ghi chú của tôi cho bài này",
-      "notesPlaceholder": "Ý chính theo cách hiểu của bạn, câu hỏi, điều cần nhớ…"
+      "notesPlaceholder": "Ý chính theo cách hiểu của bạn, câu hỏi, điều cần nhớ…",
+      "history": "Lịch sử chấm ({n})",
+      "trend": "Band:",
+      "yourAnswer": "Bài của bạn",
+      "useAgain": "Viết tiếp từ bản này"
     },
     "edit": {
       "open": "Sửa nội dung / chia / gộp bài",

@@ -546,7 +546,11 @@
       "checking": "Checking…",
       "notConfigured": "Set up an AI provider in Settings to get feedback.",
       "myNotes": "My notes for this lesson",
-      "notesPlaceholder": "Main ideas in your own words, questions, things to remember…"
+      "notesPlaceholder": "Main ideas in your own words, questions, things to remember…",
+      "history": "Checked answers ({n})",
+      "trend": "Band:",
+      "yourAnswer": "Your answer",
+      "useAgain": "Continue from this version"
     },
     "edit": {
       "open": "Edit text / split / merge",

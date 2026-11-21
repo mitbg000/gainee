@@ -305,7 +305,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
             <div className="min-w-0">
               {tab === "vocab" && <VocabPane vocab={vocab} saved={saved} onToggleSave={toggleSave} onSaveAll={saveAll} termWords={termWords} onRemoveTerm={(w) => toggleTerm(w.term, w.context ?? "")} />}
               {tab === "ex" && content && <ExercisesPane lessonId={lesson.id} content={content} vocab={vocab} bestScore={best} lastAttempt={data.lastAttempt} onLocate={locate} onScored={setBest} />}
-              {tab === "practice" && content && <PracticePane lessonId={lesson.id} content={content} writings={data.writings} notes={lesson.notes ?? ""} />}
+              {tab === "practice" && content && <PracticePane lessonId={lesson.id} content={content} writings={data.writings} notes={lesson.notes ?? ""} feedback={data.feedback} />}
             </div>
           </div>
         )}

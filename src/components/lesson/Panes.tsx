@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LessonContent } from "@/lib/lessons/generate";
 import Markdown from "./Markdown";
 import type { LessonData, Vocab } from "./types";
@@ -361,17 +361,27 @@ function useAutoSaveText({ lessonId, kind, prompt, initial, placeholder, rows = 
     }, 900);
     return () => clearTimeout(id);
   }, [v, saved, lessonId, kind, prompt]);
-  return { value: v, el: <textarea value={v} onChange={(e) => setV(e.target.value)} rows={rows} placeholder={placeholder} className="field w-full p-3 text-base leading-relaxed" /> };
+  return { value: v, set: setV, el: <textarea value={v} onChange={(e) => setV(e.target.value)} rows={rows} placeholder={placeholder} className="field w-full p-3 text-base leading-relaxed" /> };
 }
 
-function Feedback({ lessonId, kind, prompt, answer }: { lessonId: number; kind: string; prompt: string; answer: string }) {
+function Feedback({ lessonId, kind, prompt, answer, onDone }: { lessonId: number; kind: string; prompt: string; answer: string; onDone: (h: FeedbackItem) => void }) {
   const t = useTranslations("lesson.practice");
   const ai = useAiAsk();
+  const asked = useRef("");
+  const wasLoading = useRef(false);
+  useEffect(() => {
+    // a check that finished without an error goes into the history list
+    if (wasLoading.current && !ai.loading && ai.text && !ai.text.startsWith("⚠️")) onDone({ id: ai.messageId ?? Date.now(), kind, answer: asked.current, feedback: ai.text, at: new Date() });
+    wasLoading.current = ai.loading;
+  }, [ai.loading, ai.text, ai.messageId, kind, onDone]);
   return (
     <div className="mt-2">
       <button
         disabled={!answer.trim() || ai.loading}
-        onClick={() => ai.ask({ action: "feedback", selection: answer, prompt, feedbackKind: kind, lessonId })}
+        onClick={() => {
+          asked.current = answer;
+          ai.ask({ action: "feedback", selection: answer, prompt, feedbackKind: kind, lessonId });
+        }}
         className="btn btn-outline"
       >
         <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {ai.loading ? t("checking") : t("feedback")}
@@ -382,18 +392,80 @@ function Feedback({ lessonId, kind, prompt, answer }: { lessonId: number; kind: 
   );
 }
 
+export type FeedbackItem = { id: number; kind: string | null; answer: string | null; feedback: string | null; at: Date | string };
+/** "Band: 6.5" from the start of an AI feedback (older feedback may have none). */
+export const bandOf = (s: string | null) => {
+  const m = /band[^0-9\n]{0,12}(\d(?:[.,]5)?)/i.exec(s ?? "");
+  return m ? Number(m[1].replace(",", ".")) : null;
+};
+
+/** Earlier AI-checked answers of one practice part, newest first; an old answer can be loaded back into the editor. */
+function History({ items, onUse }: { items: FeedbackItem[]; onUse: (answer: string) => void }) {
+  const t = useTranslations("lesson.practice");
+  const [open, setOpen] = useState<number | null>(null);
+  if (!items.length) return null;
+  const bands = items.map((h) => bandOf(h.feedback)).filter((b): b is number => b != null).reverse();
+  return (
+    <div className="mt-4 rounded-2xl border border-line bg-card">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line px-4 py-3">
+        <h4 className="text-sm font-semibold">{t("history", { n: items.length })}</h4>
+        {bands.length > 1 && (
+          <span className="text-xs text-muted">
+            {t("trend")} {bands.slice(-8).join(" → ")}
+          </span>
+        )}
+      </div>
+      <ul className="divide-y divide-line">
+        {items.map((h) => {
+          const band = bandOf(h.feedback);
+          const isOpen = open === h.id;
+          return (
+            <li key={h.id}>
+              <button onClick={() => setOpen(isOpen ? null : h.id)} aria-expanded={isOpen} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-paper">
+                <span className={`flex h-7 min-w-10 items-center justify-center rounded-lg px-1.5 text-sm font-bold ${band == null ? "bg-paper text-muted" : band >= 7 ? "bg-green-600 text-white" : band >= 5.5 ? "bg-accent text-on-accent" : "bg-amber-500 text-white"}`}>
+                  {band ?? "–"}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm">{h.answer}</span>
+                <span className="shrink-0 text-xs text-muted">{new Date(h.at).toLocaleString(undefined, { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+              </button>
+              {isOpen && (
+                <div className="space-y-3 px-4 pb-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t("yourAnswer")}</p>
+                    <p className="mt-1 whitespace-pre-wrap rounded-xl bg-paper p-3 font-serif text-[15px] leading-relaxed">{h.answer}</p>
+                  </div>
+                  <Markdown text={h.feedback ?? ""} className="text-[15px] leading-relaxed" />
+                  <button onClick={() => onUse(h.answer ?? "")} className="btn btn-sm btn-secondary">
+                    <I.IconUndo /> {t("useAgain")}
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export function PracticePane({
   lessonId,
   content,
   writings,
   notes,
+  feedback,
 }: {
   lessonId: number;
   content: LessonContent;
   writings: { kind: string; body: string }[];
   notes: string;
+  feedback: FeedbackItem[];
 }) {
   const t = useTranslations("lesson.practice");
+  const [history, setHistory] = useState(feedback);
+  const addHistory = useCallback((h: FeedbackItem) => setHistory((xs) => (xs.some((x) => x.id === h.id) ? xs : [h, ...xs])), []);
+  // feedback saved before the kind was recorded: short answers were paraphrases
+  const kindOf = (h: FeedbackItem) => h.kind ?? ((h.answer ?? "").trim().split(/\s+/).length <= 60 ? "paraphrase" : "speaking-or-writing");
   const [showModel, setShowModel] = useState(false);
   const [showIdeas, setShowIdeas] = useState(false);
   const speakingKind = content.speaking?.kind === "writing" ? "task2" : "speaking";
@@ -447,7 +519,8 @@ export function PracticePane({
             </button>
           </div>
           {showModel && <p className="mt-2 rounded-xl bg-green-50 p-3 text-[15px] dark:bg-green-950/40">{content.paraphrase.model}</p>}
-          <Feedback lessonId={lessonId} kind="paraphrase" prompt={content.paraphrase.source} answer={para.value} />
+          <Feedback lessonId={lessonId} kind="paraphrase" prompt={content.paraphrase.source} answer={para.value} onDone={addHistory} />
+          <History items={history.filter((h) => kindOf(h) === "paraphrase")} onUse={para.set} />
         </section>
       )}
 
@@ -471,7 +544,8 @@ export function PracticePane({
           )}
           {sp.el}
           <p className="mt-1 text-right text-xs text-muted">{t("words", { n: wc(sp.value) })}</p>
-          <Feedback lessonId={lessonId} kind={speakingKind} prompt={content.speaking.question} answer={sp.value} />
+          <Feedback lessonId={lessonId} kind={speakingKind} prompt={content.speaking.question} answer={sp.value} onDone={addHistory} />
+          <History items={history.filter((h) => kindOf(h) !== "paraphrase")} onUse={sp.set} />
         </section>
       )}
 
