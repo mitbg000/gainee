@@ -72,3 +72,27 @@ export async function progressData() {
     accuracy: acc.map((a) => ({ qtype: a.qtype, total: a.total, pct: Math.round((Number(a.correct) / a.total) * 100) })),
   };
 }
+
+/** Scores over the attempts of each practice part, oldest first (for the line charts on the Progress page). */
+export async function scoreHistory() {
+  const db = getDb();
+  const { attempts, writings, assessments } = schema;
+  const [reading, writing, practice] = await Promise.all([
+    db.select({ score: attempts.score, total: attempts.total, at: attempts.createdAt }).from(attempts).orderBy(desc(attempts.id)).limit(30),
+    db
+      .select({ kind: writings.kind, band: writings.bandOverall, at: writings.updatedAt })
+      .from(writings)
+      .where(and(isNull(writings.lessonId), isNotNull(writings.bandOverall)))
+      .orderBy(desc(writings.id))
+      .limit(200),
+    db.select({ score: assessments.score, max: assessments.maxScore, at: assessments.createdAt }).from(assessments).where(eq(assessments.kind, "word_practice")).orderBy(desc(assessments.id)).limit(30),
+  ]);
+  const pct = (a: number, b: number | null) => (b ? Math.round((a / b) * 100) : 0);
+  const byKind = new Map<string, { band: number; at: Date }[]>();
+  for (const w of writing.reverse()) byKind.set(w.kind, [...(byKind.get(w.kind) ?? []), { band: w.band!, at: w.at }].slice(-20));
+  return {
+    reading: reading.reverse().map((r) => ({ pct: pct(r.score, r.total), at: r.at })),
+    practice: practice.reverse().map((r) => ({ pct: pct(r.score, r.max), at: r.at })),
+    writing: [...byKind].map(([kind, pts]) => ({ kind, pts })),
+  };
+}

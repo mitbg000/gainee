@@ -1,9 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
+import type { WritingKind } from "@/lib/writing";
 import GoalBars from "@/components/GoalBars";
 import GoalsEditor from "@/components/GoalsEditor";
 import { getGoals, goalProgress, syncAchievements } from "@/lib/goals";
-import { progressData } from "@/lib/stats";
+import { progressData, scoreHistory } from "@/lib/stats";
+import { Chart } from "@/components/writing/Chart";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +13,10 @@ const LEVEL = ["bg-line/60", "bg-accent/25", "bg-accent/50", "bg-accent/75", "bg
 
 export default async function ProgressPage() {
   const t = await getTranslations("progress");
-  const [d, goals, targets] = await Promise.all([progressData(), goalProgress(), getGoals()]);
+  const tw = await getTranslations("writing");
+  const [d, goals, targets, hist] = await Promise.all([progressData(), goalProgress(), getGoals(), scoreHistory()]);
+  const day = (at: Date) => `${at.getDate()}/${at.getMonth() + 1}`;
+  const longest = Math.max(0, ...hist.writing.map((w) => w.pts.length));
   const badges = await syncAchievements({ streak: d.totals.streak, words: d.totals.words, lessons: d.totals.lessonsDone, mastered: d.totals.mastered, xp: d.totals.xp });
 
   // heat map: 26 weeks × 7 days, ending today
@@ -97,6 +102,40 @@ export default async function ProgressPage() {
           )}
         </section>
       </div>
+
+      <section className={`mt-5 ${box}`}>
+        <h2 className="font-serif text-xl font-bold">{t("scores")}</h2>
+        <p className="text-sm text-muted">{t("scoresHint")}</p>
+        <div className="mt-3 grid gap-4 lg:grid-cols-2">
+          {/* x-axis: date of each attempt for single lines; attempt number for writing, where each type has its own count */}
+          {hist.reading.length ? (
+            <Chart spec={{ type: "line", title: t("chartReading"), unit: "%", max: 100, labels: hist.reading.map((r) => day(r.at)), series: [{ name: t("chartCorrect"), values: hist.reading.map((r) => r.pct) }] }} />
+          ) : (
+            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-muted">{t("noReadingScores")}</p>
+          )}
+          {hist.practice.length ? (
+            <Chart spec={{ type: "line", title: t("chartWords"), unit: "%", max: 100, labels: hist.practice.map((r) => day(r.at)), series: [{ name: t("chartCorrect"), values: hist.practice.map((r) => r.pct) }] }} />
+          ) : (
+            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-muted">{t("noWordScores")}</p>
+          )}
+          {hist.writing.length ? (
+            <div className="lg:col-span-2">
+              <Chart
+                spec={{
+                  type: "line",
+                  title: t("chartWriting"),
+                  unit: "band",
+                  max: 9,
+                  labels: Array.from({ length: longest }, (_, i) => t("attempt", { n: i + 1 })),
+                  series: hist.writing.map((w) => ({ name: tw(`kind.${w.kind as WritingKind}`), values: Array.from({ length: longest }, (_, i) => w.pts[i]?.band ?? null) })),
+                }}
+              />
+            </div>
+          ) : (
+            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-muted lg:col-span-2">{t("noWritingScores")}</p>
+          )}
+        </div>
+      </section>
 
       <section className={`mt-5 ${box}`}>
         <h2 className="font-serif text-xl font-bold">{t("accuracy")}</h2>

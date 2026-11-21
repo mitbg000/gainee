@@ -1,7 +1,8 @@
 /** Task 1 visuals: the AI writes ```chart {json}``` blocks, drawn here as SVG line/bar/pie charts, process flows and maps. */
 import Markdown from "@/components/lesson/Markdown";
 
-export type ChartSpec = { type: "line" | "bar" | "pie"; title?: string; unit?: string; labels: string[]; series: { name: string; values: number[] }[] };
+/** values may be null (a series with fewer points than the labels); max fixes the y-axis top (e.g. 100 % or band 9). */
+export type ChartSpec = { type: "line" | "bar" | "pie"; title?: string; unit?: string; max?: number; labels: string[]; series: { name: string; values: (number | null)[] }[] };
 export type ProcessSpec = { type: "process"; title?: string; cycle: boolean; steps: { label: string; note?: string }[] };
 export const MAP_KINDS = ["building", "road", "park", "water", "farm", "other"] as const;
 type MapItem = { label: string; kind: (typeof MAP_KINDS)[number]; x: number; y: number; w: number; h: number };
@@ -80,38 +81,45 @@ const fmt = (n: number) => String(+n.toFixed(2));
 
 function Axes({ spec }: { spec: ChartSpec }) {
   const W = 600, H = 330, L = 52, R = 16, T = 30, B = 44;
-  const max = niceMax(Math.max(...spec.series.flatMap((s) => s.values)));
+  const max = spec.max ?? niceMax(Math.max(...spec.series.flatMap((s) => s.values.map((v) => v ?? 0))));
   const y = (v: number) => T + (H - T - B) * (1 - v / max);
+  // whole-number grid lines where quarters would give 2.25, 6.75… (e.g. band 0–9)
+  const step = Number.isInteger(max / 4) ? max / 4 : max <= 10 ? 1 : max / 5;
+  const ticks = Array.from({ length: Math.round(max / step) + 1 }, (_, i) => i * step);
   const n = spec.labels.length;
   const band = (W - L - R) / n;
   const x = (i: number) => L + band * (i + 0.5);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={spec.title}>
-      {[0, 0.25, 0.5, 0.75, 1].map((f) => (
-        <g key={f}>
-          <line x1={L} x2={W - R} y1={y(max * f)} y2={y(max * f)} stroke="currentColor" strokeOpacity={f ? 0.12 : 0.4} />
-          <text x={L - 6} y={y(max * f) + 4} textAnchor="end" fontSize="11" fill="currentColor" fillOpacity={0.7}>
-            {fmt(max * f)}
+      {ticks.map((v) => (
+        <g key={v}>
+          <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v ? 0.12 : 0.4} />
+          <text x={L - 6} y={y(v) + 4} textAnchor="end" fontSize="11" fill="currentColor" fillOpacity={0.7}>
+            {fmt(v)}
           </text>
         </g>
       ))}
-      {spec.labels.map((l, i) => (
+      {spec.labels.map((l, i) => (i % Math.ceil(n / 12) ? null : (
         <text key={i} x={x(i)} y={H - B + 18} textAnchor="middle" fontSize={n > 8 ? 10 : 12} fill="currentColor">
           {l}
         </text>
-      ))}
+      )))}
       {spec.type === "line"
         ? spec.series.map((s, k) => (
             <g key={k} stroke={COLORS[k % COLORS.length]} fill={COLORS[k % COLORS.length]}>
-              <polyline points={s.values.map((v, i) => `${x(i)},${y(v)}`).join(" ")} fill="none" strokeWidth={2.5} />
-              {s.values.map((v, i) => (
-                <circle key={i} cx={x(i)} cy={y(v)} r={3.5} />
-              ))}
+              <polyline points={s.values.flatMap((v, i) => (v == null ? [] : [`${x(i)},${y(v)}`])).join(" ")} fill="none" strokeWidth={2.5} />
+              {s.values.map((v, i) =>
+                v == null ? null : (
+                  <circle key={i} cx={x(i)} cy={y(v)} r={3.5}>
+                    <title>{`${s.name ? `${s.name} · ` : ""}${spec.labels[i]}: ${fmt(v)}${spec.unit === "%" ? "%" : ""}`}</title>
+                  </circle>
+                ),
+              )}
             </g>
           ))
         : spec.series.map((s, k) => {
             const bw = (band * 0.75) / spec.series.length;
-            return s.values.map((v, i) => (
+            return s.values.map((v, i) => v == null ? null : (
               <rect key={`${k}-${i}`} x={x(i) - band * 0.375 + k * bw} y={y(v)} width={bw - 2} height={y(0) - y(v)} rx={2} fill={COLORS[k % COLORS.length]} />
             ));
           })}
@@ -124,7 +132,8 @@ function Axes({ spec }: { spec: ChartSpec }) {
   );
 }
 
-function Pie({ name, values, labels }: { name: string; values: number[]; labels: string[] }) {
+function Pie({ name, values: raw, labels }: { name: string; values: (number | null)[]; labels: string[] }) {
+  const values = raw.map((v) => v ?? 0);
   const total = values.reduce((a, b) => a + b, 0) || 1;
   let a0 = -Math.PI / 2;
   return (

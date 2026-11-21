@@ -646,7 +646,17 @@
       "reviews": "{n} reviews",
       "mastered": "{n} words mastered",
       "xp": "{n} XP"
-    }
+    },
+    "scores": "Scores over your attempts",
+    "scoresHint": "Hover or tap a point to see the number. Each chart shows up to the last 30 attempts.",
+    "chartReading": "Reading exercises (% correct)",
+    "chartWords": "Saved-word practice (% correct)",
+    "chartWriting": "Writing (band per task type)",
+    "chartCorrect": "Correct",
+    "attempt": "#{n}",
+    "noReadingScores": "Do and check the exercises of a lesson to see this chart.",
+    "noWordScores": "Finish a round of word practice to see this chart.",
+    "noWritingScores": "Score a writing to see this chart."
   },
   "assistant": {
     "title": "AI assistant",

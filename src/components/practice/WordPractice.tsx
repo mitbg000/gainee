@@ -26,6 +26,13 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
   }, []);
 
   const q = qs?.[i];
+  // a finished round is saved once for the score chart on the Progress page
+  const posted = useRef<Question[] | null>(null);
+  useEffect(() => {
+    if (!qs || q || posted.current === qs) return;
+    posted.current = qs;
+    fetch("/api/practice/result", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: qs.length - wrong.length, total: qs.length, mode }) }).catch(() => {});
+  }, [qs, q, wrong.length, mode]);
   useEffect(() => {
     if (!q) return;
     if (q.kind === "spell") speak(q.word.term);

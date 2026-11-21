@@ -1,0 +1,1 @@
+ALTER TABLE `assessments` MODIFY COLUMN `kind` enum('reading_test','vocab_size','writing_task2','speaking','word_practice') NOT NULL;

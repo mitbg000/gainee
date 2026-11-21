@@ -281,7 +281,7 @@ export const assessments = mysqlTable(
   "assessments",
   {
     id: pk(),
-    kind: mysqlEnum("kind", ["reading_test", "vocab_size", "writing_task2", "speaking"]).notNull(),
+    kind: mysqlEnum("kind", ["reading_test", "vocab_size", "writing_task2", "speaking", "word_practice"]).notNull(),
     score: double("score").notNull(),
     maxScore: double("max_score"),
     band: double("band"),

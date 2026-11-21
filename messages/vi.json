@@ -646,7 +646,17 @@
       "reviews": "{n} lượt ôn",
       "mastered": "Thuộc {n} từ",
       "xp": "{n} XP"
-    }
+    },
+    "scores": "Điểm qua các lần luyện",
+    "scoresHint": "Rê chuột / chạm vào điểm để xem số. Mỗi biểu đồ hiện tối đa 30 lần gần nhất.",
+    "chartReading": "Bài tập đọc (% đúng)",
+    "chartWords": "Luyện từ đã lưu (% đúng)",
+    "chartWriting": "Writing (band theo từng dạng bài)",
+    "chartCorrect": "Đúng",
+    "attempt": "Lần {n}",
+    "noReadingScores": "Làm và chấm bài tập trong bài đọc để thấy biểu đồ.",
+    "noWordScores": "Hoàn thành một lượt Luyện từ để thấy biểu đồ.",
+    "noWritingScores": "Chấm điểm một bài Writing để thấy biểu đồ."
   },
   "assistant": {
     "title": "Trợ lý AI",

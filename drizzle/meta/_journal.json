@@ -15,6 +15,13 @@
       "when": 1795193398889,
       "tag": "0001_writing_translate",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1795237652833,
+      "tag": "0002_word_practice_scores",
+      "breakpoints": true
     }
   ]
 }
