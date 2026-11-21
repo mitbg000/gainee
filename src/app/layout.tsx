@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { themeInitScript } from "@/theme/config";
-import { getTheme } from "@/theme/server";
+import { getLook, getTheme } from "@/theme/server";
+import { lookAttrs } from "@/theme/look";
 import PwaRegister from "@/components/PwaRegister";
 import "./globals.css";
 
@@ -30,9 +31,9 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [locale, theme] = await Promise.all([getLocale(), getTheme()]);
+  const [locale, theme, look] = await Promise.all([getLocale(), getTheme(), getLook()]);
   return (
-    <html lang={locale} className={theme === "dark" ? "dark" : undefined} suppressHydrationWarning>
+    <html lang={locale} className={theme === "dark" ? "dark" : undefined} {...lookAttrs(look)} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {/* keep the browser's install prompt even if it fires before React has loaded (see InstallApp) */}

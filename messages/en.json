@@ -260,6 +260,52 @@
       "note": "Each picture takes about 10–60 seconds and is billed by the provider. Small labels can be wrong, so the drawn diagram stays below it.",
       "saved": "Saved ✓",
       "saveError": "Could not save"
+    },
+    "tabs": {
+      "look": "Appearance",
+      "profile": "Learning profile",
+      "ai": "AI"
+    },
+    "look": {
+      "mode": "Light / dark mode",
+      "palette": "Colour scheme",
+      "paletteHint": "Colour of buttons, links and labels",
+      "tone": "Background",
+      "toneHint": "Page paper colour (light / dark)",
+      "uiFont": "Interface font",
+      "uiFontHint": "Menus, buttons, general text",
+      "readFont": "Reading font",
+      "readFontHint": "Reading texts, headings, writing",
+      "size": "Text size",
+      "sizeHint": "Scale the whole interface",
+      "palettes": {
+        "navy": "Navy",
+        "teal": "Teal",
+        "green": "Green",
+        "purple": "Purple",
+        "rose": "Rose",
+        "graphite": "Graphite"
+      },
+      "tones": {
+        "warm": "Warm cream",
+        "cool": "Cool white",
+        "sepia": "Sepia"
+      },
+      "fonts": {
+        "system": "System",
+        "rounded": "Rounded",
+        "serif": "Serif",
+        "charter": "Charter",
+        "georgia": "Georgia",
+        "palatino": "Palatino",
+        "sans": "Sans-serif"
+      },
+      "preview": "Preview",
+      "sample": "Reading a little every day widens your vocabulary and makes IELTS sentence structures familiar.",
+      "sampleButton": "Main button",
+      "sampleChip": "Selected",
+      "sampleHighlight": "highlight",
+      "reset": "Reset to default"
     }
   },
   "import": {

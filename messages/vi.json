@@ -260,6 +260,52 @@
       "note": "Mỗi hình mất khoảng 10–60 giây và có tính phí theo nhà cung cấp. Hình có thể sai chữ nhỏ, nên sơ đồ vẽ sẵn vẫn được giữ bên dưới.",
       "saved": "Đã lưu ✓",
       "saveError": "Không lưu được"
+    },
+    "tabs": {
+      "look": "Giao diện",
+      "profile": "Hồ sơ học",
+      "ai": "AI"
+    },
+    "look": {
+      "mode": "Chế độ sáng / tối",
+      "palette": "Phối màu",
+      "paletteHint": "Màu nút, liên kết và nhãn",
+      "tone": "Nền",
+      "toneHint": "Màu giấy của trang (sáng / tối)",
+      "uiFont": "Font giao diện",
+      "uiFontHint": "Menu, nút, nội dung chung",
+      "readFont": "Font bài đọc",
+      "readFontHint": "Bài đọc, tiêu đề, bài viết",
+      "size": "Cỡ chữ",
+      "sizeHint": "Phóng to / thu nhỏ toàn bộ giao diện",
+      "palettes": {
+        "navy": "Xanh navy",
+        "teal": "Xanh ngọc",
+        "green": "Xanh lá",
+        "purple": "Tím",
+        "rose": "Hồng đỏ",
+        "graphite": "Xám than"
+      },
+      "tones": {
+        "warm": "Kem ấm",
+        "cool": "Trắng mát",
+        "sepia": "Sepia"
+      },
+      "fonts": {
+        "system": "Hệ thống",
+        "rounded": "Bo tròn",
+        "serif": "Có chân",
+        "charter": "Charter",
+        "georgia": "Georgia",
+        "palatino": "Palatino",
+        "sans": "Không chân"
+      },
+      "preview": "Xem trước",
+      "sample": "Đọc mỗi ngày một chút giúp bạn mở rộng vốn từ và quen với cấu trúc câu trong bài thi IELTS.",
+      "sampleButton": "Nút chính",
+      "sampleChip": "Đang chọn",
+      "sampleHighlight": "đánh dấu",
+      "reset": "Khôi phục mặc định"
     }
   },
   "import": {

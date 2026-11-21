@@ -48,9 +48,40 @@ select {
   --color-on-accent: var(--on-accent);
   --color-accent2: var(--accent2);
   --color-highlight: var(--highlight);
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-serif: Charter, "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
+  --font-sans: var(--ui-font);
+  --font-serif: var(--read-font);
 }
+
+/* ---------- Appearance (Settings → Appearance; attributes set on <html> from src/theme/look.ts) ---------- */
+:root {
+  --f-system: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-charter: Charter, "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
+  --ui-font: var(--f-system);
+  --read-font: var(--f-charter);
+}
+[data-ui="rounded"] { --ui-font: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", var(--f-system); }
+[data-ui="serif"] { --ui-font: var(--f-charter); }
+[data-read="georgia"] { --read-font: Georgia, "Times New Roman", serif; }
+[data-read="palatino"] { --read-font: "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", serif; }
+[data-read="sans"] { --read-font: var(--f-system); }
+
+/* colour palettes: accent (buttons, links) + accent2 (labels, highlights), each for light and dark */
+[data-palette="teal"] { --accent: #0f6b6b; --accent2: #b45309; }
+[data-palette="green"] { --accent: #2f6b3a; --accent2: #a16207; }
+[data-palette="purple"] { --accent: #5b3f9e; --accent2: #be185d; }
+[data-palette="rose"] { --accent: #9f1239; --accent2: #1d4ed8; }
+[data-palette="graphite"] { --accent: #374151; --accent2: #b45309; }
+.dark[data-palette="teal"] { --accent: #5fc4c0; --accent2: #f2a65a; }
+.dark[data-palette="green"] { --accent: #7cc98a; --accent2: #e5b65a; }
+.dark[data-palette="purple"] { --accent: #b39cf0; --accent2: #f084b4; }
+.dark[data-palette="rose"] { --accent: #f38ba8; --accent2: #8ab4f8; }
+.dark[data-palette="graphite"] { --accent: #cbd5e1; --accent2: #f59e5b; }
+
+/* background tones */
+[data-tone="cool"] { --paper: #f5f6f8; --card: #ffffff; --line: #e2e5ea; --ink: #1b2230; }
+[data-tone="sepia"] { --paper: #f3ead6; --card: #fbf6e9; --line: #e0d3b6; --ink: #3a2f22; --muted: #7a6a55; }
+.dark[data-tone="cool"] { --paper: #101317; --card: #181c22; --line: #2a3039; --ink: #e5e8ee; }
+.dark[data-tone="sepia"] { --paper: #1b1712; --card: #25201a; --line: #3a3229; --ink: #ece1cd; --muted: #a89a85; }
 
 /* =====================================================================
    Design system – one set of controls for the whole app.
