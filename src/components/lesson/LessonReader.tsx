@@ -25,6 +25,9 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const [saved, setSaved] = useState<Record<number, number>>(data.savedVocab);
   const [termWords, setTermWords] = useState<TermWord[]>(data.savedTermWords);
   const savedTerms = useMemo(() => Object.fromEntries(termWords.map((w) => [w.term.toLowerCase(), w.id])) as Record<string, number>, [termWords]);
+  // words saved in other parts / texts that occur here: looked up, starred and edited like this part's words
+  const [otherWords, setOtherWords] = useState(data.otherTerms);
+  const knownTerms = useMemo(() => Object.fromEntries([...otherWords, ...termWords].map((w) => [w.term.toLowerCase(), w.id])) as Record<string, number>, [otherWords, termWords]);
   const [flash, setFlash] = useState<{ p: number; start: number; end: number } | null>(null);
   const [completed, setCompleted] = useState(!!lesson.completedAt);
   const [best, setBest] = useState<number | null>(lesson.bestScore);
@@ -154,9 +157,10 @@ export default function LessonReader({ data }: { data: LessonData }) {
   const toggleTerm = useCallback(
     async (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null; example?: string | null }) => {
       const key = term.toLowerCase().slice(0, 191);
-      const id = savedTerms[key];
+      const id = knownTerms[key];
       if (id) {
         setTermWords((ws) => ws.filter((w) => w.id !== id));
+        setOtherWords((ws) => ws.filter((w) => w.id !== id));
         await fetch(`/api/words/${id}`, { method: "DELETE" });
         return say(t("unsaved"));
       }
@@ -166,7 +170,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
       setTermWords((ws) => [{ id: newId, term: term.slice(0, 191), ipa: extra?.ipa ?? null, pos: extra?.pos ?? null, meaningVi: extra?.meaningVi ?? null, definitionEn: null, example: extra?.example ?? null, note: null, context }, ...ws]);
       say(t("saved"));
     },
-    [savedTerms, lesson.id, t],
+    [knownTerms, lesson.id, t],
   );
 
   /** Save an AI-generated (and possibly edited) vocabulary card; updates the word if it is already saved. */
@@ -175,10 +179,13 @@ export default function LessonReader({ data }: { data: LessonData }) {
       const key = c.term.toLowerCase().slice(0, 191);
       const local: Omit<TermWord, "id"> = { term: c.term.slice(0, 191), ipa: c.ipa || null, pos: c.pos || null, meaningVi: c.meaningVi || null, definitionEn: c.definitionEn || null, example: c.example || null, note: c.note || null, context };
       const fields = { term: c.term.slice(0, 191), ipa: c.ipa, pos: c.pos.slice(0, 32), meaningVi: c.meaningVi, definitionEn: c.definitionEn, example: c.example, note: c.note, context };
-      const id = savedTerms[key];
+      const id = knownTerms[key];
       if (id) {
         const r = await fetch(`/api/words/${id}`, { method: "PATCH", ...json(fields) });
-        if (r.ok) setTermWords((ws) => ws.map((w) => (w.id === id ? { id, ...local } : w)));
+        if (r.ok) {
+          setTermWords((ws) => ws.map((w) => (w.id === id ? { id, ...local } : w)));
+          setOtherWords((ws) => ws.map((w) => (w.id === id ? { ...w, ...local } : w)));
+        }
         return say(r.ok ? t("saved") : t("error"));
       }
       const r = await fetch("/api/words", { method: "POST", ...json({ ...fields, lessonId: lesson.id }) });
@@ -187,7 +194,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
       setTermWords((ws) => [{ id: newId, ...local }, ...ws]);
       say(t("saved"));
     },
-    [savedTerms, lesson.id, t],
+    [knownTerms, lesson.id, t],
   );
 
   async function toggleComplete() {
@@ -272,7 +279,8 @@ export default function LessonReader({ data }: { data: LessonData }) {
             onToggleSave={toggleSave}
             onSaveTerm={toggleTerm}
             savedTerms={savedTerms}
-            otherTerms={data.otherTerms}
+            otherTerms={otherWords}
+            knownTerms={knownTerms}
             termWords={termWords}
             onSaveCard={saveCard}
           />

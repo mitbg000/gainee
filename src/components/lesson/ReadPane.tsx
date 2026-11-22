@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RichPara } from "@/lib/text/rich";
-import { findAll, offsetIn, searchable, segments, sentenceAt, type Mark } from "./marks";
+import { findAll, offsetIn, segments, sentenceAt, type Mark } from "./marks";
 import { MarginNotes, NoteCard } from "./Notes";
 import type { TermWord } from "./Panes";
 import ToolPanel from "./ToolPanel";
@@ -25,7 +25,9 @@ type Props = {
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
   /** words saved in other parts / texts; marked when the scope is "doc" or "all" */
-  otherTerms: { id: number; term: string; sameDoc: boolean }[];
+  otherTerms: (TermWord & { sameDoc: boolean })[];
+  /** every saved word key → id (this part and elsewhere), for the look-up star */
+  knownTerms: Record<string, number>;
   termWords: TermWord[];
   onSaveCard: (card: WordCard, context: string) => Promise<void>;
   flash: { p: number; start: number; end: number } | null;
@@ -144,12 +146,11 @@ export default function ReadPane(props: Props) {
     // words the learner saved from look-ups get the same dotted underline as the AI's suggestions
     const terms = Object.entries(props.savedTerms);
     if (wordScope !== "part") {
-      // only terms that occur in the text at all, so a long word list stays cheap
-      const hay = searchable(paragraphs.join("\n"));
+      // the server only sends words that occur in this text
       const seen = new Set(terms.map(([k]) => k));
       for (const o of props.otherTerms) {
         const k = o.term.toLowerCase();
-        if ((wordScope === "all" || o.sameDoc) && !seen.has(k) && hay.includes(searchable(k).trim())) {
+        if ((wordScope === "all" || o.sameDoc) && !seen.has(k)) {
           seen.add(k);
           terms.push([k, o.id]);
         }
@@ -290,8 +291,8 @@ export default function ReadPane(props: Props) {
       lessonId={props.lessonId}
       vocab={vocab}
       saved={props.saved}
-      savedTerms={props.savedTerms}
-      termWords={props.termWords}
+      savedTerms={props.knownTerms}
+      termWords={[...props.termWords, ...props.otherTerms]}
       onToggleSave={props.onToggleSave}
       onSaveTerm={props.onSaveTerm}
       onClose={() => setTool(null)}

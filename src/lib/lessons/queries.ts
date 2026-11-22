@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, isNotNull, isNull, ne, or } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { searchable } from "@/components/lesson/marks";
 import type { LessonContent } from "./generate";
 
 const { lessons, documents, lessonVocab, annotations, aiMessages, words, writings, attempts, answerLogs } = schema;
@@ -38,16 +39,26 @@ export async function getLessonData(id: number) {
   const [last] = await db.select().from(attempts).where(eq(attempts.lessonId, id)).orderBy(desc(attempts.id)).limit(1);
   const lastGiven = last ? await db.select({ given: answerLogs.given }).from(answerLogs).where(eq(answerLogs.attemptId, last.id)).orderBy(asc(answerLogs.id)) : [];
   const terms = await db.select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, example: words.example, note: words.note, context: words.context }).from(words).where(and(eq(words.lessonId, id), isNull(words.lessonVocabId))).orderBy(desc(words.id));
-  // words saved anywhere else, so the reader can also mark those from the whole text or the whole word list
-  const others = await db
-    .select({ id: words.id, term: words.term, documentId: lessons.documentId })
-    .from(words)
-    .leftJoin(lessons, eq(words.lessonId, lessons.id))
-    .where(or(isNull(words.lessonId), ne(words.lessonId, id)))
-    .orderBy(desc(words.id))
-    .limit(5000);
+  // words saved anywhere else that occur in this text, so the reader can mark them too (scope "whole text" / "all")
+  const hay = searchable(lesson.paragraphs.join("\n"));
+  const elsewhere = (
+    await db
+      .select({ id: words.id, term: words.term, documentId: lessons.documentId })
+      .from(words)
+      .leftJoin(lessons, eq(words.lessonId, lessons.id))
+      .where(or(isNull(words.lessonId), ne(words.lessonId, id)))
+      .orderBy(desc(words.id))
+  ).filter((o) => hay.includes(searchable(o.term).trim()));
+  const sameDoc = new Set(elsewhere.filter((o) => o.documentId === lesson.documentId).map((o) => o.id));
+  const others = elsewhere.length
+    ? await db
+        .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, example: words.example, note: words.note, context: words.context })
+        .from(words)
+        .where(inArray(words.id, elsewhere.slice(0, 1000).map((o) => o.id)))
+        .orderBy(desc(words.id))
+    : [];
   return {
-    otherTerms: others.map((o) => ({ id: o.id, term: o.term, sameDoc: o.documentId === lesson.documentId })),
+    otherTerms: others.map((o) => ({ ...o, sameDoc: sameDoc.has(o.id) })),
     lesson: { ...lesson, content: (lesson.content ?? null) as LessonContent | null },
     document: doc,
     siblings,
