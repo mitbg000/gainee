@@ -456,6 +456,12 @@
         "off": "Tắt đánh dấu từ đã lưu",
         "soft": "Gạch chân mờ",
         "strong": "In đậm, tô màu nổi bật"
+      },
+      "wordScope": "Đánh dấu những từ đã lưu ở đâu",
+      "wordScopes": {
+        "part": "Từ lưu ở phần này",
+        "doc": "Từ lưu ở cả bài",
+        "all": "Tất cả từ đã lưu"
       }
     },
     "notes": {

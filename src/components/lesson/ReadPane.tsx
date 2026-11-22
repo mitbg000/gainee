@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RichPara } from "@/lib/text/rich";
-import { findAll, offsetIn, segments, sentenceAt, type Mark } from "./marks";
+import { findAll, offsetIn, searchable, segments, sentenceAt, type Mark } from "./marks";
 import { MarginNotes, NoteCard } from "./Notes";
 import type { TermWord } from "./Panes";
 import ToolPanel from "./ToolPanel";
@@ -24,6 +24,8 @@ type Props = {
   aiMessages: AiMsg[];
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
+  /** words saved in other parts / texts; marked when the scope is "doc" or "all" */
+  otherTerms: { id: number; term: string; sameDoc: boolean }[];
   termWords: TermWord[];
   onSaveCard: (card: WordCard, context: string) => Promise<void>;
   flash: { p: number; start: number; end: number } | null;
@@ -84,6 +86,8 @@ function wordAt(x: number, y: number): { node: Node; start: number; end: number 
 
 const WORD_MARKS = ["off", "soft", "strong"] as const;
 type WordMark = (typeof WORD_MARKS)[number];
+const WORD_SCOPES = ["part", "doc", "all"] as const;
+type WordScope = (typeof WORD_SCOPES)[number];
 
 export default function ReadPane(props: Props) {
   const t = useTranslations("lesson.read");
@@ -103,6 +107,7 @@ export default function ReadPane(props: Props) {
   const [here, setHere] = useState<number | null>(null);
   // how saved / lesson words are marked in the text
   const [wordMark, setWordMark] = useState<WordMark>("soft");
+  const [wordScope, setWordScope] = useState<WordScope>("part");
 
   useEffect(() => {
     try {
@@ -112,6 +117,8 @@ export default function ReadPane(props: Props) {
       if (h !== null) setHere(Number(h));
       const m = localStorage.getItem("rl_words") as WordMark | null;
       if (m && WORD_MARKS.includes(m)) setWordMark(m);
+      const sc = localStorage.getItem("rl_words_scope") as WordScope | null;
+      if (sc && WORD_SCOPES.includes(sc)) setWordScope(sc);
     } catch {}
   }, [props.lessonId]);
   useEffect(() => {
@@ -135,16 +142,29 @@ export default function ReadPane(props: Props) {
       });
     }
     // words the learner saved from look-ups get the same dotted underline as the AI's suggestions
-    for (const term of Object.keys(props.savedTerms)) {
+    const terms = Object.entries(props.savedTerms);
+    if (wordScope !== "part") {
+      // only terms that occur in the text at all, so a long word list stays cheap
+      const hay = searchable(paragraphs.join("\n"));
+      const seen = new Set(terms.map(([k]) => k));
+      for (const o of props.otherTerms) {
+        const k = o.term.toLowerCase();
+        if ((wordScope === "all" || o.sameDoc) && !seen.has(k) && hay.includes(searchable(k).trim())) {
+          seen.add(k);
+          terms.push([k, o.id]);
+        }
+      }
+    }
+    for (const [term, id] of terms) {
       paragraphs.forEach((p, i) => {
-        for (const [s, e] of findAll(p, term)) out[i].push({ start: s, end: e, kind: "term", id: props.savedTerms[term] });
+        for (const [s, e] of findAll(p, term)) out[i].push({ start: s, end: e, kind: "term", id });
       });
     }
     props.blocks.forEach((b, i) => b.styles.forEach((st) => out[i]?.push({ start: st.start, end: st.end, kind: "fmt", id: 0, color: st.kind })));
     for (const a of annotations) if (out[a.paragraph]) out[a.paragraph].push({ start: a.startOffset, end: a.endOffset, kind: "ann", id: a.id, color: a.color });
     if (props.flash) out[props.flash.p]?.push({ start: props.flash.start, end: props.flash.end, kind: "flash", id: 0 });
     return out;
-  }, [paragraphs, props.blocks, props.savedTerms, vocab, annotations, props.flash]);
+  }, [paragraphs, props.blocks, props.savedTerms, props.otherTerms, wordScope, vocab, annotations, props.flash]);
 
   useEffect(() => {
     if (!props.flash) return;
@@ -318,6 +338,27 @@ export default function ReadPane(props: Props) {
               </button>
             ))}
           </span>
+          {wordMark !== "off" && (
+            <select
+              value={wordScope}
+              onChange={(e) => {
+                const v = e.target.value as WordScope;
+                setWordScope(v);
+                try {
+                  localStorage.setItem("rl_words_scope", v);
+                } catch {}
+              }}
+              aria-label={t("wordScope")}
+              title={t("wordScope")}
+              className="field field-sm mr-1 w-auto"
+            >
+              {WORD_SCOPES.map((v) => (
+                <option key={v} value={v}>
+                  {t(`wordScopes.${v}`)}
+                </option>
+              ))}
+            </select>
+          )}
           <button onClick={() => setFont(-1)} className="btn btn-sm btn-secondary" aria-label="A-">
             A−
           </button>

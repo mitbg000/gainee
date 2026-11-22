@@ -456,6 +456,12 @@
         "off": "Don't mark saved words",
         "soft": "Faint underline",
         "strong": "Bold and coloured"
+      },
+      "wordScope": "Which saved words to mark",
+      "wordScopes": {
+        "part": "Saved in this part",
+        "doc": "Saved in this text",
+        "all": "All saved words"
       }
     },
     "notes": {

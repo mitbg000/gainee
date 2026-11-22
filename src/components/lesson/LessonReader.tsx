@@ -272,6 +272,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
             onToggleSave={toggleSave}
             onSaveTerm={toggleTerm}
             savedTerms={savedTerms}
+            otherTerms={data.otherTerms}
             termWords={termWords}
             onSaveCard={saveCard}
           />
