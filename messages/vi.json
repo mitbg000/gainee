@@ -450,7 +450,13 @@
       "close": "Đóng",
       "allNotes": "Ghi chú ({n})",
       "unhighlight": "Bỏ tô sáng",
-      "unhighlightConfirm": "Tô sáng này có ghi chú. Xóa cả hai?"
+      "unhighlightConfirm": "Tô sáng này có ghi chú. Xóa cả hai?",
+      "wordMark": "Đánh dấu từ đã lưu",
+      "wordMarks": {
+        "off": "Tắt đánh dấu từ đã lưu",
+        "soft": "Gạch chân mờ",
+        "strong": "In đậm, tô màu nổi bật"
+      }
     },
     "notes": {
       "placeholder": "Viết ghi chú…",

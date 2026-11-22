@@ -82,6 +82,9 @@ function wordAt(x: number, y: number): { node: Node; start: number; end: number 
   return { node, start: s, end: e };
 }
 
+const WORD_MARKS = ["off", "soft", "strong"] as const;
+type WordMark = (typeof WORD_MARKS)[number];
+
 export default function ReadPane(props: Props) {
   const t = useTranslations("lesson.read");
   const { paragraphs, vocab, annotations, aiMessages } = props;
@@ -98,6 +101,8 @@ export default function ReadPane(props: Props) {
   const [now, setNow] = useState(Date.now());
   // paragraph the reader last clicked: a soft band shows where they were after a look-up
   const [here, setHere] = useState<number | null>(null);
+  // how saved / lesson words are marked in the text
+  const [wordMark, setWordMark] = useState<WordMark>("soft");
 
   useEffect(() => {
     try {
@@ -105,6 +110,8 @@ export default function ReadPane(props: Props) {
       if (f >= 15 && f <= 26) setFontSize(f);
       const h = localStorage.getItem(`rl_here_${props.lessonId}`);
       if (h !== null) setHere(Number(h));
+      const m = localStorage.getItem("rl_words") as WordMark | null;
+      if (m && WORD_MARKS.includes(m)) setWordMark(m);
     } catch {}
   }, [props.lessonId]);
   useEffect(() => {
@@ -292,6 +299,25 @@ export default function ReadPane(props: Props) {
         </span>
         <span className="text-muted">{t("hint")}</span>
         <span className="ml-auto flex gap-1">
+          <span role="group" aria-label={t("wordMark")} className="mr-1 inline-flex overflow-hidden rounded-lg border border-line bg-card">
+            {WORD_MARKS.map((m) => (
+              <button
+                key={m}
+                onClick={() => {
+                  setWordMark(m);
+                  try {
+                    localStorage.setItem("rl_words", m);
+                  } catch {}
+                }}
+                aria-pressed={wordMark === m}
+                title={t(`wordMarks.${m}`)}
+                aria-label={t(`wordMarks.${m}`)}
+                className={`min-h-8 px-2.5 font-serif ${m !== "off" ? "border-l border-line" : ""} ${wordMark === m ? "bg-accent/15 text-ink" : "text-muted hover:bg-paper"}`}
+              >
+                <span className={m === "off" ? "line-through opacity-70" : m === "soft" ? "underline decoration-dotted decoration-2 underline-offset-2" : "font-bold text-accent2"}>ab</span>
+              </button>
+            ))}
+          </span>
           <button onClick={() => setFont(-1)} className="btn btn-sm btn-secondary" aria-label="A-">
             A−
           </button>
@@ -308,7 +334,7 @@ export default function ReadPane(props: Props) {
 
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-8">
         {/* text */}
-        <div ref={article} onClick={onArticleClick} className="font-serif leading-[1.8] text-ink" style={{ fontSize }}>
+        <div ref={article} onClick={onArticleClick} data-words={wordMark} className="font-serif leading-[1.8] text-ink" style={{ fontSize }}>
           {paragraphs.map((p, i) =>
             props.blocks[i].kind === "img" ? (
               // eslint-disable-next-line @next/next/no-img-element

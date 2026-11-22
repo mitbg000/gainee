@@ -450,7 +450,13 @@
       "close": "Close",
       "allNotes": "Notes ({n})",
       "unhighlight": "Remove highlight",
-      "unhighlightConfirm": "This highlight has a note. Delete both?"
+      "unhighlightConfirm": "This highlight has a note. Delete both?",
+      "wordMark": "Mark saved words",
+      "wordMarks": {
+        "off": "Don't mark saved words",
+        "soft": "Faint underline",
+        "strong": "Bold and coloured"
+      }
     },
     "notes": {
       "placeholder": "Write a note…",

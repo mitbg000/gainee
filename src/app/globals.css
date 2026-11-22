@@ -271,6 +271,16 @@ body {
   text-underline-offset: 3px;
   cursor: pointer;
 }
+/* reading toolbar: saved / lesson words off, dotted (default) or bold and coloured */
+[data-words="off"] .vw {
+  text-decoration: none;
+}
+[data-words="strong"] .vw {
+  font-weight: 700;
+  color: var(--accent2);
+  text-decoration: underline solid color-mix(in srgb, var(--accent2) 45%, transparent);
+  text-decoration-thickness: 2px;
+}
 .flash {
   background: rgb(250 204 21 / 0.8);
   border-radius: 3px;
