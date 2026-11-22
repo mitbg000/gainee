@@ -612,7 +612,27 @@
     "imagesHint": "Dán (Ctrl/Cmd+V), kéo thả hoặc chọn ảnh – PNG, JPG, GIF, WebP tối đa 8 MB.",
     "imageFailed": "Một số ảnh không thêm được.",
     "removeImage": "Xóa ảnh",
-    "practice": "Luyện tập các từ này"
+    "practice": "Luyện tập các từ này",
+    "export": {
+      "open": "Xuất file cho Anki / Quizlet",
+      "parts": "Chọn phần",
+      "all": "Chọn hết",
+      "none": "Bỏ chọn",
+      "format": "Định dạng",
+      "formats": {
+        "anki": "Anki",
+        "quizlet": "Quizlet",
+        "csv": "CSV (Excel)"
+      },
+      "hint": {
+        "anki": "Trong Anki: File → Import, chọn file .txt. Mặt trước là từ; mặt sau có loại từ, phiên âm, nghĩa, định nghĩa và ví dụ. Mỗi bài đọc thành một tag.",
+        "quizlet": "Trong Quizlet: Tạo học phần → Nhập, dán nội dung (hoặc mở file .txt rồi copy). Giữa thuật ngữ và định nghĩa chọn “Tab”, giữa các thẻ chọn “Dòng mới”.",
+        "csv": "Mỗi cột một trường (từ, phiên âm, loại từ, nghĩa, định nghĩa, ví dụ, nguồn) – mở bằng Excel / Google Sheets hoặc nhập vào app khác."
+      },
+      "download": "Tải file ({n} từ)",
+      "copy": "Copy để dán",
+      "copied": "Đã copy"
+    }
   },
   "review": {
     "title": "Ôn tập hôm nay",

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { desc, eq, like, or } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import AddWord from "@/components/AddWord";
+import ExportWords, { type ExportGroup } from "@/components/ExportWords";
 import Shell from "@/components/Shell";
 import WordCard from "@/components/WordCard";
 import { getDb, schema } from "@/db";
@@ -57,6 +58,16 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
     docs.set(w.docId, d); // insertion order = most recently saved word first
   }
 
+  const pick = (w: Row) => ({ term: w.term, ipa: w.ipa, pos: w.pos, meaningVi: w.meaningVi, definitionEn: w.definitionEn, example: w.example });
+  const groups: ExportGroup[] = [
+    ...[...docs].flatMap(([docId, d]) =>
+      [...d.lessons]
+        .sort((a, b) => a[1].position - b[1].position)
+        .map(([lessonId, l]) => ({ key: `${docId}-${lessonId}`, doc: d.title, part: `${t("part", { n: l.position })} · ${l.title}`, words: l.words.map(pick) })),
+    ),
+    ...(other.length ? [{ key: "other", doc: t("other"), part: null, words: other.map(pick) }] : []),
+  ];
+
   const card = (w: Row) => <WordCard key={w.id} word={w} images={images.get(w.id) ?? []} />;
 
   return (
@@ -75,6 +86,7 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
         <button className="btn btn-secondary">{t("searchBtn")}</button>
       </form>
       <AddWord />
+      {rows.length > 0 && <ExportWords groups={groups} />}
       {rows.length === 0 && <p className="mt-4 text-muted">{q ? t("noResults") : t("empty")}</p>}
 
       {[...docs].map(([docId, d]) => (

@@ -612,7 +612,27 @@
     "imagesHint": "Paste (Ctrl/Cmd+V), drop or pick images – PNG, JPG, GIF, WebP up to 8 MB.",
     "imageFailed": "Some images could not be added.",
     "removeImage": "Remove image",
-    "practice": "Practise these words"
+    "practice": "Practise these words",
+    "export": {
+      "open": "Export for Anki / Quizlet",
+      "parts": "Choose parts",
+      "all": "Select all",
+      "none": "Clear",
+      "format": "Format",
+      "formats": {
+        "anki": "Anki",
+        "quizlet": "Quizlet",
+        "csv": "CSV (Excel)"
+      },
+      "hint": {
+        "anki": "In Anki: File → Import and pick the .txt file. Front is the word; back has part of speech, IPA, meaning, definition and example. Each text becomes a tag.",
+        "quizlet": "In Quizlet: Create set → Import, paste the text (or open the .txt and copy it). Choose “Tab” between term and definition and “New line” between cards.",
+        "csv": "One column per field (term, IPA, part of speech, meaning, definition, example, source) – open in Excel / Google Sheets or import into another app."
+      },
+      "download": "Download ({n} words)",
+      "copy": "Copy to paste",
+      "copied": "Copied"
+    }
   },
   "review": {
     "title": "Today's review",
