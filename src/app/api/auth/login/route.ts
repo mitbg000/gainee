@@ -4,14 +4,31 @@ import { createSession, SESSION_COOKIE, SESSION_DAYS } from "@/lib/session";
 
 export const runtime = "nodejs";
 
-// Brute-force protection: 5 failed attempts per 15 minutes per IP (in memory – fine for one user).
+// Brute-force protection (in memory – fine for one user):
+//  - 5 failed attempts per 15 minutes per client IP
+//  - 20 failed attempts per 15 minutes in total, so faking the IP does not allow unlimited guesses
 const failures = new Map<string, { n: number; until: number }>();
 const WINDOW_MS = 15 * 60 * 1000;
+const PER_IP = 5;
+const TOTAL = 20;
+
+/** Client IP: Cloudflare's header, else the address Nginx saw. X-Forwarded-For's first entry is sent by the client, so it is not trusted. */
+const clientIp = (req: NextRequest) => req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "local";
+
+function blocked(key: string, max: number) {
+  const f = failures.get(key);
+  return !!f && f.n >= max && f.until > Date.now();
+}
+function fail(key: string) {
+  const f = failures.get(key);
+  const cur = f && f.until > Date.now() ? f : { n: 0, until: Date.now() + WINDOW_MS };
+  cur.n++;
+  failures.set(key, cur);
+}
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "local";
-  const f = failures.get(ip);
-  if (f && f.n >= 5 && f.until > Date.now()) {
+  const ip = clientIp(req);
+  if (blocked(ip, PER_IP) || blocked("*", TOTAL)) {
     return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
   }
 
@@ -21,17 +38,21 @@ export async function POST(req: NextRequest) {
   const passOk = !!password && verifyPassword(password, process.env.APP_PASSWORD_HASH);
   const userOk = !!username && safeEqual(username.trim().toLowerCase(), expectedUser);
   if (!userOk || !passOk) {
-    const cur = f && f.until > Date.now() ? f : { n: 0, until: Date.now() + WINDOW_MS };
-    cur.n++;
-    failures.set(ip, cur);
+    fail(ip);
+    fail("*");
     await new Promise((r) => setTimeout(r, 400));
     return NextResponse.json({ error: "wrong_credentials" }, { status: 401 });
   }
   failures.delete(ip);
 
-  const https = req.headers.get("x-forwarded-proto") === "https" || req.nextUrl.protocol === "https:";
+  // Secure in production (the site is HTTPS-only behind Cloudflare, even when Cloudflare reaches Nginx over HTTP);
+  // COOKIE_SECURE=0 allows logging in over plain http, e.g. a local production build.
+  const https =
+    process.env.COOKIE_SECURE === "0"
+      ? false
+      : process.env.NODE_ENV === "production" || req.headers.get("x-forwarded-proto") === "https" || (req.headers.get("cf-visitor") ?? "").includes("https") || req.nextUrl.protocol === "https:";
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(SESSION_COOKIE, await createSession(expectedUser), {
+  res.cookies.set(SESSION_COOKIE, await createSession(expectedUser, process.env.APP_PASSWORD_HASH), {
     httpOnly: true,
     sameSite: "lax",
     secure: https,

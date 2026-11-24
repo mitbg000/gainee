@@ -10,6 +10,7 @@ export async function GET() {
     await getDb().execute(sql`select 1`);
     return NextResponse.json({ ok: true, time: new Date().toISOString() });
   } catch (e) {
-    return NextResponse.json({ ok: false, error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    console.error("health check failed:", e); // details only in the server log; this route is public
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { logout } from "@/lib/logout";
 import { useEffect, useRef, useState } from "react";
 import type { Theme } from "@/theme/config";
 import InstallApp from "./InstallApp";
@@ -67,10 +68,7 @@ export default function UserMenu({ theme }: { theme: Theme }) {
           <div className="my-2 border-t border-line" />
           <button
             role="menuitem"
-            onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST" });
-              location.href = "/login";
-            }}
+            onClick={logout}
             className={`${row} w-full text-red-600 dark:text-red-400`}
           >
             <I.IconLogout className="h-4 w-4" /> {tn("logout")}

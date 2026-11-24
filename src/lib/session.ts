@@ -10,8 +10,14 @@ function secret() {
   return new TextEncoder().encode(s);
 }
 
-export async function createSession(username: string): Promise<string> {
-  return new SignJWT({ sub: username })
+/** Short fingerprint of the password hash: changing the password (APP_PASSWORD_HASH) ends every existing session. */
+async function passwordVersion(hash = process.env.APP_PASSWORD_HASH ?? "") {
+  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hash)));
+  return [...d.slice(0, 8)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function createSession(username: string, passwordHash?: string): Promise<string> {
+  return new SignJWT({ sub: username, pv: await passwordVersion(passwordHash) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
@@ -21,8 +27,8 @@ export async function createSession(username: string): Promise<string> {
 export async function verifySession(token: string | undefined): Promise<boolean> {
   if (!token) return false;
   try {
-    await jwtVerify(token, secret(), { algorithms: ["HS256"] });
-    return true;
+    const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
+    return payload.pv === (await passwordVersion());
   } catch {
     return false;
   }

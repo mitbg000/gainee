@@ -28,7 +28,8 @@ function Form({ theme }: { theme: Theme }) {
       body: JSON.stringify({ username, password }),
     });
     setBusy(false);
-    if (r.ok) return router.replace(next.startsWith("/") ? next : "/");
+    // only paths on this site: "//host", "/\\host" and "/<tab>/host" (browsers drop tabs) would leave it
+    if (r.ok) return router.replace(/^\/(?![/\\])/.test(next) && !/[\t\n\r]/.test(next) ? next : "/");
     const code = (await r.json().catch(() => ({}))).error;
     setError((KNOWN_ERRORS as readonly string[]).includes(code) ? code : "unknown");
   }
