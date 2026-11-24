@@ -8,16 +8,19 @@ import Shell from "@/components/Shell";
 import WordCard from "@/components/WordCard";
 import { getDb, schema } from "@/db";
 import { imagesForWords } from "@/lib/images";
+import { listSets, textSets } from "@/lib/sets";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
 const { words, lessons, documents } = schema;
 
-/** Saved words, grouped by text and lesson so they are easy to review. */
-export default async function WordsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+/** Vocabulary notebook: study sets (Quizlet-style) and every saved term, grouped by text and lesson. */
+export default async function WordsPage({ searchParams }: { searchParams: Promise<{ q?: string; tab?: string }> }) {
   const t = await getTranslations("wordList");
-  const q = ((await searchParams).q ?? "").trim().slice(0, 100);
+  const sp = await searchParams;
+  if (sp.tab !== "terms" && !sp.q) return <SetsHome />;
+  const q = (sp.q ?? "").trim().slice(0, 100);
   const like_ = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
   const rows = await getDb()
     .select({
@@ -73,8 +76,8 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
 
   return (
     <Shell>
-      <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted">
+      <Header tab="terms" />
+      <p className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted">
         {t("total", { n: rows.length })}
         {rows.length > 0 && (
           <Link href="/practice" className="btn btn-sm btn-outline">
@@ -115,6 +118,66 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
           </summary>
           <ul className="mt-3 space-y-2">{other.map(card)}</ul>
         </details>
+      )}
+    </Shell>
+  );
+}
+
+async function Header({ tab }: { tab: "sets" | "terms" }) {
+  const t = await getTranslations("sets");
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="flex-1 font-serif text-3xl font-bold md:text-4xl">{t("notebook")}</h1>
+        <Link href="/words/sets/new" className="btn btn-primary">
+          <I.IconPlus /> {t("newSet")}
+        </Link>
+      </div>
+      <div role="tablist" className="mt-4 flex gap-1 border-b border-line">
+        {(["sets", "terms"] as const).map((k) => (
+          <Link key={k} role="tab" aria-selected={tab === k} href={k === "sets" ? "/words" : "/words?tab=terms"} className="tab">
+            {t(`tab.${k}`)}
+          </Link>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** Study sets you made, then the words of each reading text as ready-made sets. */
+async function SetsHome() {
+  const t = await getTranslations("sets");
+  const [sets, texts] = await Promise.all([listSets(), textSets()]);
+  const card = (href: string, title: string, n: number, sub?: string | null) => (
+    <li key={href}>
+      <Link href={href} className="flex h-full flex-col rounded-2xl border-2 border-line bg-card p-4 transition-colors hover:border-accent/60">
+        <span className="line-clamp-2 font-serif text-lg font-bold leading-snug">{title}</span>
+        <span className="mt-auto flex items-center gap-2 pt-3 text-sm">
+          <span className="rounded-full bg-paper px-2 py-0.5 text-xs font-semibold text-muted">{t("terms", { n })}</span>
+          {sub && <span className="truncate text-xs text-muted">{sub}</span>}
+        </span>
+      </Link>
+    </li>
+  );
+  return (
+    <Shell>
+      <Header tab="sets" />
+      <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-muted">{t("mySets")}</h2>
+      {sets.length ? (
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{sets.map((s) => card(`/words/sets/${s.id}`, s.title, s.n, s.description))}</ul>
+      ) : (
+        <div className="mt-3 rounded-2xl border-2 border-dashed border-line p-8 text-center">
+          <p className="text-muted">{t("noSets")}</p>
+          <Link href="/words/sets/new" className="btn btn-primary mt-3">
+            <I.IconPlus /> {t("newSet")}
+          </Link>
+        </div>
+      )}
+      {texts.length > 0 && (
+        <>
+          <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-muted">{t("byText")}</h2>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{texts.map((d) => card(`/words/text/${d.id}`, d.title, d.n, t("fromText")))}</ul>
+        </>
       )}
     </Shell>
   );

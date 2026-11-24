@@ -492,3 +492,25 @@ export const wordLabels = mysqlTable(
   },
   (t) => [primaryKey({ columns: [t.wordId, t.labelId] }), index("word_labels_label").on(t.labelId)],
 );
+
+/* =====================================================================
+ * Study sets (Quizlet-style "học phần"): named, ordered groups of saved words.
+ * A word can be in many sets; removing it from a set keeps the word.
+ * ===================================================================== */
+export const wordSets = mysqlTable("word_sets", {
+  id: pk(),
+  title: varchar("title", { length: 191 }).notNull(),
+  description: varchar("description", { length: 1000 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const wordSetItems = mysqlTable(
+  "word_set_items",
+  {
+    setId: int("set_id").notNull().references(() => wordSets.id, { onDelete: "cascade" }),
+    wordId: int("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
+    position: int("position").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.setId, t.wordId] }), index("word_set_items_word").on(t.wordId)],
+);
