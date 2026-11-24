@@ -29,10 +29,6 @@ export default async function Shell({ children, wide = false, full = false }: { 
         </Link>
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
         <SidebarNav tree={tree} />
-        <div className="mt-auto flex flex-col gap-3 pt-4 group-data-[collapsed=true]/sb:hidden">
-          <InstallApp />
-          <LogoutButton />
-        </div>
       </CollapsibleSidebar>
 
       {/* Mobile top bar */}

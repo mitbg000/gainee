@@ -6,17 +6,17 @@
 export const LOOK_COOKIE = "rl_look2"; // renamed when the defaults changed to the Quizlet-like palette, so everyone starts from it
 
 type Tokens = { paper: string; card: string; ink: string; muted: string; line: string; highlight: string };
-/** Page themes used in light mode. "clean" (default) follows Quizlet: cool grey page, white cards, navy text. */
+/** Page themes used in light mode. "clean" (default): Quizlet-like layout colours, toned down – soft grey page, white cards, slate text. */
 export const LIGHT: Record<string, Tokens> = {
-  clean: { paper: "#f6f7fb", card: "#ffffff", ink: "#282e3e", muted: "#586380", line: "#e1e4ee", highlight: "#ffe580" },
+  clean: { paper: "#f5f6f8", card: "#ffffff", ink: "#2a2f3a", muted: "#5f6675", line: "#e3e5ea", highlight: "#fbe7a1" },
   paper: { paper: "#faf7f1", card: "#ffffff", ink: "#1d2433", muted: "#6b7280", line: "#e7e1d6", highlight: "#fff1c2" },
   original: { paper: "#f5f5f7", card: "#ffffff", ink: "#1d1d1f", muted: "#6e6e73", line: "#e2e2e7", highlight: "#fff3a8" },
   sepia: { paper: "#f3e9d2", card: "#faf3e3", ink: "#4b3a26", muted: "#86715a", line: "#e2d3b4", highlight: "#f2d98a" },
   mint: { paper: "#e4efdf", card: "#f1f7ee", ink: "#25352a", muted: "#5d7162", line: "#cfdec8", highlight: "#f4e79c" },
 };
-/** Page themes used in dark mode. "midnight" (default) follows Quizlet's dark mode: deep indigo page, slate cards. */
+/** Page themes used in dark mode. "midnight" (default): neutral charcoal (no purple/blue cast), slightly lighter cards. */
 export const DARK: Record<string, Tokens> = {
-  midnight: { paper: "#0a092d", card: "#1a1d3f", ink: "#f6f7fb", muted: "#a0a8c3", line: "#2e3856", highlight: "#5c4a00" },
+  midnight: { paper: "#15171c", card: "#1e2128", ink: "#e8eaee", muted: "#9aa0ab", line: "#2d313a", highlight: "#57491f" },
   dusk: { paper: "#13161c", card: "#1b1f27", ink: "#e6e8ec", muted: "#9aa3b2", line: "#2b313c", highlight: "#5b4a14" },
   quiet: { paper: "#1c1c1e", card: "#2c2c2e", ink: "#ececf1", muted: "#9a9aa1", line: "#3a3a3c", highlight: "#5e4b17" },
   night: { paper: "#000000", card: "#111111", ink: "#d4d4d4", muted: "#878787", line: "#242424", highlight: "#4d3f10" },
@@ -24,7 +24,7 @@ export const DARK: Record<string, Tokens> = {
 };
 /** Accent (buttons, links, active items) + accent2 (labels), for light and dark. */
 export const ACCENTS: Record<string, { light: [string, string]; dark: [string, string] }> = {
-  indigo: { light: ["#4255ff", "#7b5cff"], dark: ["#8f9bff", "#c3b5ff"] },
+  indigo: { light: ["#4d5bc4", "#7466a8"], dark: ["#9ba5d6", "#b8b0d0"] },
   blue: { light: ["#1f4e79", "#c2410c"], dark: ["#7cb3e6", "#f59e5b"] },
   orange: { light: ["#c45500", "#1f4e79"], dark: ["#f0a24b", "#7cb3e6"] },
   teal: { light: ["#0f6b6b", "#b45309"], dark: ["#5fc4c0", "#f2a65a"] },

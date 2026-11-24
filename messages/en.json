@@ -280,8 +280,8 @@
         "quiet": "Quiet",
         "night": "Night (pure black)",
         "cocoa": "Cocoa",
-        "clean": "Clean (Quizlet-like)",
-        "midnight": "Midnight (Quizlet-like)"
+        "clean": "Soft light",
+        "midnight": "Charcoal (dark)"
       },
       "accent": "Accent colour",
       "accentHint": "Buttons, links, selected items. Left half: light mode, right half: dark mode.",
@@ -293,7 +293,7 @@
         "purple": "Purple",
         "rose": "Rose",
         "graphite": "Graphite",
-        "indigo": "Quizlet indigo"
+        "indigo": "Soft indigo"
       },
       "side": "Sidebar",
       "sideHint": "Colour of the left menu (and the top / bottom bars on phones).",
@@ -992,6 +992,10 @@
     "breadcrumbs": "Breadcrumbs",
     "part": "Part {n}: {title}",
     "lookup": "Quick look-up…",
-    "review": "Review"
+    "review": "Review",
+    "account": "Account",
+    "appearance": "Appearance",
+    "theme": "Light / dark",
+    "language": "Language"
   }
 }

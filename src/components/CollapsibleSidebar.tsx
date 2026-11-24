@@ -31,10 +31,8 @@ export default function CollapsibleSidebar({ children }: { children: React.React
         title={collapsed ? t("expand") : t("collapse")}
         className={`icon-btn mt-3 ${collapsed ? "mx-auto" : "self-end"}`}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <rect x="3" y="4" width="18" height="16" rx="3" />
-          <path d="M9 4v16" />
-          <path d={collapsed ? "M13 10l2 2-2 2" : "M16 10l-2 2 2 2"} />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d={collapsed ? "M9 6l6 6-6 6" : "M15 6l-6 6 6 6"} />
         </svg>
       </button>
     </aside>

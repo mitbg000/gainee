@@ -6,11 +6,11 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { TreeDoc } from "@/lib/documents/queries";
 import type { Theme } from "@/theme/config";
-import ThemeSwitcher from "./ThemeSwitcher";
+import UserMenu from "./UserMenu";
 import { NAV } from "./nav";
 import * as I from "./icons";
 
-/** Desktop top bar: where you are (breadcrumbs), quick word look-up, due reviews, light/dark and settings. */
+/** Desktop top bar, kept minimal: where you are (breadcrumbs), quick look-up, due reviews and the user menu. */
 export default function TopBar({ tree, due, theme }: { tree: TreeDoc[]; due: number; theme: Theme }) {
   const t = useTranslations("nav");
   const tt = useTranslations("topbar");
@@ -33,7 +33,7 @@ export default function TopBar({ tree, due, theme }: { tree: TreeDoc[]; due: num
   if (crumbs.length) delete crumbs[crumbs.length - 1].href; // the current page is not a link
 
   return (
-    <div className="chrome sticky top-0 z-30 hidden h-14 flex-none items-center gap-4 border-b border-line bg-paper/90 px-6 backdrop-blur md:flex">
+    <div className="chrome sticky top-0 z-30 hidden h-14 flex-none items-center gap-3 border-b border-line bg-card/90 px-6 backdrop-blur md:flex">
       <nav aria-label={tt("breadcrumbs")} className="min-w-0 flex-1">
         <ol className="flex min-w-0 items-center gap-1.5 text-sm">
           {crumbs.map((c, i) => (
@@ -60,21 +60,27 @@ export default function TopBar({ tree, due, theme }: { tree: TreeDoc[]; due: num
           if (q.trim()) router.push(`/dictionary?q=${encodeURIComponent(q.trim())}`);
           setQ("");
         }}
-        className="relative hidden w-56 lg:block xl:w-72"
+        className="relative hidden w-52 lg:block xl:w-64"
       >
-        <I.IconDict className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tt("lookup")} aria-label={tt("lookup")} className="field field-sm w-full pl-8" />
+        <I.IconDict className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={tt("lookup")}
+          aria-label={tt("lookup")}
+          className="h-9 w-full rounded-full border border-transparent bg-ink/5 pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted focus:border-accent focus:bg-card"
+        />
       </form>
 
-      <Link href="/review" className="btn btn-sm btn-secondary relative" title={t("review")}>
-        <I.IconCards className="h-4 w-4" />
-        <span className="hidden lg:inline">{tt("review")}</span>
-        {due > 0 && <span className="rounded-full bg-accent px-1.5 text-[11px] font-bold tabular-nums text-on-accent">{due > 99 ? "99+" : due}</span>}
+      <Link href="/review" className="icon-btn relative" aria-label={`${t("review")}${due ? ` (${due})` : ""}`} title={t("review")}>
+        <I.IconCards />
+        {due > 0 && (
+          <span className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-accent px-1 text-center text-[10px] font-bold leading-[18px] tabular-nums text-on-accent">
+            {due > 99 ? "99+" : due}
+          </span>
+        )}
       </Link>
-      <ThemeSwitcher initial={theme} />
-      <Link href="/settings" className="icon-btn" aria-label={t("settings")} title={t("settings")}>
-        <I.IconGear />
-      </Link>
+      <UserMenu theme={theme} />
     </div>
   );
 }

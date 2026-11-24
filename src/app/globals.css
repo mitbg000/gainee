@@ -13,28 +13,28 @@ select {
 }
 
 :root {
-  --paper: #f6f7fb;
+  --paper: #f5f6f8;
   --card: #ffffff;
-  --ink: #282e3e;
-  --muted: #586380;
-  --line: #e1e4ee;
-  --accent: #4255ff;
+  --ink: #2a2f3a;
+  --muted: #5f6675;
+  --line: #e3e5ea;
+  --accent: #4d5bc4;
   --on-accent: #ffffff;
-  --accent2: #7b5cff;
-  --highlight: #ffe580;
+  --accent2: #7466a8;
+  --highlight: #fbe7a1;
   color-scheme: light;
 }
 
 .dark {
-  --paper: #0a092d;
-  --card: #1a1d3f;
-  --ink: #f6f7fb;
-  --muted: #a0a8c3;
-  --line: #2e3856;
-  --accent: #8f9bff;
-  --on-accent: #0a092d;
-  --accent2: #c3b5ff;
-  --highlight: #5c4a00;
+  --paper: #15171c;
+  --card: #1e2128;
+  --ink: #e8eaee;
+  --muted: #9aa0ab;
+  --line: #2d313a;
+  --accent: #9ba5d6;
+  --on-accent: #15171c;
+  --accent2: #b8b0d0;
+  --highlight: #57491f;
   color-scheme: dark;
 }
 
