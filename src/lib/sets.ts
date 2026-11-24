@@ -2,6 +2,7 @@
 import { asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
+import { imagesForWords } from "./images";
 import { addWord, updateWord } from "./words";
 
 const { words, wordSets, wordSetItems, lessons, documents } = schema;
@@ -28,12 +29,17 @@ export async function textSets() {
     .orderBy(desc(sql`max(${words.id})`));
 }
 
+async function withImages<T extends { id: number }>(cards: T[]) {
+  const imgs = await imagesForWords(cards.map((c) => c.id));
+  return cards.map((c) => ({ ...c, images: imgs.get(c.id) ?? [] }));
+}
+
 export async function getSet(id: number) {
   const db = getDb();
   const [set] = await db.select().from(wordSets).where(eq(wordSets.id, id));
   if (!set) return null;
   const cards = await db.select(CARD_FIELDS).from(wordSetItems).innerJoin(words, eq(words.id, wordSetItems.wordId)).where(eq(wordSetItems.setId, id)).orderBy(asc(wordSetItems.position));
-  return { ...set, cards };
+  return { ...set, cards: await withImages(cards) };
 }
 
 export async function getTextSet(documentId: number) {
@@ -41,7 +47,7 @@ export async function getTextSet(documentId: number) {
   const [doc] = await db.select({ id: documents.id, title: documents.title }).from(documents).where(eq(documents.id, documentId));
   if (!doc) return null;
   const cards = await db.select(CARD_FIELDS).from(words).innerJoin(lessons, eq(words.lessonId, lessons.id)).where(eq(lessons.documentId, documentId)).orderBy(asc(lessons.position), asc(words.id));
-  return { ...doc, cards };
+  return { ...doc, cards: await withImages(cards) };
 }
 
 /** One row of the set editor: an existing word (id) with possibly edited fields, or a new card. */
@@ -60,7 +66,8 @@ export const SetInput = z.object({
   wordIds: z.array(z.number().int().positive()).max(5000).optional(),
 });
 
-/** Create or replace a set: new cards become saved words, edited ones are updated, order is kept. */
+/** Create or replace a set: new cards become saved words, edited ones are updated, order is kept.
+ *  Returns the set id and the word id of each card (same order), so the editor can attach images to new cards. */
 export async function saveSet(id: number | null, input: z.infer<typeof SetInput>) {
   const db = getDb();
   const meta = { title: input.title, description: input.description || null };
@@ -89,7 +96,7 @@ export async function saveSet(id: number | null, input: z.infer<typeof SetInput>
       if (rows.length) await tx.insert(wordSetItems).values(rows);
     });
   }
-  return setId!;
+  return { id: setId!, wordIds: input.cards ? ids! : [] };
 }
 
 export const deleteSet = (id: number) => getDb().delete(wordSets).where(eq(wordSets.id, id));

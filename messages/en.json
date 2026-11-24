@@ -1069,6 +1069,9 @@
       "dash": "Dash"
     },
     "importN": "Import {n} cards",
-    "searchSaved": "Search saved words…"
+    "searchSaved": "Search saved words…",
+    "image": "Image",
+    "imageHint": "Choose an image, or paste (Ctrl/Cmd+V) / drop one here – PNG, JPG, GIF, WebP up to 8 MB",
+    "removeImage": "Remove image"
   }
 }

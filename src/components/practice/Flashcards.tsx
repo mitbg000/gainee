@@ -100,6 +100,10 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
   );
   const meaningSide = (
     <>
+      {w.images?.[0] && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={w.images[0].url} alt="" className="mb-3 max-h-36 max-w-[60%] rounded-lg object-contain" />
+      )}
       <span className="text-2xl font-semibold text-accent">{meaningOf(w) || "—"}</span>
       {w.meaningVi && w.definitionEn && <span className="mt-2 max-w-md text-muted">{w.definitionEn}</span>}
       {(w.example || w.context) && <span className="mt-4 max-w-lg font-serif text-[15px] italic text-muted">“{w.example || w.context}”</span>}

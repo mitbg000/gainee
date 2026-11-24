@@ -7,17 +7,19 @@ import * as I from "@/components/icons";
 import { parseImport } from "./importText";
 
 // picked: added from saved words, whose other fields were not loaded, so only what was edited is sent
-type Row = { key: string; id?: number; term: string; meaningVi: string; ipa: string; pos: string; example: string; more?: boolean; picked?: string };
+type Img = { id: number; url: string };
+// images: already on the saved word; files: chosen for a card that is not saved yet (uploaded after "Create")
+type Row = { key: string; id?: number; term: string; meaningVi: string; ipa: string; pos: string; example: string; more?: boolean; picked?: string; images: Img[]; files: { url: string; file: File }[] };
 type Saved = { id: number; term: string; meaningVi: string | null; definitionEn: string | null };
 let seq = 0;
-const blank = (): Row => ({ key: `n${seq++}`, term: "", meaningVi: "", ipa: "", pos: "", example: "" });
+const blank = (): Row => ({ key: `n${seq++}`, term: "", meaningVi: "", ipa: "", pos: "", example: "", images: [], files: [] });
 
 /** Create or edit a study set the Quizlet way: numbered term/definition cards, paste-import and saved-word picker. */
 export default function SetEditor({
   initial,
   saved,
 }: {
-  initial?: { id: number; title: string; description: string | null; cards: { id: number; term: string; meaningVi: string | null; ipa: string | null; pos: string | null; example: string | null }[] };
+  initial?: { id: number; title: string; description: string | null; cards: { id: number; term: string; meaningVi: string | null; ipa: string | null; pos: string | null; example: string | null; images: Img[] }[] };
   saved: Saved[];
 }) {
   const t = useTranslations("sets");
@@ -26,7 +28,7 @@ export default function SetEditor({
   const [description, setDescription] = useState(initial?.description ?? "");
   const [rows, setRows] = useState<Row[]>(() =>
     initial?.cards.length
-      ? initial.cards.map((c) => ({ key: `w${c.id}`, id: c.id, term: c.term, meaningVi: c.meaningVi ?? "", ipa: c.ipa ?? "", pos: c.pos ?? "", example: c.example ?? "" }))
+      ? initial.cards.map((c) => ({ key: `w${c.id}`, id: c.id, term: c.term, meaningVi: c.meaningVi ?? "", ipa: c.ipa ?? "", pos: c.pos ?? "", example: c.example ?? "", images: c.images, files: [] }))
       : [blank(), blank(), blank()],
   );
   const [panel, setPanel] = useState<"import" | "pick" | null>(null);
@@ -67,9 +69,20 @@ export default function SetEditor({
       ),
     };
     const r = await fetch(initial ? `/api/sets/${initial.id}` : "/api/sets", { method: initial ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
+    if (!r?.ok) {
+      setBusy(false);
+      return setError(true);
+    }
+    const res = (await r.json()) as { id: number; wordIds: number[] };
+    // images picked for new cards go to the words just created
+    for (const [k, row] of filled.entries())
+      for (const f of row.files) {
+        const fd = new FormData();
+        fd.set("file", f.file);
+        await fetch(`/api/words/${res.wordIds[k]}/images`, { method: "POST", body: fd }).catch(() => null);
+      }
     setBusy(false);
-    if (!r?.ok) return setError(true);
-    router.push(`/words/sets/${(await r.json()).id}`);
+    router.push(`/words/sets/${res.id}`);
     router.refresh();
   }
 
@@ -120,7 +133,7 @@ export default function SetEditor({
           saved={saved}
           chosen={new Set(rows.map((r) => r.id).filter(Boolean) as number[])}
           onAdd={(w) =>
-            setRows((rs) => [...rs.filter((r) => r.term.trim() || r.meaningVi.trim()), { key: `w${w.id}`, id: w.id, term: w.term, meaningVi: w.meaningVi ?? "", ipa: "", pos: "", example: "", picked: w.meaningVi ?? "" }])
+            setRows((rs) => [...rs.filter((r) => r.term.trim() || r.meaningVi.trim()), { key: `w${w.id}`, id: w.id, term: w.term, meaningVi: w.meaningVi ?? "", ipa: "", pos: "", example: "", picked: w.meaningVi ?? "", images: [], files: [] }])
           }
         />
       )}
@@ -146,7 +159,7 @@ export default function SetEditor({
                 </button>
               </span>
             </div>
-            <div className="grid gap-4 px-4 py-4 md:grid-cols-2">
+            <div className="grid items-start gap-4 px-4 py-4 md:grid-cols-[1fr_1fr_9.5rem]">
               <Field label={t("term")} value={r.term} onChange={(v) => set(r.key, { term: v })} autoFocus={focusNext.current === r.key} />
               <Field
                 label={t("definition")}
@@ -160,11 +173,12 @@ export default function SetEditor({
                   }
                 }}
               />
+              <ImageSlot row={r} onChange={(patch) => set(r.key, patch)} />
               {r.more && (
                 <>
                   <Field label={t("ipa")} value={r.ipa} onChange={(v) => set(r.key, { ipa: v })} />
                   <Field label={t("pos")} value={r.pos} onChange={(v) => set(r.key, { pos: v })} />
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-3">
                     <Field label={t("example")} value={r.example} onChange={(v) => set(r.key, { example: v })} />
                   </div>
                 </>
@@ -189,9 +203,91 @@ export default function SetEditor({
 function Field({ label, value, onChange, onKeyDown, autoFocus }: { label: string; value: string; onChange: (v: string) => void; onKeyDown?: React.KeyboardEventHandler; autoFocus?: boolean }) {
   return (
     <label className="block">
-      <input autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)} onKeyDown={onKeyDown} className="w-full border-b-2 border-line bg-transparent pb-1 outline-none transition-colors focus:border-accent" />
-      <span className="mt-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">{label}</span>
+      <input
+        autoFocus={autoFocus}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
+        className="w-full rounded-lg border-b-2 border-transparent bg-paper px-4 py-3 outline-none transition-colors focus:border-accent"
+      />
+      <span className="mt-1.5 block px-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{label}</span>
     </label>
+  );
+}
+
+/**
+ * The picture of a card (Quizlet's "Image" box): click to choose, or paste / drop an image.
+ * A saved word gets it at once; a new card keeps it until the set is created.
+ */
+function ImageSlot({ row, onChange }: { row: Row; onChange: (patch: Partial<Row>) => void }) {
+  const t = useTranslations("sets");
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  async function addFiles(list: File[]) {
+    const files = list.filter((f) => f.type.startsWith("image/"));
+    if (!files.length) return;
+    setFailed(false);
+    if (!row.id) return onChange({ files: [...row.files, ...files.map((file) => ({ file, url: URL.createObjectURL(file) }))] });
+    setBusy(true);
+    const added: Img[] = [];
+    for (const f of files) {
+      const fd = new FormData();
+      fd.set("file", f);
+      const r = await fetch(`/api/words/${row.id}/images`, { method: "POST", body: fd }).catch(() => null);
+      if (r?.ok) added.push(await r.json());
+      else setFailed(true);
+    }
+    setBusy(false);
+    onChange({ images: [...row.images, ...added] });
+  }
+  async function removeSaved(img: Img) {
+    onChange({ images: row.images.filter((x) => x.id !== img.id) });
+    await fetch(`/api/words/${row.id}/images/${img.id}`, { method: "DELETE" }).catch(() => null);
+  }
+  const shown = [...row.images.map((i) => ({ url: i.url, remove: () => removeSaved(i) })), ...row.files.map((f) => ({ url: f.url, remove: () => onChange({ files: row.files.filter((x) => x !== f) }) }))];
+  return (
+    <div
+      className="flex gap-2 md:justify-end"
+      onPaste={(e) => {
+        const files = [...e.clipboardData.files];
+        if (files.length) {
+          e.preventDefault();
+          addFiles(files);
+        }
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        addFiles([...e.dataTransfer.files]);
+      }}
+    >
+      {/* one thumbnail like Quizlet; "+n" when the word has more pictures */}
+      {shown.slice(0, 1).map((im) => (
+        <span key={im.url} className="group relative size-[4.5rem] flex-none overflow-hidden rounded-lg border border-line bg-paper">
+          {shown.length > 1 && <span className="absolute bottom-1 left-1 rounded bg-card/90 px-1 text-[10px] font-bold">+{shown.length - 1}</span>}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={im.url} alt="" className="size-full object-cover" />
+          <button
+            type="button"
+            onClick={im.remove}
+            aria-label={t("removeImage")}
+            title={t("removeImage")}
+            className="absolute right-1 top-1 flex size-7 items-center justify-center rounded-full bg-card/90 text-ink shadow hover:text-red-600 [&_svg]:size-4"
+          >
+            <I.IconTrash />
+          </button>
+        </span>
+      ))}
+      <label
+        tabIndex={0}
+        title={t("imageHint")}
+        className={`flex size-[4.5rem] flex-none cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed text-xs font-semibold transition-colors focus:border-accent focus:outline-none ${failed ? "border-red-400 text-red-600" : "border-line text-muted hover:border-accent hover:text-accent"}`}
+      >
+        <I.IconImage className="h-5 w-5" />
+        {busy ? "…" : t("image")}
+        <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple className="sr-only" onChange={(e) => (addFiles([...(e.target.files ?? [])]), (e.target.value = ""))} />
+      </label>
+    </div>
   );
 }
 

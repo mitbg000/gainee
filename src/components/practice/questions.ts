@@ -10,6 +10,7 @@ export type PWord = {
   mnemonic?: string | null;
   lapses?: number; // FSRS: times forgotten in review
   reps?: number;
+  images?: { id: number; url: string }[];
 };
 export const MODES = ["mix", "meaning", "term", "spell", "cloze"] as const;
 export type Mode = (typeof MODES)[number];

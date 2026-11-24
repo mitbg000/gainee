@@ -12,8 +12,7 @@ export async function PUT(req: Request, { params }: Ctx) {
   if (!(await getSet(id))) return bad("not_found", 404);
   const [data, err] = await parseBody(req, SetInput);
   if (err) return err;
-  await saveSet(id, data);
-  return NextResponse.json({ id });
+  return NextResponse.json(await saveSet(id, data));
 }
 
 /** Delete the set; its words stay in the notebook. */

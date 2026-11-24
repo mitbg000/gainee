@@ -8,5 +8,5 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   const [data, err] = await parseBody(req, SetInput);
   if (err) return err;
-  return NextResponse.json({ id: await saveSet(null, data) }, { status: 201 });
+  return NextResponse.json(await saveSet(null, data), { status: 201 });
 }

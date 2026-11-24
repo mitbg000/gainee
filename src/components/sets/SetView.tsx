@@ -203,6 +203,10 @@ function Viewer({ cards }: { cards: SetCardData[] }) {
             {c.ipa && <span className="mt-2 text-muted">{c.ipa}</span>}
           </span>
           <span className={`${face} [transform:rotateY(180deg)]`}>
+            {c.images?.[0] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={c.images[0].url} alt="" className="mb-3 max-h-36 max-w-[60%] rounded-lg object-contain" />
+            )}
             <span className="text-2xl font-semibold">{meaningOf(c) || "—"}</span>
             {c.example && <span className="mt-3 max-w-lg font-serif italic text-muted">“{c.example}”</span>}
           </span>
@@ -264,6 +268,10 @@ function TermRow({ card, onSaved }: { card: SetCardData; onSaved: (c: SetCardDat
             {(card.ipa || card.pos) && <p className="text-xs text-muted">{[card.pos, card.ipa].filter(Boolean).join(" ")}</p>}
           </div>
           <p className="min-w-0 flex-1">{meaningOf(card) || <span className="text-muted">—</span>}</p>
+          {card.images?.[0] && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={card.images[0].url} alt="" loading="lazy" className="size-14 flex-none rounded-lg object-cover" />
+          )}
           <span className="flex flex-none gap-0.5">
             <button onClick={() => speak(card.term)} className="icon-btn" aria-label={t("listen")}>
               <I.IconSpeaker />
