@@ -1,5 +1,5 @@
 /** Spaced repetition of saved words with FSRS (ts-fsrs). */
-import { and, asc, count, eq, lte, sql } from "drizzle-orm";
+import { and, asc, count, eq, gt, lte, sql } from "drizzle-orm";
 import { fsrs, type Card, type Grade } from "ts-fsrs";
 import { getDb, schema } from "@/db";
 import { addXp, bumpActivity } from "./activity";
@@ -27,31 +27,49 @@ function toCard(w: WordRow): Card {
   } as Card;
 }
 
+/** Time until the card is due again for each rating (Again, Hard, Good, Easy), in ms – shown on the rating buttons like Anki. */
+function preview(c: Card, now = new Date()) {
+  const r = scheduler.repeat(c, now);
+  return ([1, 2, 3, 4] as Grade[]).map((g) => r[g].card.due.getTime() - now.getTime());
+}
+
 const dueFilter = (documentId?: number) =>
   and(eq(words.suspended, false), lte(words.due, new Date()), documentId ? eq(lessons.documentId, documentId) : undefined);
 
 /** Words due now (oldest first), optionally only from one text. */
 export async function dueWords(documentId?: number, limit = 50) {
   const rows = await getDb()
-    .select({
-      id: words.id,
-      term: words.term,
-      ipa: words.ipa,
-      pos: words.pos,
-      meaningVi: words.meaningVi,
-      definitionEn: words.definitionEn,
-      example: words.example,
-      note: words.note,
-      context: words.context,
-      state: words.state,
-    })
+    .select({ w: words })
     .from(words)
     .leftJoin(lessons, eq(words.lessonId, lessons.id))
     .where(dueFilter(documentId))
     .orderBy(asc(words.due))
     .limit(limit);
-  const images = await imagesForWords(rows.map((r) => r.id));
-  return rows.map((r) => ({ ...r, images: (images.get(r.id) ?? []).map((i) => i.url) }));
+  const images = await imagesForWords(rows.map((r) => r.w.id));
+  return rows.map(({ w }) => ({
+    id: w.id,
+    term: w.term,
+    ipa: w.ipa,
+    pos: w.pos,
+    meaningVi: w.meaningVi,
+    definitionEn: w.definitionEn,
+    example: w.example,
+    note: w.note,
+    mnemonic: w.mnemonic,
+    context: w.context,
+    state: w.state,
+    next: preview(toCard(w)),
+    images: (images.get(w.id) ?? []).map((i) => i.url),
+  }));
+}
+
+/** Words that fall due within the next day (not yet due now) – "tomorrow" on the review page. */
+export async function dueSoon() {
+  const [r] = await getDb()
+    .select({ n: count() })
+    .from(words)
+    .where(and(eq(words.suspended, false), gt(words.due, new Date()), lte(words.due, new Date(Date.now() + 24 * 3600_000))));
+  return r?.n ?? 0;
 }
 
 /** Due counts per text (texts without due words are left out); `null` id = words not tied to a text. */
@@ -90,5 +108,5 @@ export async function gradeWord(id: number, rating: Grade, mode: ReviewMode, dur
   await db.insert(reviewLogs).values({ wordId: id, rating, mode, stateBefore: w.state, durationMs: durationMs ?? null });
   await bumpActivity({ reviews: 1 });
   await addXp("review", 1, { type: "word", id });
-  return { due: card.due };
+  return { due: card.due, state: card.state, next: preview(card, now) };
 }

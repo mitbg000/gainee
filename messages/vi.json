@@ -669,7 +669,26 @@
       "2": "Khó",
       "3": "Nhớ",
       "4": "Dễ"
-    }
+    },
+    "soon": "{n, plural, =0 {24 giờ tới không có thêm} other {# từ sẽ đến hạn trong 24 giờ tới}}",
+    "kind": {
+      "new": "mới",
+      "learn": "đang học",
+      "review": "ôn"
+    },
+    "ivl": {
+      "lt1": "<1 ph",
+      "min": "{n} ph",
+      "hour": "{n} giờ",
+      "day": "{n} ngày",
+      "month": "{n} tháng",
+      "year": "{n} năm"
+    },
+    "hint": "Gợi ý",
+    "keysShow": "Space: hiện đáp án · H: gợi ý · R: nghe",
+    "keysRate": "1 Quên · 2 Khó · 3 Nhớ · 4 Dễ · Space: Nhớ",
+    "doneTip": "Hệ thống (FSRS, giống Anki) sẽ đưa từ quay lại đúng lúc bạn sắp quên. Muốn luyện thêm thì dùng Luyện từ – không ảnh hưởng lịch ôn.",
+    "toPractice": "Luyện thêm"
   },
   "progress": {
     "title": "Tiến độ",
@@ -765,11 +784,11 @@
   },
   "practice": {
     "title": "Luyện từ đã lưu",
-    "intro": "Làm trắc nghiệm với các từ bạn đã lưu. Phần này không ảnh hưởng lịch ôn tập.",
+    "intro": "Học và luyện các từ đã lưu theo kiểu Quizlet. Phần này không đổi lịch ôn – lịch ôn (kiểu Anki) nằm ở trang Ôn tập.",
     "all": "Tất cả",
     "empty": "Bạn chưa lưu từ nào. Hãy lưu từ khi đọc bài.",
     "modeLabel": "Kiểu luyện",
-    "sizeLabel": "Số câu",
+    "sizeLabel": "Số từ",
     "allWords": "Tất cả ({n})",
     "start": "Bắt đầu",
     "mode": {
@@ -802,7 +821,84 @@
     "wrongList": "Các từ làm sai",
     "retryWrong": "Luyện lại từ sai",
     "again": "Vòng mới",
-    "change": "Đổi kiểu luyện"
+    "change": "Đổi kiểu luyện",
+    "plan": {
+      "due": "{n} từ đến hạn ôn hôm nay",
+      "dueTip": "Nên ôn các từ đến hạn trước (vài phút): ôn đúng lúc sắp quên giúp nhớ lâu nhất. Sau đó học thêm ở đây.",
+      "review": "Ôn ngay",
+      "none": "Không có từ nào đến hạn ôn",
+      "noneTip": "Giờ là lúc học từ mới: dùng “Học” để nắm chắc từ, hoặc “Thẻ ghi nhớ” để lướt nhanh."
+    },
+    "activityLabel": "Chọn cách học",
+    "activity": {
+      "cards": "Thẻ ghi nhớ",
+      "learn": "Học",
+      "test": "Kiểm tra",
+      "match": "Ghép thẻ"
+    },
+    "activityHint": {
+      "cards": "Lật thẻ, tự đánh giá Đã biết / Đang học, lặp lại thẻ chưa thuộc",
+      "learn": "Từng vòng 7 từ: trắc nghiệm rồi tự gõ, sai thì hỏi lại đến khi thuộc",
+      "test": "Bài kiểm tra có điểm, được lưu vào biểu đồ Tiến độ",
+      "match": "Ghép từ với nghĩa nhanh nhất có thể, tính giờ"
+    },
+    "orderLabel": "Lấy từ nào",
+    "order": {
+      "recent": "Mới lưu",
+      "random": "Ngẫu nhiên",
+      "weak": "Hay quên"
+    },
+    "startActivity": "Bắt đầu {a}",
+    "cards": {
+      "know": "Đã biết",
+      "learning": "Đang học",
+      "flip": "Lật thẻ",
+      "listen": "Nghe",
+      "undo": "Quay lại",
+      "meaningFirst": "Hiện nghĩa trước",
+      "exit": "Thoát",
+      "keys": "Space: lật · ←: đang học · →: đã biết · R: nghe",
+      "roundDone": "Hết lượt! Học tiếp các thẻ chưa thuộc nhé",
+      "allKnown": "Tuyệt, bạn đã biết hết các thẻ!",
+      "goLearning": "Học tiếp {n} thẻ đang học",
+      "restart": "Làm lại từ đầu"
+    },
+    "learn": {
+      "notStudied": "Chưa học",
+      "learning": "Đang học",
+      "mastered": "Thành thạo",
+      "new": "Mới",
+      "ask": {
+        "mcMeaning": "Chọn nghĩa đúng",
+        "mcTerm": "Chọn từ đúng",
+        "write": "Gõ từ tiếng Anh"
+      },
+      "listen": "Nghe",
+      "typeHere": "Gõ câu trả lời…",
+      "dontKnow": "Không biết?",
+      "check": "Kiểm tra",
+      "right": "Chính xác!",
+      "wrong": "Chưa đúng – đáp án:",
+      "hereIs": "Đáp án là:",
+      "comesBack": "Từ này sẽ được hỏi lại trong vòng này.",
+      "continue": "Tiếp tục",
+      "override": "Tôi đã đúng (lỗi gõ)",
+      "round": "Vòng {n} · còn {left} câu",
+      "exit": "Thoát",
+      "roundDone": "Xong vòng {n}!",
+      "progress": "Đã thành thạo {done}/{total} từ",
+      "finished": "Bạn đã thành thạo cả {n} từ!",
+      "finishedTip": "Các từ này sẽ quay lại trong Ôn tập đúng lúc bạn sắp quên.",
+      "again": "Học lại từ đầu"
+    },
+    "match": {
+      "best": "Kỷ lục: {s}s",
+      "done": "Xong trong {s} giây!",
+      "record": "Kỷ lục mới!",
+      "again": "Chơi lại",
+      "exit": "Thoát",
+      "tooFew": "Cần ít nhất 2 từ có nghĩa để chơi."
+    }
   },
   "writing": {
     "title": "Luyện Writing",

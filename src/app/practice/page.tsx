@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import WordPractice from "@/components/practice/WordPractice";
 import { getDb, schema } from "@/db";
+import { dueByDocument } from "@/lib/review";
 
 export const dynamic = "force-dynamic";
 const { words, lessons, documents } = schema;
@@ -13,7 +14,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
   const t = await getTranslations("practice");
   const doc = Number((await searchParams).doc) || null;
   const rows = await getDb()
-    .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, context: words.context, docId: documents.id, docTitle: documents.title })
+    .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, context: words.context, example: words.example, mnemonic: words.mnemonic, lapses: words.lapses, reps: words.reps, docId: documents.id, docTitle: documents.title })
     .from(words)
     .leftJoin(lessons, eq(words.lessonId, lessons.id))
     .leftJoin(documents, eq(lessons.documentId, documents.id))
@@ -21,6 +22,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
     .orderBy(desc(words.id))
     .limit(3000);
 
+  const due = (await dueByDocument()).reduce((a, g) => a + g.n, 0);
   const groups = new Map<number, { title: string; n: number }>();
   for (const r of rows) if (r.docId) groups.set(r.docId, { title: r.docTitle!, n: (groups.get(r.docId)?.n ?? 0) + 1 });
   const pool = doc ? rows.filter((r) => r.docId === doc) : rows;
@@ -43,7 +45,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
         </div>
       )}
       <div className="mt-6">
-        <WordPractice key={doc ?? 0} words={pool} all={rows.map((r) => ({ term: r.term, meaning: r.meaningVi || r.definitionEn || "" }))} />
+        <WordPractice key={doc ?? 0} words={pool} all={rows.map((r) => ({ term: r.term, meaning: r.meaningVi || r.definitionEn || "" }))} due={due} />
       </div>
     </Shell>
   );

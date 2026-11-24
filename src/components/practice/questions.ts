@@ -1,14 +1,26 @@
-export type PWord = { id: number; term: string; ipa: string | null; pos: string | null; meaningVi: string | null; definitionEn: string | null; context: string | null };
+export type PWord = {
+  id: number;
+  term: string;
+  ipa: string | null;
+  pos: string | null;
+  meaningVi: string | null;
+  definitionEn: string | null;
+  context: string | null;
+  example?: string | null;
+  mnemonic?: string | null;
+  lapses?: number; // FSRS: times forgotten in review
+  reps?: number;
+};
 export const MODES = ["mix", "meaning", "term", "spell", "cloze"] as const;
 export type Mode = (typeof MODES)[number];
 type Kind = Exclude<Mode, "mix">;
 export type Question = { kind: Kind; word: PWord; options?: string[]; answer: string; prompt?: string };
 
-const meaningOf = (w: { meaningVi?: string | null; definitionEn?: string | null }) => (w.meaningVi || w.definitionEn || "").trim();
-const norm = (s: string) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
+export const meaningOf = (w: { meaningVi?: string | null; definitionEn?: string | null }) => (w.meaningVi || w.definitionEn || "").trim();
+export const norm = (s: string) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-function shuffle<T>(xs: T[]): T[] {
+export function shuffle<T>(xs: T[]): T[] {
   const a = [...xs];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -25,7 +37,7 @@ export function clozeOf(w: PWord): string | null {
 }
 
 /** 3 wrong options + the right one, in random order; null if there are not enough distinct values. */
-function options(right: string, pool: string[]): string[] | null {
+export function options(right: string, pool: string[]): string[] | null {
   const others = shuffle([...new Set(pool.filter((x) => x && norm(x) !== norm(right)))]).slice(0, 3);
   return others.length < 3 ? null : shuffle([right, ...others]);
 }

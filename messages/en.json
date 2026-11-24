@@ -669,7 +669,26 @@
       "2": "Hard",
       "3": "Good",
       "4": "Easy"
-    }
+    },
+    "soon": "{n, plural, =0 {nothing more in the next 24 h} other {# more due in the next 24 h}}",
+    "kind": {
+      "new": "new",
+      "learn": "learning",
+      "review": "review"
+    },
+    "ivl": {
+      "lt1": "<1 min",
+      "min": "{n} min",
+      "hour": "{n} h",
+      "day": "{n} d",
+      "month": "{n} mo",
+      "year": "{n} y"
+    },
+    "hint": "Hint",
+    "keysShow": "Space: show answer · H: hint · R: listen",
+    "keysRate": "1 Again · 2 Hard · 3 Good · 4 Easy · Space: Good",
+    "doneTip": "The scheduler (FSRS, as in Anki) brings words back just before you'd forget them. For extra practice use Practice – it doesn't change the schedule.",
+    "toPractice": "Practise more"
   },
   "progress": {
     "title": "Progress",
@@ -765,11 +784,11 @@
   },
   "practice": {
     "title": "Practise saved words",
-    "intro": "Quizzes with the words you saved. This does not change your review schedule.",
+    "intro": "Study and practise your saved words Quizlet-style. This doesn't change the review schedule – that (Anki-style) is on the Review page.",
     "all": "All",
     "empty": "No saved words yet. Save words while reading.",
     "modeLabel": "Practice type",
-    "sizeLabel": "Questions",
+    "sizeLabel": "How many",
     "allWords": "All ({n})",
     "start": "Start",
     "mode": {
@@ -802,7 +821,84 @@
     "wrongList": "Words you missed",
     "retryWrong": "Practise missed words",
     "again": "New round",
-    "change": "Change type"
+    "change": "Change type",
+    "plan": {
+      "due": "{n} words due for review today",
+      "dueTip": "Review due words first (a few minutes): reviewing just before you forget makes memories last. Then study more here.",
+      "review": "Review now",
+      "none": "Nothing is due for review",
+      "noneTip": "A good time for new words: use “Learn” to really know them, or “Flashcards” for a quick pass."
+    },
+    "activityLabel": "Choose how to study",
+    "activity": {
+      "cards": "Flashcards",
+      "learn": "Learn",
+      "test": "Test",
+      "match": "Match"
+    },
+    "activityHint": {
+      "cards": "Flip cards, mark Know / Still learning, repeat the ones you don't know",
+      "learn": "Rounds of 7 words: multiple choice, then typing; misses come back until you know them",
+      "test": "A scored test, saved to the Progress chart",
+      "match": "Match words to meanings as fast as you can, timed"
+    },
+    "orderLabel": "Which words",
+    "order": {
+      "recent": "Recently saved",
+      "random": "Random",
+      "weak": "Often forgotten"
+    },
+    "startActivity": "Start {a}",
+    "cards": {
+      "know": "Know",
+      "learning": "Still learning",
+      "flip": "Flip card",
+      "listen": "Listen",
+      "undo": "Back",
+      "meaningFirst": "Show meaning first",
+      "exit": "Exit",
+      "keys": "Space: flip · ←: still learning · →: know · R: listen",
+      "roundDone": "Round done! Go through the ones you're still learning",
+      "allKnown": "Great, you know all the cards!",
+      "goLearning": "Study {n} still-learning cards",
+      "restart": "Start over"
+    },
+    "learn": {
+      "notStudied": "Not studied",
+      "learning": "Learning",
+      "mastered": "Mastered",
+      "new": "New",
+      "ask": {
+        "mcMeaning": "Choose the meaning",
+        "mcTerm": "Choose the word",
+        "write": "Type the English word"
+      },
+      "listen": "Listen",
+      "typeHere": "Type the answer…",
+      "dontKnow": "Don't know?",
+      "check": "Check",
+      "right": "Correct!",
+      "wrong": "Not quite – the answer:",
+      "hereIs": "The answer is:",
+      "comesBack": "You'll see this word again in this round.",
+      "continue": "Continue",
+      "override": "I was right (typo)",
+      "round": "Round {n} · {left} left",
+      "exit": "Exit",
+      "roundDone": "Round {n} done!",
+      "progress": "Mastered {done}/{total} words",
+      "finished": "You've mastered all {n} words!",
+      "finishedTip": "They'll come back in Review just before you'd forget them.",
+      "again": "Learn again"
+    },
+    "match": {
+      "best": "Best: {s}s",
+      "done": "Done in {s} seconds!",
+      "record": "New record!",
+      "again": "Play again",
+      "exit": "Exit",
+      "tooFew": "You need at least 2 words with a meaning to play."
+    }
   },
   "writing": {
     "title": "Writing practice",

@@ -1,95 +1,122 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
-import { speak } from "@/lib/speech";
-import { buildQuestions, isRight, MODES, type Mode, type PWord, type Question } from "./questions";
+import { useEffect, useState } from "react";
+import Flashcards from "./Flashcards";
+import Learn from "./Learn";
+import Match from "./Match";
+import Quiz from "./Quiz";
+import { MODES, shuffle, type Mode, type PWord } from "./questions";
 import * as I from "@/components/icons";
 
-/** Quiz with saved words: choose the meaning, choose the word, spell what you hear, or fill the sentence. */
-export default function WordPractice({ words, all }: { words: PWord[]; all: { term: string; meaning: string }[] }) {
+const ACTIVITIES = ["cards", "learn", "test", "match"] as const;
+type Activity = (typeof ACTIVITIES)[number];
+const ICON: Record<Activity, React.ReactNode> = { cards: <I.IconCards />, learn: <I.IconTarget />, test: <I.IconChecklist />, match: <I.IconSpark /> };
+const ORDERS = ["recent", "random", "weak"] as const;
+type Order = (typeof ORDERS)[number];
+
+function load<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
+  try {
+    const v = localStorage.getItem(key) as T | null;
+    return v && allowed.includes(v) ? v : fallback;
+  } catch {
+    return fallback;
+  }
+}
+const keep = (key: string, v: string) => {
+  try {
+    localStorage.setItem(key, v);
+  } catch {}
+};
+
+/** Study hub in the manner of Quizlet (flashcards, learn, test, match), with a study suggestion from the review schedule. */
+export default function WordPractice({ words, all, due }: { words: PWord[]; all: { term: string; meaning: string }[]; due: number }) {
   const t = useTranslations("practice");
+  const [activity, setActivity] = useState<Activity>("cards");
+  const [order, setOrder] = useState<Order>("recent");
   const [mode, setMode] = useState<Mode>("mix");
-  const [size, setSize] = useState(10);
-  const [qs, setQs] = useState<Question[] | null>(null);
-  const [i, setI] = useState(0);
-  const [given, setGiven] = useState<string | null>(null); // the answer for the current question, once given
-  const [typed, setTyped] = useState("");
-  const [wrong, setWrong] = useState<PWord[]>([]);
-  const input = useRef<HTMLInputElement>(null);
+  const [size, setSize] = useState(20);
+  const [running, setRunning] = useState<PWord[] | null>(null);
 
   useEffect(() => {
-    try {
-      const m = localStorage.getItem("practice_mode") as Mode | null;
-      if (m && MODES.includes(m)) setMode(m);
-    } catch {}
+    setActivity(load("practice_activity", ACTIVITIES, "cards"));
+    setOrder(load("practice_order", ORDERS, "recent"));
+    setMode(load("practice_mode", MODES, "mix"));
   }, []);
-
-  const q = qs?.[i];
-  // a finished round is saved once for the score chart on the Progress page
-  const posted = useRef<Question[] | null>(null);
-  useEffect(() => {
-    if (!qs || q || posted.current === qs) return;
-    posted.current = qs;
-    fetch("/api/practice/result", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: qs.length - wrong.length, total: qs.length, mode }) }).catch(() => {});
-  }, [qs, q, wrong.length, mode]);
-  useEffect(() => {
-    if (!q) return;
-    if (q.kind === "spell") speak(q.word.term);
-    if (q.kind === "spell" || q.kind === "cloze") setTimeout(() => input.current?.focus(), 50);
-  }, [q]);
-
-  function start(list: PWord[]) {
-    setQs(buildQuestions(list, all, mode, size));
-    setI(0);
-    setGiven(null);
-    setTyped("");
-    setWrong([]);
-  }
-  function answer(a: string) {
-    if (!q || given !== null) return;
-    setGiven(a);
-    if (!isRight(q, a)) setWrong((w) => [...w, q.word]);
-    if (q.kind !== "spell") speak(q.word.term);
-  }
-  function next() {
-    setGiven(null);
-    setTyped("");
-    setI((n) => n + 1);
-  }
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!q) return;
-      if (given !== null && e.key === "Enter") return (e.preventDefault(), next());
-      if (given === null && q.options && /^[1-4]$/.test(e.key) && !(e.target as HTMLElement).closest("input")) answer(q.options[Number(e.key) - 1] ?? "");
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  });
 
   if (words.length === 0) return <p className="text-muted">{t("empty")}</p>;
 
-  /* ---------- setup ---------- */
-  if (!qs)
-    return (
-      <div className="space-y-5 rounded-2xl border border-line bg-card p-5">
+  function start() {
+    const list =
+      order === "random"
+        ? shuffle(words)
+        : order === "weak"
+          ? // forgotten most in review first, then the least practised
+            [...words].sort((a, b) => (b.lapses ?? 0) - (a.lapses ?? 0) || (a.reps ?? 0) - (b.reps ?? 0))
+          : words; // already newest first
+    setRunning(list.slice(0, activity === "match" ? Math.max(size, 6) : size || list.length));
+  }
+  const exit = () => setRunning(null);
+
+  if (running) {
+    if (activity === "cards") return <Flashcards words={running} onExit={exit} />;
+    if (activity === "learn") return <Learn words={running} all={all} onExit={exit} />;
+    if (activity === "match") return <Match words={running} onExit={exit} />;
+    return <Quiz words={shuffle(running)} all={all} mode={mode} onExit={exit} />;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* what to do first, Anki style: due reviews before new learning */}
+      <div className={`flex flex-wrap items-center gap-3 rounded-2xl border p-4 ${due ? "border-accent/40 bg-accent/5" : "border-line bg-card"}`}>
+        <span className="text-2xl">{due ? "⏰" : "✅"}</span>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold">{due ? t("plan.due", { n: due }) : t("plan.none")}</p>
+          <p className="text-sm text-muted">{due ? t("plan.dueTip") : t("plan.noneTip")}</p>
+        </div>
+        {due > 0 && (
+          <Link href="/review" className="btn btn-primary">
+            {t("plan.review")}
+          </Link>
+        )}
+      </div>
+
+      <div>
+        <p className="mb-2 text-sm font-semibold">{t("activityLabel")}</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {ACTIVITIES.map((a) => (
+            <button
+              key={a}
+              onClick={() => {
+                setActivity(a);
+                keep("practice_activity", a);
+              }}
+              aria-pressed={activity === a}
+              className={`flex flex-col items-start gap-2 rounded-2xl border-2 p-4 text-left transition-colors ${activity === a ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent/50"}`}
+            >
+              <span className={`flex size-10 items-center justify-center rounded-xl [&>svg]:size-5 ${activity === a ? "bg-accent text-on-accent" : "bg-paper text-accent"}`}>{ICON[a]}</span>
+              <b>{t(`activity.${a}`)}</b>
+              <span className="text-xs leading-snug text-muted">{t(`activityHint.${a}`)}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-5 rounded-2xl border border-line bg-card p-5 md:grid-cols-2">
         <div>
-          <p className="mb-2 text-sm font-semibold">{t("modeLabel")}</p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {MODES.map((m) => (
+          <p className="mb-2 text-sm font-semibold">{t("orderLabel")}</p>
+          <div className="flex flex-wrap gap-2">
+            {ORDERS.map((o) => (
               <button
-                key={m}
+                key={o}
                 onClick={() => {
-                  setMode(m);
-                  try {
-                    localStorage.setItem("practice_mode", m);
-                  } catch {}
+                  setOrder(o);
+                  keep("practice_order", o);
                 }}
-                className={`rounded-xl border p-3 text-left transition-colors ${mode === m ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent/50"}`}
+                className={`chip ${order === o ? "chip-on" : ""}`}
               >
-                <b className="text-sm">{t(`mode.${m}`)}</b>
-                <span className="block text-xs text-muted">{t(`modeHint.${m}`)}</span>
+                {t(`order.${o}`)}
               </button>
             ))}
           </div>
@@ -104,146 +131,32 @@ export default function WordPractice({ words, all }: { words: PWord[]; all: { te
             ))}
           </div>
         </div>
-        <button onClick={() => start(words)} className="btn btn-primary">
-          ▶ {t("start")}
-        </button>
-      </div>
-    );
-
-  /* ---------- result ---------- */
-  if (!q) {
-    const score = qs.length - wrong.length;
-    return (
-      <div className="rounded-2xl border border-line bg-card p-5">
-        <p className="font-serif text-3xl font-bold">
-          {score}/{qs.length} {score === qs.length ? "🎉" : score >= qs.length * 0.7 ? "👍" : "💪"}
-        </p>
-        {wrong.length > 0 && (
-          <>
-            <p className="mt-4 text-sm font-semibold">{t("wrongList")}</p>
-            <ul className="mt-2 space-y-1.5">
-              {wrong.map((w, k) => (
-                <li key={k} className="flex flex-wrap items-baseline gap-x-2 rounded-lg bg-paper px-3 py-2">
-                  <b>{w.term}</b>
-                  {w.ipa && <span className="text-sm text-muted">{w.ipa}</span>}
-                  <span className="text-sm">{w.meaningVi || w.definitionEn}</span>
-                </li>
+        {activity === "test" && (
+          <div className="md:col-span-2">
+            <p className="mb-2 text-sm font-semibold">{t("modeLabel")}</p>
+            <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {MODES.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => {
+                    setMode(m);
+                    keep("practice_mode", m);
+                  }}
+                  className={`rounded-xl border p-3 text-left transition-colors ${mode === m ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent/50"}`}
+                >
+                  <b className="text-sm">{t(`mode.${m}`)}</b>
+                  <span className="block text-xs text-muted">{t(`modeHint.${m}`)}</span>
+                </button>
               ))}
-            </ul>
-          </>
+            </div>
+          </div>
         )}
-        <div className="mt-5 flex flex-wrap gap-2">
-          {wrong.length > 0 && (
-            <button onClick={() => start([...new Map(wrong.map((w) => [w.id, w])).values()])} className="btn btn-primary">
-              ↻ {t("retryWrong")}
-            </button>
-          )}
-          <button onClick={() => start(words)} className="btn btn-secondary">
-            {t("again")}
-          </button>
-          <button onClick={() => setQs(null)} className="btn btn-secondary">
-            {t("change")}
+        <div className="md:col-span-2">
+          <button onClick={start} className="btn btn-lg btn-primary">
+            ▶ {t("startActivity", { a: t(`activity.${activity}`) })}
           </button>
         </div>
       </div>
-    );
-  }
-
-  /* ---------- question ---------- */
-  const right = given !== null && isRight(q, given);
-  const w = q.word;
-  return (
-    <div className="rounded-2xl border border-line bg-card p-5">
-      <div className="mb-4 flex items-center gap-3 text-sm text-muted">
-        <span>
-          {i + 1}/{qs.length}
-        </span>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-paper">
-          <div className="h-full bg-accent transition-all" style={{ width: `${(i / qs.length) * 100}%` }} />
-        </div>
-        <button onClick={() => setQs(null)} className="text-xs underline">
-          {t("stop")}
-        </button>
-      </div>
-
-      <p className="text-xs font-semibold uppercase tracking-wide text-accent2">{t(`ask.${q.kind}`)}</p>
-      <div className="mt-2 min-h-16">
-        {q.kind === "meaning" && (
-          <p className="flex flex-wrap items-baseline gap-x-2">
-            <span className="font-serif text-3xl font-bold">{w.term}</span>
-            {w.pos && <span className="text-sm font-semibold text-accent2">{w.pos}</span>}
-            {w.ipa && <span className="text-muted">{w.ipa}</span>}
-            <button onClick={() => speak(w.term)} className="text-lg" aria-label={t("listen")}>
-              <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
-            </button>
-          </p>
-        )}
-        {q.kind === "term" && <p className="text-xl font-semibold">{w.meaningVi || w.definitionEn}</p>}
-        {q.kind === "spell" && (
-          <p className="flex items-center gap-3">
-            <button onClick={() => speak(w.term)} className="flex h-14 w-14 items-center justify-center rounded-full border border-line text-2xl" aria-label={t("listen")}>
-              <I.IconSpeaker className="h-7 w-7" />
-            </button>
-            <span className="text-muted">{w.meaningVi || w.definitionEn}</span>
-          </p>
-        )}
-        {q.kind === "cloze" && <p className="font-serif text-xl leading-relaxed">{q.prompt}</p>}
-      </div>
-
-      {q.options ? (
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          {q.options.map((o, k) => {
-            const state = given === null ? "" : isRight(q, o) ? "border-green-500 bg-green-50 dark:bg-green-950/40" : o === given ? "border-red-400 bg-red-50 dark:bg-red-950/40" : "opacity-60";
-            return (
-              <button key={k} disabled={given !== null} onClick={() => answer(o)} className={`flex min-h-12 items-center gap-2 rounded-xl border border-line px-3 text-left ${state || "hover:border-accent"}`}>
-                <span className="text-xs text-muted">{k + 1}</span>
-                {o}
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (given === null) answer(typed);
-            else next();
-          }}
-          className="mt-4 flex gap-2"
-        >
-          <input
-            ref={input}
-            value={typed}
-            onChange={(e) => setTyped(e.target.value)}
-            readOnly={given !== null}
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            placeholder={t("typeHere")}
-            className={`min-h-12 flex-1 rounded-xl border bg-paper px-3 text-lg outline-none ${given === null ? "border-line focus:border-accent" : right ? "border-green-500" : "border-red-400"}`}
-          />
-          {given === null && (
-            <button disabled={!typed.trim()} className="btn btn-lg btn-primary">
-              {t("check")}
-            </button>
-          )}
-        </form>
-      )}
-
-      {given !== null && (
-        <div className="mt-4 rounded-xl bg-paper p-3">
-          <p className="font-semibold">{right ? `✅ ${t("right")}` : `❌ ${t("answerIs")}`}</p>
-          <p className="mt-1 flex flex-wrap items-baseline gap-x-2">
-            <b className="font-serif text-lg">{w.term}</b>
-            {w.ipa && <span className="text-sm text-muted">{w.ipa}</span>}
-            <span>{w.meaningVi || w.definitionEn}</span>
-          </p>
-          {w.context && <p className="mt-1 font-serif text-[15px] italic text-muted">“{w.context}”</p>}
-          <button onClick={next} autoFocus className="btn btn-primary mt-3">
-            {t("next")} ↵
-          </button>
-        </div>
-      )}
     </div>
   );
 }
