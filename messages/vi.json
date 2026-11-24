@@ -279,7 +279,9 @@
         "dusk": "Hoàng hôn",
         "quiet": "Yên tĩnh",
         "night": "Đêm (đen tuyền)",
-        "cocoa": "Ca cao"
+        "cocoa": "Ca cao",
+        "clean": "Sáng gọn (kiểu Quizlet)",
+        "midnight": "Đêm chàm (kiểu Quizlet)"
       },
       "accent": "Màu nhấn",
       "accentHint": "Nút, liên kết, mục đang chọn. Nửa trái: khi sáng, nửa phải: khi tối.",
@@ -290,7 +292,8 @@
         "green": "Xanh lá",
         "purple": "Tím",
         "rose": "Đỏ hồng",
-        "graphite": "Xám than"
+        "graphite": "Xám than",
+        "indigo": "Chàm Quizlet"
       },
       "side": "Thanh bên",
       "sideHint": "Màu của thanh menu bên trái (và thanh trên / dưới trên điện thoại).",

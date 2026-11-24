@@ -13,28 +13,28 @@ select {
 }
 
 :root {
-  --paper: #faf7f1;
+  --paper: #f6f7fb;
   --card: #ffffff;
-  --ink: #1d2433;
-  --muted: #6b7280;
-  --line: #e7e1d6;
-  --accent: #1f4e79;
+  --ink: #282e3e;
+  --muted: #586380;
+  --line: #e1e4ee;
+  --accent: #4255ff;
   --on-accent: #ffffff;
-  --accent2: #c2410c;
-  --highlight: #fff1c2;
+  --accent2: #7b5cff;
+  --highlight: #ffe580;
   color-scheme: light;
 }
 
 .dark {
-  --paper: #13161c;
-  --card: #1b1f27;
-  --ink: #e6e8ec;
-  --muted: #9aa3b2;
-  --line: #2b313c;
-  --accent: #7cb3e6;
-  --on-accent: #0b1220;
-  --accent2: #f59e5b;
-  --highlight: #5b4a14;
+  --paper: #0a092d;
+  --card: #1a1d3f;
+  --ink: #f6f7fb;
+  --muted: #a0a8c3;
+  --line: #2e3856;
+  --accent: #8f9bff;
+  --on-accent: #0a092d;
+  --accent2: #c3b5ff;
+  --highlight: #5c4a00;
   color-scheme: dark;
 }
 
@@ -93,7 +93,7 @@ select {
    Icons: 16px in text buttons, 18px in icon buttons. One focus ring everywhere.
    ===================================================================== */
 @utility btn {
-  @apply inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium whitespace-nowrap transition-colors select-none;
+  @apply inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap transition-colors select-none;
   @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
   @apply disabled:pointer-events-none disabled:opacity-40 aria-disabled:pointer-events-none aria-disabled:opacity-40;
   & svg {
@@ -107,10 +107,10 @@ select {
   @apply min-h-12 px-6 text-base;
 }
 @utility btn-primary {
-  @apply bg-accent text-on-accent shadow-sm hover:brightness-110 active:brightness-95;
+  @apply bg-accent text-on-accent hover:brightness-110 active:brightness-95;
 }
 @utility btn-secondary {
-  @apply border border-line bg-card text-ink hover:border-accent/40 hover:bg-paper;
+  @apply border-2 border-line bg-card text-ink hover:border-accent/40 hover:bg-paper;
 }
 @utility btn-outline {
   @apply border border-accent/50 bg-card text-accent hover:bg-accent/10;
@@ -298,4 +298,10 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Quizlet-like: titles and card words in the bold UI sans; the reading font stays for passages (regular weight). */
+.font-serif:is(.font-bold, .font-semibold) {
+  font-family: var(--ui-font);
+  letter-spacing: -0.01em;
 }

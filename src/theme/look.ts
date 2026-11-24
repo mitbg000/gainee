@@ -3,18 +3,20 @@
  * Kept in a cookie so the server renders it with no flash. The colours below are the only source:
  * lookCss() turns them into CSS, and the settings page uses them for its previews.
  */
-export const LOOK_COOKIE = "rl_look";
+export const LOOK_COOKIE = "rl_look2"; // renamed when the defaults changed to the Quizlet-like palette, so everyone starts from it
 
 type Tokens = { paper: string; card: string; ink: string; muted: string; line: string; highlight: string };
-/** Page themes used in light mode. "paper" is the original Gainee look. */
+/** Page themes used in light mode. "clean" (default) follows Quizlet: cool grey page, white cards, navy text. */
 export const LIGHT: Record<string, Tokens> = {
+  clean: { paper: "#f6f7fb", card: "#ffffff", ink: "#282e3e", muted: "#586380", line: "#e1e4ee", highlight: "#ffe580" },
   paper: { paper: "#faf7f1", card: "#ffffff", ink: "#1d2433", muted: "#6b7280", line: "#e7e1d6", highlight: "#fff1c2" },
   original: { paper: "#f5f5f7", card: "#ffffff", ink: "#1d1d1f", muted: "#6e6e73", line: "#e2e2e7", highlight: "#fff3a8" },
   sepia: { paper: "#f3e9d2", card: "#faf3e3", ink: "#4b3a26", muted: "#86715a", line: "#e2d3b4", highlight: "#f2d98a" },
   mint: { paper: "#e4efdf", card: "#f1f7ee", ink: "#25352a", muted: "#5d7162", line: "#cfdec8", highlight: "#f4e79c" },
 };
-/** Page themes used in dark mode. "dusk" is the original Gainee dark look. */
+/** Page themes used in dark mode. "midnight" (default) follows Quizlet's dark mode: deep indigo page, slate cards. */
 export const DARK: Record<string, Tokens> = {
+  midnight: { paper: "#0a092d", card: "#1a1d3f", ink: "#f6f7fb", muted: "#a0a8c3", line: "#2e3856", highlight: "#5c4a00" },
   dusk: { paper: "#13161c", card: "#1b1f27", ink: "#e6e8ec", muted: "#9aa3b2", line: "#2b313c", highlight: "#5b4a14" },
   quiet: { paper: "#1c1c1e", card: "#2c2c2e", ink: "#ececf1", muted: "#9a9aa1", line: "#3a3a3c", highlight: "#5e4b17" },
   night: { paper: "#000000", card: "#111111", ink: "#d4d4d4", muted: "#878787", line: "#242424", highlight: "#4d3f10" },
@@ -22,6 +24,7 @@ export const DARK: Record<string, Tokens> = {
 };
 /** Accent (buttons, links, active items) + accent2 (labels), for light and dark. */
 export const ACCENTS: Record<string, { light: [string, string]; dark: [string, string] }> = {
+  indigo: { light: ["#4255ff", "#7b5cff"], dark: ["#8f9bff", "#c3b5ff"] },
   blue: { light: ["#1f4e79", "#c2410c"], dark: ["#7cb3e6", "#f59e5b"] },
   orange: { light: ["#c45500", "#1f4e79"], dark: ["#f0a24b", "#7cb3e6"] },
   teal: { light: ["#0f6b6b", "#b45309"], dark: ["#5fc4c0", "#f2a65a"] },
@@ -59,7 +62,7 @@ export const LOOK = {
   size: ["90", "100", "110", "120"],
 } as const;
 export type Look = Record<keyof typeof LOOK, string>;
-export const DEFAULT_LOOK: Look = { light: "paper", dark: "dusk", accent: "blue", side: "match", ui: "system", read: "charter", size: "100" };
+export const DEFAULT_LOOK: Look = { light: "clean", dark: "midnight", accent: "indigo", side: "match", ui: "jakarta", read: "charter", size: "100" };
 
 /** Cookie value ("light=sepia&accent=teal…") → a valid Look; unknown values fall back to the default. */
 export function parseLook(raw: string | undefined): Look {

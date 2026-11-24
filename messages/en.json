@@ -279,7 +279,9 @@
         "dusk": "Dusk",
         "quiet": "Quiet",
         "night": "Night (pure black)",
-        "cocoa": "Cocoa"
+        "cocoa": "Cocoa",
+        "clean": "Clean (Quizlet-like)",
+        "midnight": "Midnight (Quizlet-like)"
       },
       "accent": "Accent colour",
       "accentHint": "Buttons, links, selected items. Left half: light mode, right half: dark mode.",
@@ -290,7 +292,8 @@
         "green": "Green",
         "purple": "Purple",
         "rose": "Rose",
-        "graphite": "Graphite"
+        "graphite": "Graphite",
+        "indigo": "Quizlet indigo"
       },
       "side": "Sidebar",
       "sideHint": "Colour of the left menu (and the top / bottom bars on phones).",
