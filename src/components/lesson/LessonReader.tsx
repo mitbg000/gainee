@@ -222,7 +222,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
     <div className={`mx-auto transition-[max-width] duration-300 ${tab === "read" ? "max-w-6xl" : "max-w-[88rem]"}`}>
       <header>
         <Link href={`/library/${doc.id}`} className="line-clamp-1 text-sm text-muted hover:text-ink">
-          ← {doc.title}
+          <I.IconArrowLeft className="inline-block h-4 w-4 align-[-0.2em]" /> {doc.title}
         </Link>
         <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-accent2">
           {t("part", { n: lesson.position, total: siblings.length })} · {t("words", { n: lesson.wordCount })}
@@ -323,11 +323,11 @@ export default function LessonReader({ data }: { data: LessonData }) {
       <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-line pt-5">
         {prev && (
           <Link href={`/lessons/${prev.id}`} className="btn btn-secondary">
-            ← {t("prev")}
+            <I.IconArrowLeft className="inline-block h-4 w-4 align-[-0.2em]" /> {t("prev")}
           </Link>
         )}
         <button onClick={toggleComplete} className={`btn btn-secondary ${completed ? "border-green-500 bg-green-50 text-green-800 hover:bg-green-50 dark:bg-green-950 dark:text-green-300" : ""}`}>
-          {completed ? `✓ ${t("completed")}` : t("markComplete")}
+          {completed ? <><I.IconCheck className="inline-block h-4 w-4 align-[-0.2em]" /> {t("completed")}</> : t("markComplete")}
         </button>
         {next && (
           <Link
@@ -335,7 +335,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
             onClick={() => !completed && toggleComplete()}
             className="btn btn-primary ml-auto"
           >
-            {t("next")} →
+            {t("next")} <I.IconArrowRight className="inline-block h-4 w-4 align-[-0.2em]" />
           </Link>
         )}
       </div>

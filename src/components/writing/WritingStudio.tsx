@@ -232,7 +232,7 @@ export default function WritingStudio({ initial, kind: startKind }: { initial: I
           </span>
           {limit > 0 && (
             <span className={`rounded-lg bg-card px-2 py-0.5 font-mono tabular-nums ${startedAt && left < 0 ? "text-red-600" : "text-muted"}`} title={t("timer", { n: MINUTES[kind] })}>
-              ⏱ {startedAt ? `${left < 0 ? "+" : ""}${clock(left)}` : clock(limit)}
+              <I.IconClock className="inline-block h-4 w-4 align-[-0.2em]" /> {startedAt ? `${left < 0 ? "+" : ""}${clock(left)}` : clock(limit)}
             </span>
           )}
           <span className="ml-auto text-xs text-muted">{saved ? (id ? t("saved") : "") : t("saving")}</span>

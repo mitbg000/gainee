@@ -7,7 +7,7 @@ import { imagesForWords } from "./images";
 
 const { words, lessons, documents, reviewLogs } = schema;
 const scheduler = fsrs({ enable_fuzz: true });
-export const REVIEW_MODES = ["recognize", "recall", "cloze", "listen"] as const;
+export const REVIEW_MODES = ["recognize", "recall", "cloze", "listen", "image"] as const;
 export type ReviewMode = (typeof REVIEW_MODES)[number];
 /** Also logged as reviews: writing a sentence with the word, meeting it in a review passage. */
 export type LogMode = ReviewMode | "sentence" | "passage";

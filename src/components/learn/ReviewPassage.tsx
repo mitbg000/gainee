@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { speak } from "@/lib/speech";
+import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 type Passage = {
   title: string;
@@ -103,7 +105,7 @@ export default function ReviewPassage({ onExit, onDone }: { onExit?: () => void;
   if (!p)
     return (
       <div className="mx-auto max-w-2xl animate-pulse rounded-3xl border border-line bg-card p-8 text-center text-muted">
-        <p className="text-3xl">📖</p>
+        <I.BigIcon icon={I.IconBook} />
         <p className="mt-2">{t("writing")}</p>
       </div>
     );
@@ -133,7 +135,10 @@ export default function ReviewPassage({ onExit, onDone }: { onExit?: () => void;
                   {(["T", "F", "NG"] as const).map((a) => {
                     const state = !given ? "border-line hover:border-accent" : a === q.answer ? "border-green-500 bg-green-50 dark:bg-green-950/40" : a === given ? "border-red-400 bg-red-50 dark:bg-red-950/40" : "border-line opacity-50";
                     return (
-                      <button key={a} disabled={!!given} onClick={() => setAnswers({ ...answers, [k]: a })} className={`min-h-10 rounded-xl border-2 px-3 text-sm font-semibold ${state}`}>
+                      <button key={a} disabled={!!given} onClick={() => {
+                          sfx(a === q.answer ? "correct" : "wrong");
+                          setAnswers({ ...answers, [k]: a });
+                        }} className={`min-h-10 rounded-xl border-2 px-3 text-sm font-semibold ${state}`}>
                         {t(`tfng.${a}`)}
                       </button>
                     );
@@ -148,7 +153,7 @@ export default function ReviewPassage({ onExit, onDone }: { onExit?: () => void;
 
       {allAnswered && (
         <section className="rounded-3xl border border-line bg-card p-6">
-          <h3 className="font-semibold">{finished ? t("updated") : t("rememberTitle")}</h3>
+          <h3 className="flex items-center gap-1.5 font-semibold">{finished && <I.IconCheckCircle className="h-5 w-5 text-green-600" />}{finished ? t("updated") : t("rememberTitle")}</h3>
           {!finished && <p className="mt-1 text-sm text-muted">{t("rememberHint")}</p>}
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {p.words.map((w) => {
@@ -165,7 +170,7 @@ export default function ReviewPassage({ onExit, onDone }: { onExit?: () => void;
                     }}
                     className={`flex w-full items-center gap-2 rounded-xl border-2 px-3 py-2 text-left text-sm ${lost ? "border-red-400 bg-red-50 dark:bg-red-950/30" : "border-green-500/60 bg-green-50 dark:bg-green-950/30"}`}
                   >
-                    <span>{lost ? "✗" : "✓"}</span>
+                    {lost ? <I.IconX className="h-4 w-4 flex-none text-red-600" /> : <I.IconCheck className="h-4 w-4 flex-none text-green-600" />}
                     <span className="min-w-0 flex-1">
                       <b>{w.term}</b> <span className="text-muted">– {w.meaning}</span>
                     </span>
@@ -178,7 +183,7 @@ export default function ReviewPassage({ onExit, onDone }: { onExit?: () => void;
                       }}
                       className="text-muted"
                     >
-                      🔊
+                      <I.IconSpeaker className="h-4 w-4" />
                     </span>
                   </button>
                 </li>

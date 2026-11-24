@@ -3,16 +3,19 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { meaningOf, shuffle, type PWord } from "./questions";
+import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 const PAIRS = 6;
 const PENALTY = 1000; // ms added for a wrong pair, as in Quizlet's Match
-type Tile = { key: string; id: number; text: string; isTerm: boolean };
+type Tile = { key: string; id: number; text: string; isTerm: boolean; img?: string };
 
 function deal(words: PWord[]): Tile[] {
   const pick = shuffle(words.filter((w) => meaningOf(w))).slice(0, PAIRS);
   return shuffle(pick.flatMap((w) => [
     { key: `t${w.id}`, id: w.id, text: w.term, isTerm: true },
-    { key: `m${w.id}`, id: w.id, text: meaningOf(w).slice(0, 80), isTerm: false },
+    // a word with a picture is matched with its picture half of the time
+    { key: `m${w.id}`, id: w.id, text: meaningOf(w).slice(0, 80), isTerm: false, img: w.images?.length && Math.random() < 0.5 ? w.images[0].url : undefined },
   ]));
 }
 
@@ -60,9 +63,11 @@ export default function Match({ words, onExit }: { words: PWord[]; onExit: () =>
     if (pick.id === tile.id && pick.isTerm !== tile.isTerm) {
       setGone((g) => new Set(g).add(tile.id));
       setPick(null);
+      sfx(gone.size + 1 === pairs ? "done" : "match");
       if (gone.size + 1 === pairs) setNow(Date.now());
     } else {
       setBad([pick.key, tile.key]);
+      sfx("wrong");
       setPenalty((p) => p + PENALTY);
       setTimeout(() => {
         setBad([]);
@@ -94,7 +99,7 @@ export default function Match({ words, onExit }: { words: PWord[]; onExit: () =>
 
       {finished ? (
         <div className="rounded-3xl border border-line bg-card p-8 text-center">
-          <p className="text-4xl">⚡</p>
+          <I.BigIcon icon={I.IconBolt} tone="amber" />
           <p className="mt-2 font-serif text-2xl font-bold">{t("done", { s: sec(time) })}</p>
           {best !== null && best === time && pairs === PAIRS && <p className="mt-1 font-semibold text-green-700 dark:text-green-400">{t("record")}</p>}
           <div className="mt-5 flex justify-center gap-2">
@@ -122,7 +127,12 @@ export default function Match({ words, onExit }: { words: PWord[]; onExit: () =>
                 disabled={out}
                 className={`flex min-h-24 items-center justify-center rounded-2xl border-2 p-2 text-center text-sm transition-all duration-300 ${out ? "pointer-events-none scale-90 opacity-0" : state} ${tile.isTerm ? "font-serif text-base font-semibold" : ""}`}
               >
-                {tile.text}
+                {tile.img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={tile.img} alt="" className="max-h-20 w-full rounded-lg object-contain" />
+                ) : (
+                  tile.text
+                )}
               </button>
             );
           })}

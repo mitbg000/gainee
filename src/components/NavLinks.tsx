@@ -52,7 +52,7 @@ export function SidebarNav({ tree }: { tree: TreeDoc[] }) {
                 aria-label={t("tree")}
                 className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:bg-paper group-data-[collapsed=true]/sb:hidden"
               >
-                <span className={`transition-transform ${open ? "rotate-90" : ""}`}>▸</span>
+                <I.IconChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
               </button>
             </div>
             {open && <LessonTree docs={tree} />}

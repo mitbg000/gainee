@@ -6,6 +6,7 @@ import GoalsEditor from "@/components/GoalsEditor";
 import { getGoals, goalProgress, syncAchievements } from "@/lib/goals";
 import { progressData, scoreHistory } from "@/lib/stats";
 import { Chart } from "@/components/writing/Chart";
+import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export default async function ProgressPage() {
             <div className="text-xs text-muted sm:text-sm">{t(`totals.${k}`)}</div>
             <div className="mt-1 text-2xl font-bold sm:text-3xl">
               {d.totals[k]}
-              {k === "streak" && d.totals.streak > 0 ? " 🔥" : ""}
+              {k === "streak" && d.totals.streak > 0 && <I.IconFlame className="ml-1 inline-block h-6 w-6 align-[-0.15em] text-orange-500" />}
             </div>
           </div>
         ))}

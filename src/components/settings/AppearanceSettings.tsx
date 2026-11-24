@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import SoundSettings from "@/components/SoundSettings";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { ACCENTS, DARK, DEFAULT_LOOK, FONTS, LIGHT, LOOK, LOOK_COOKIE, lookAttrs, type Look } from "@/theme/look";
 import type { Theme } from "@/theme/config";
@@ -35,6 +36,12 @@ export default function AppearanceSettings({ initial, theme }: { initial: Look; 
           <LanguageSwitcher />
         </Section>
       </div>
+
+      <Section title={t("sound")}>
+        <div className="max-w-md">
+          <SoundSettings />
+        </div>
+      </Section>
 
       <Section title={t("lightThemes")} hint={t("themesHint")}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

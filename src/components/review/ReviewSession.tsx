@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { speak } from "@/lib/speech";
+import { autoSpeak, speak } from "@/lib/speech";
 import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 type Card = {
   id: number;
@@ -21,8 +22,8 @@ type Card = {
   next: number[]; // ms until due again for Again / Hard / Good / Easy
   images: string[];
 };
-type Mode = "recognize" | "recall" | "cloze" | "listen";
-const MODES: Mode[] = ["recognize", "recall", "cloze", "listen"];
+type Mode = "recognize" | "recall" | "cloze" | "listen" | "image";
+const MODES: Mode[] = ["recognize", "recall", "cloze", "listen", "image"];
 const RATINGS = [1, 2, 3, 4] as const;
 const RATING_STYLE = [
   "",
@@ -70,12 +71,14 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
   }, [doc, limit]);
 
   const card = queue?.[0];
-  const effective: Mode = card && mode === "cloze" && !cloze(card) ? "recognize" : mode;
+  // a mode the card cannot do falls back to word → meaning
+  const effective: Mode = card && ((mode === "cloze" && !cloze(card)) || (mode === "image" && !card.images.length)) ? "recognize" : mode;
 
   useEffect(() => {
     started.current = Date.now();
     setHint(false);
     if (card && effective === "listen") speak(card.term);
+    else if (card && effective === "recognize") autoSpeak(card.term);
   }, [card, effective]);
 
   /** "<1 min", "10 min", "3 d", "2 mo" */
@@ -88,6 +91,12 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
     if (m < 60 * 24 * 365) return t("ivl.month", { n: Math.round(m / 43200) });
     return t("ivl.year", { n: Math.round(m / 52560) / 10 });
   };
+
+  const reveal = useCallback(() => {
+    sfx("flip");
+    setShown(true);
+    if (card && effective !== "recognize" && effective !== "listen") autoSpeak(card.term);
+  }, [card, effective]);
 
   const rate = useCallback(
     (rating: (typeof RATINGS)[number]) => {
@@ -105,9 +114,10 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
       // "Again" comes back at the end of this round, like Anki's learning steps
       setQueue((q) => (q ? (rating === 1 ? [...q.slice(1), { ...q[0], state: q[0].state === 2 ? 3 : q[0].state || 1 }] : q.slice(1)) : q));
       if (rating > 1) setDone((d) => d + 1);
+      sfx(rating === 1 ? "wrong" : queue && queue.length === 1 ? "done" : "tap");
       setShown(false);
     },
-    [card, shown, effective],
+    [card, shown, effective, queue],
   );
 
   useEffect(() => {
@@ -115,7 +125,7 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
       if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable]")) return;
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        if (!shown) setShown(true);
+        if (!shown) reveal();
         else rate(3);
       } else if (e.key.toLowerCase() === "h") setHint(true);
       else if (e.key.toLowerCase() === "r" && card) speak(card.term);
@@ -123,13 +133,13 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [rate, shown, card]);
+  }, [rate, shown, card, reveal]);
 
   if (!queue) return <p className="text-muted">{t("loading")}</p>;
   if (!card && onDone)
     return (
       <div className="mx-auto max-w-2xl rounded-3xl border border-line bg-card p-8 text-center">
-        <p className="text-4xl">✅</p>
+        <I.BigIcon icon={I.IconCheckCircle} tone="green" />
         <p className="mt-2 text-lg font-semibold">{done ? t("finished", { n: done }) : t("nothingNow")}</p>
         <button onClick={onDone} autoFocus className="btn btn-primary mt-4">
           {t("continue")}
@@ -139,7 +149,7 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
   if (!card)
     return (
       <div className="rounded-3xl border border-line bg-card p-8 text-center">
-        <div className="text-4xl">🎉</div>
+        <I.BigIcon icon={I.IconParty} />
         <p className="mt-2 text-lg font-semibold">{done ? t("finished", { n: done }) : t("nothing")}</p>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted">{t("doneTip")}</p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -175,6 +185,10 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
     recognize: head,
     recall: meaning,
     cloze: <p className="text-center font-serif text-xl leading-relaxed">{cloze(card)}</p>,
+    image: (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={card.images[0]} alt="" className="mx-auto max-h-64 rounded-2xl object-contain" />
+    ),
     listen: (
       <button onClick={() => speak(card.term)} className="mx-auto flex size-20 items-center justify-center rounded-full border border-line hover:border-accent" aria-label={t("listen")}>
         <I.IconSpeaker className="h-9 w-9" />
@@ -233,7 +247,7 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
                 <I.IconBulb className="inline-block h-4 w-4 align-[-0.2em]" /> {card.mnemonic}
               </p>
             )}
-            {card.images.length > 0 && (
+            {card.images.length > 0 && effective !== "image" && (
               <div className="flex flex-wrap justify-center gap-2">
                 {card.images.map((u) => (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -273,7 +287,7 @@ export default function ReviewSession({ doc, limit, onDone }: { doc?: number; li
               {t("hint")}
             </button>
           )}
-          <button onClick={() => setShown(true)} className="btn btn-lg btn-primary flex-1">
+          <button onClick={reveal} className="btn btn-lg btn-primary flex-1">
             {t("show")}
           </button>
         </div>

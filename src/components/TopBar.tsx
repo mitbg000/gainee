@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { TreeDoc } from "@/lib/documents/queries";
 import type { Theme } from "@/theme/config";
+import { MuteButton } from "./SoundSettings";
 import UserMenu from "./UserMenu";
 import { NAV } from "./nav";
 import * as I from "./icons";
@@ -77,7 +78,8 @@ export default function TopBar({ tree, due, theme, streak }: { tree: TreeDoc[]; 
         <I.IconBolt className="h-4 w-4" />
         <span className="hidden lg:inline">{tt("quick")}</span>
         <span className={`tabular-nums ${streak ? "text-orange-600 dark:text-orange-400" : "text-muted"}`} title={tt("streak", { n: streak })}>
-          🔥{streak}
+          <I.IconFlame className="inline-block h-4 w-4 align-[-0.2em]" />
+          {streak}
         </span>
       </Link>
       <Link href="/review" className="icon-btn relative" aria-label={`${t("review")}${due ? ` (${due})` : ""}`} title={t("review")}>
@@ -88,6 +90,7 @@ export default function TopBar({ tree, due, theme, streak }: { tree: TreeDoc[]; 
           </span>
         )}
       </Link>
+      <MuteButton />
       <UserMenu theme={theme} />
     </div>
   );

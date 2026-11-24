@@ -50,3 +50,41 @@ export const IconMic = base(<><rect x="9" y="3" width="6" height="11" rx="3" /><
 export const IconUser = base(<><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>);
 export const IconLogout = base(<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11" />);
 export const IconBolt = base(<path d="M13 3L4 14h7l-1 7 9-11h-7z" />);
+export const IconCheck = base(<path d="M5 12.5l4.5 4.5L19 7.5" />);
+export const IconX = base(<path d="M6 6l12 12M18 6L6 18" />);
+export const IconArrowLeft = base(<path d="M19 12H5M11 6l-6 6 6 6" />);
+export const IconArrowRight = base(<path d="M5 12h14M13 6l6 6-6 6" />);
+export const IconArrowUp = base(<path d="M12 19V5M6 11l6-6 6 6" />);
+export const IconArrowDown = base(<path d="M12 5v14M6 13l6 6 6-6" />);
+export const IconChevronRight = base(<path d="M9 6l6 6-6 6" />);
+export const IconPlay = base(<path d="M7 5v14l12-7z" />);
+export const IconEnter = base(<path d="M20 5v7a3 3 0 0 1-3 3H5M9 11l-4 4 4 4" />);
+export const IconRefresh = base(<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />);
+export const IconFlame = base(<path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.7 2.3-4.8.2 1.7 1 2.8 2.2 3.3C11 9 11 6 12 3z" />);
+export const IconTrophy = base(<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4a3 3 0 0 0 4 4M16 6h4a3 3 0 0 1-4 4M12 13v4M8 21h8M9 17h6" />);
+export const IconAlert = base(<><path d="M12 3l10 18H2z" /><path d="M12 10v5M12 18h.01" /></>);
+export const IconClock = base(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>);
+export const IconFile = base(<path d="M6 3h8l5 5v13H6zM14 3v5h5M9 13h6M9 17h6" />);
+export const IconNews = base(<path d="M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2h-1M7 9h7M7 13h7M7 16h4" />);
+export const IconCheckCircle = base(<><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.7 2.7L16 9.8" /></>);
+export const IconXCircle = base(<><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6M15 9l-6 6" /></>);
+export const IconHalfCircle = base(<><circle cx="12" cy="12" r="9" /><path d="M12 3v18" /></>);
+export const IconParty = base(<path d="M4 20l5-14 9 9zM14 4l1 2M19 9l2-1M17 3l-1 3 3-1M10 9c2 0 5 3 5 5" />);
+
+/** A large icon in a soft coloured circle, for result and empty screens. */
+export function BigIcon({ icon: Icon, tone = "accent" }: { icon: (p: P) => React.ReactElement; tone?: "accent" | "green" | "amber" | "red" | "orange" }) {
+  const c = {
+    accent: "bg-accent/10 text-accent",
+    green: "bg-green-500/15 text-green-600 dark:text-green-400",
+    amber: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    red: "bg-red-500/15 text-red-600 dark:text-red-400",
+    orange: "bg-orange-500/15 text-orange-600 dark:text-orange-400",
+  }[tone];
+  return (
+    <span className={`mx-auto flex size-16 items-center justify-center rounded-full ${c}`}>
+      <Icon className="h-8 w-8" />
+    </span>
+  );
+}
+export const IconVolumeOff = base(<path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6" />);
+export const IconVolume = base(<path d="M4 9h4l5-4v14l-5-4H4zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />);

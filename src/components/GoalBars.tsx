@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { GoalKind } from "@/lib/goals";
+import * as I from "@/components/icons";
 
 /** Progress bars for the active goals. */
 export default async function GoalBars({ goals }: { goals: { kind: GoalKind; value: number; target: number }[] }) {
@@ -13,7 +14,7 @@ export default async function GoalBars({ goals }: { goals: { kind: GoalKind; val
             <div className="flex justify-between">
               <span>{t(`kind.${g.kind}`)}</span>
               <span className={pct >= 100 ? "font-semibold text-green-600 dark:text-green-400" : "text-muted"}>
-                {pct >= 100 ? "✓ " : ""}
+                {pct >= 100 && <I.IconCheck className="mr-0.5 inline-block h-3.5 w-3.5 align-[-0.15em]" />}
                 {g.value} / {g.target}
               </span>
             </div>

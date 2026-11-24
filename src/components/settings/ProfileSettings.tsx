@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import type { Profile } from "@/lib/profile";
+import * as I from "@/components/icons";
 
 export default function ProfileSettings() {
   const t = useTranslations("settings.profile");
@@ -62,7 +63,7 @@ export default function ProfileSettings() {
           </select>
         </label>
       </div>
-      {saved && <p className="mt-2 text-sm text-muted">✓</p>}
+      {saved && <I.IconCheck className="mt-2 h-4 w-4 text-green-600" />}
     </section>
   );
 }

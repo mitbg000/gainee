@@ -2,9 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
-import { speak } from "@/lib/speech";
+import { autoSpeak, speak } from "@/lib/speech";
 import { meaningOf, type PWord } from "./questions";
 import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 /**
  * Quizlet-style flashcards: flip the card, then sort it into "still learning" (←) or "know" (→).
@@ -23,6 +24,7 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
   const sort = useCallback(
     (know: boolean) => {
       if (!w) return;
+      sfx(know ? "correct" : "tap");
       if (know) setKnown((n) => n + 1);
       else setLearning((l) => [...l, w]);
       setFlipped(false);
@@ -30,6 +32,13 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
     },
     [w],
   );
+  // a new card reads its word aloud (when that is switched on and the word is on the front)
+  useEffect(() => {
+    if (w && !meaningFirst) autoSpeak(w.term);
+  }, [w, meaningFirst]);
+  useEffect(() => {
+    if (!w && deck.length) sfx("done");
+  }, [w, deck.length]);
   const back = () => {
     if (!i) return;
     const prev = deck[i - 1];
@@ -52,6 +61,7 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
       if (!w || (e.target as HTMLElement).closest("input,textarea,select")) return;
       if (e.key === " " || e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
+        sfx("flip");
         setFlipped((f) => !f);
       } else if (e.key === "ArrowRight") sort(true);
       else if (e.key === "ArrowLeft") sort(false);
@@ -130,7 +140,10 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
       </div>
 
       <button
-        onClick={() => setFlipped(!flipped)}
+        onClick={() => {
+          sfx("flip");
+          setFlipped(!flipped);
+        }}
         className="relative block h-80 w-full [perspective:1200px] md:h-96"
         aria-label={t("flip")}
       >
@@ -142,13 +155,13 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
 
       <div className="mt-4 flex items-center justify-center gap-3">
         <button onClick={() => sort(false)} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-amber-400 bg-card px-5 font-semibold text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950/40">
-          ← {t("learning")}
+          <I.IconArrowLeft /> {t("learning")}
         </button>
         <button onClick={() => speak(w.term)} className="icon-btn icon-btn-outline" aria-label={t("listen")}>
           <I.IconSpeaker />
         </button>
         <button onClick={() => sort(true)} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-green-500 bg-card px-5 font-semibold text-green-700 hover:bg-green-50 dark:text-green-300 dark:hover:bg-green-950/40">
-          {t("know")} →
+          {t("know")} <I.IconArrowRight />
         </button>
       </div>
 

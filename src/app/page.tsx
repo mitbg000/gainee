@@ -7,6 +7,7 @@ import GoalBars from "@/components/GoalBars";
 import Shell from "@/components/Shell";
 import JobsPanel from "@/components/JobsPanel";
 import InstallPrompt from "@/components/InstallPrompt";
+import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function DashboardPage() {
             <div className="text-xs text-muted sm:text-sm">{t(`stats.${k}`)}</div>
             <div className="mt-1 text-2xl font-bold sm:text-3xl">
               {stats ? stats[k] : "–"}
-              {k === "streak" && stats && stats.streak > 0 ? " 🔥" : ""}
+              {k === "streak" && stats && stats.streak > 0 && <I.IconFlame className="ml-1 inline-block h-6 w-6 align-[-0.15em] text-orange-500" />}
             </div>
           </div>
         ))}
@@ -78,10 +79,10 @@ export default async function DashboardPage() {
       <section className="mt-6 rounded-2xl border border-line bg-card p-5">
         <h2 className="font-serif text-xl font-bold">{t("system.title")}</h2>
         <ul className="mt-3 space-y-1.5 text-sm">
-          <li>✅ {t("system.web")}</li>
-          <li>{dbError ? `❌ ${t("system.dbError", { error: dbError })}` : `✅ ${t("system.db")}`}</li>
+          <li className="flex items-center gap-1.5"><I.IconCheckCircle className="h-4 w-4 text-green-600" /> {t("system.web")}</li>
+          <li className="flex items-center gap-1.5">{dbError ? <><I.IconXCircle className="h-4 w-4 flex-none text-red-600" /> {t("system.dbError", { error: dbError })}</> : <><I.IconCheckCircle className="h-4 w-4 text-green-600" /> {t("system.db")}</>}</li>
           <li>
-            {workerAlive ? "✅" : "⚠️"}{" "}
+            {workerAlive ? <I.IconCheckCircle className="inline-block h-4 w-4 align-[-0.2em] text-green-600" /> : <I.IconAlert className="inline-block h-4 w-4 align-[-0.2em] text-amber-600" />}{" "}
             {workerAlive
               ? t("system.workerAlive", { seconds: ago })
               : stats?.heartbeat

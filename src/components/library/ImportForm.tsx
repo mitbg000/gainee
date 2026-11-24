@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import LabelPicker from "@/components/labels/LabelPicker";
 import RichEditor from "@/components/RichEditor";
+import * as I from "@/components/icons";
 
 type Preview = {
   title: string;
@@ -110,7 +111,7 @@ export default function ImportForm({ sources }: { sources: string[] }) {
               setPreview(null);
             }}
           />
-          <div className="text-3xl">📄</div>
+          <I.IconFile className="mx-auto h-8 w-8 text-muted" />
           <p className="mt-2 font-medium">{file ? file.name : t("drop")}</p>
           <p className="text-sm text-muted">{file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : t("formats")}</p>
         </div>

@@ -2,9 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { speak } from "@/lib/speech";
+import { autoSpeak, speak } from "@/lib/speech";
 import { meaningOf, norm, options, shuffle, type PWord } from "./questions";
 import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 const ROUND = 7;
 type Q = { w: PWord; kind: "mcMeaning" | "mcTerm" | "write"; options?: string[]; answer: string };
@@ -53,11 +54,15 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
   useEffect(() => {
     if (q?.kind === "write" && given === null) setTimeout(() => input.current?.focus(), 30);
   }, [q, given]);
+  useEffect(() => {
+    if (q?.kind === "mcMeaning") autoSpeak(q.w.term);
+  }, [q]);
 
   function answer(a: string) {
     if (!q || given !== null) return;
     setGiven(a);
-    speak(q.w.term);
+    sfx(norm(a) === norm(q.answer) ? "correct" : "wrong");
+    if (q.kind !== "mcMeaning") autoSpeak(q.w.term);
     // a right multiple-choice answer moves on by itself, as in Quizlet
     if (q.kind !== "write" && norm(a) === norm(q.answer)) auto.current = setTimeout(() => advance(true, a), 700);
   }
@@ -72,6 +77,7 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
     // wrong → asked again at the end of this round; right multiple choice → now it must be typed
     const nq = ok ? (nextLevel === 1 ? [...rest, question(q.w, 1)] : rest) : [...rest, question(q.w, l)];
     setQueue(nq);
+    if (!nq.length) sfx("done");
     setGiven(null);
     setTyped("");
     setOverridden(false);
@@ -117,13 +123,13 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
       <div className="mx-auto max-w-2xl">
         {bars}
         <div className="rounded-3xl border border-line bg-card p-8 text-center">
-          <p className="text-4xl">{finished ? "🏆" : "✨"}</p>
+          <I.BigIcon icon={finished ? I.IconTrophy : I.IconSpark} tone={finished ? "amber" : "accent"} />
           <p className="mt-2 font-serif text-2xl font-bold">{finished ? t("finished", { n: words.length }) : t("roundDone", { n: roundNo })}</p>
           <p className="mt-1 text-sm text-muted">{finished ? t("finishedTip") : t("progress", { done: mastered, total: words.length })}</p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
             {!finished && (
               <button onClick={() => nextRound()} autoFocus className="btn btn-primary">
-                {t("continue")} ↵
+                {t("continue")} <I.IconEnter />
               </button>
             )}
             {finished && (
@@ -227,7 +233,7 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
             {!right && <p className="mt-1 text-sm text-muted">{t("comesBack")}</p>}
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={() => advance()} autoFocus className="btn btn-primary">
-                {t("continue")} ↵
+                {t("continue")} <I.IconEnter />
               </button>
               {q.kind === "write" && given && !right && (
                 <button

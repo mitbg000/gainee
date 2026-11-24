@@ -161,10 +161,10 @@ export default function SetEditor({
                 {!textId && (
                   <>
                     <button onClick={() => move(i, -1)} disabled={!i} className="icon-btn" aria-label={t("up")}>
-                      ↑
+                      <I.IconArrowUp />
                     </button>
                     <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="icon-btn" aria-label={t("down")}>
-                      ↓
+                      <I.IconArrowDown />
                     </button>
                   </>
                 )}
@@ -347,7 +347,7 @@ function PickPanel({ saved, chosen, onAdd }: { saved: Saved[]; chosen: Set<numbe
               <button onClick={() => !on && onAdd(w)} disabled={on} className="flex w-full items-center gap-3 px-2 py-2 text-left text-sm hover:bg-paper disabled:opacity-50">
                 <b className="w-1/3 truncate">{w.term}</b>
                 <span className="flex-1 truncate text-muted">{w.meaningVi || w.definitionEn}</span>
-                <span className="flex-none text-accent">{on ? "✓" : "+"}</span>
+                <span className="flex-none text-accent">{on ? <I.IconCheck className="h-4 w-4" /> : <I.IconPlus className="h-4 w-4" />}</span>
               </button>
             </li>
           );

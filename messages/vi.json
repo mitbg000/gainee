@@ -49,7 +49,7 @@
   },
   "dashboard": {
     "kicker": "Tổng quan",
-    "greeting": "Chào bạn 👋",
+    "greeting": "Chào bạn",
     "intro": "Nhập một bài báo, đọc từng phần ngắn và giữ chuỗi ngày học.",
     "stats": {
       "documents": "Bài đọc",
@@ -189,7 +189,7 @@
   "settings": {
     "kicker": "Cài đặt",
     "title": "Cài đặt",
-    "saved": "Đã lưu ✓",
+    "saved": "Đã lưu",
     "saveError": "Không lưu được",
     "profile": {
       "title": "Hồ sơ học",
@@ -212,7 +212,7 @@
       "enabled": "Bật",
       "test": "Kiểm tra",
       "testing": "Đang kiểm tra…",
-      "testOk": "Kết nối được ✓ – model trả lời “{reply}”.",
+      "testOk": "Kết nối được – model trả lời “{reply}”.",
       "testFail": "Lỗi: {error}",
       "modelsFound": "Có {n} model.",
       "edit": "Sửa",
@@ -259,7 +259,7 @@
       "enabled": "Bật tạo hình",
       "provider": "Nhà cung cấp",
       "note": "Mỗi hình mất khoảng 10–60 giây và có tính phí theo nhà cung cấp. Hình có thể sai chữ nhỏ, nên sơ đồ vẽ sẵn vẫn được giữ bên dưới.",
-      "saved": "Đã lưu ✓",
+      "saved": "Đã lưu",
       "saveError": "Không lưu được"
     },
     "tabs": {
@@ -326,7 +326,8 @@
       "sampleSecondary": "Lưu từ",
       "sampleChip": "Đang chọn",
       "reset": "Khôi phục mặc định",
-      "language": "Ngôn ngữ"
+      "language": "Ngôn ngữ",
+      "sound": "Âm thanh"
     }
   },
   "import": {
@@ -455,7 +456,7 @@
     "completed": "Đã học",
     "completedToast": "Hoàn thành bài! +XP",
     "pinned": "Đã ghim vào lề",
-    "saved": "Đã lưu vào sổ tay ⭐",
+    "saved": "Đã lưu vào sổ tay",
     "unsaved": "Đã bỏ khỏi sổ tay",
     "error": "Có lỗi xảy ra",
     "notFoundInText": "Không tìm thấy trích dẫn trong bài",
@@ -595,7 +596,7 @@
     "edit": {
       "open": "Sửa nội dung / chia / gộp bài",
       "title": "Sửa nội dung bài đọc",
-      "help": "Xóa các phần không liên quan (tác giả, ngày, link…), sửa văn bản, in đậm/nghiêng/IN HOA, chèn ảnh. Bấm nút ✂ tại chỗ muốn bắt đầu bài mới.",
+      "help": "Xóa các phần không liên quan (tác giả, ngày, link…), sửa văn bản, in đậm/nghiêng/IN HOA, chèn ảnh. Bấm nút cái kéo tại chỗ muốn bắt đầu bài mới.",
       "regenerate": "Tạo lại từ vựng và bài tập từ nội dung mới",
       "save": "Lưu",
       "cancel": "Hủy",
@@ -620,7 +621,7 @@
   },
   "wordList": {
     "title": "Từ đã lưu",
-    "empty": "Chưa có từ nào. Bấm vào một từ khi đọc rồi bấm ☆.",
+    "empty": "Chưa có từ nào. Bấm vào một từ khi đọc rồi bấm ngôi sao để lưu.",
     "fromLesson": "Từ bài đọc",
     "remove": "Xóa",
     "total": "{n} từ đã lưu, nhóm theo bài đọc và phần",
@@ -700,7 +701,8 @@
       "recognize": "Từ → nghĩa",
       "recall": "Nghĩa → từ",
       "cloze": "Điền vào câu",
-      "listen": "Nghe"
+      "listen": "Nghe",
+      "image": "Nhìn ảnh"
     },
     "rating": {
       "1": "Quên",
@@ -884,7 +886,8 @@
       "test": "Kiểm tra",
       "match": "Ghép thẻ",
       "write": "Viết câu",
-      "passage": "Đoạn văn ôn tập"
+      "passage": "Đoạn văn ôn tập",
+      "picture": "Nhìn ảnh đoán từ"
     },
     "activityHint": {
       "cards": "Lật thẻ, tự đánh giá Đã biết / Đang học, lặp lại thẻ chưa thuộc",
@@ -892,7 +895,8 @@
       "test": "Bài kiểm tra có điểm, được lưu vào biểu đồ Tiến độ",
       "match": "Ghép từ với nghĩa nhanh nhất có thể, tính giờ",
       "write": "Tự viết câu với từng từ, AI chấm và gợi ý câu tốt hơn – nhớ lâu nhất",
-      "passage": "AI viết đoạn văn IELTS từ các từ bạn sắp quên, kèm câu hỏi T/F/NG"
+      "passage": "AI viết đoạn văn IELTS từ các từ bạn sắp quên, kèm câu hỏi T/F/NG",
+      "picture": "Nhìn ảnh minh hoạ rồi chọn hoặc gõ đúng từ – gắn từ với hình ảnh để nhớ lâu"
     },
     "orderLabel": "Lấy từ nào",
     "order": {
@@ -951,7 +955,21 @@
       "exit": "Thoát",
       "tooFew": "Cần ít nhất 2 từ có nghĩa để chơi."
     },
-    "passageNote": "AI tự chọn 8 từ bạn sắp quên (đến hạn ôn trong 3 ngày tới) để viết đoạn văn. Bấm vào từ được tô để xem nghĩa."
+    "passageNote": "AI tự chọn 8 từ bạn sắp quên (đến hạn ôn trong 3 ngày tới) để viết đoạn văn. Bấm vào từ được tô để xem nghĩa.",
+    "withImages": "{n} từ có ảnh",
+    "picture": {
+      "none": "Chưa có từ nào có ảnh. Thêm ảnh cho từ trong Sổ tay hoặc khi sửa học phần.",
+      "exit": "Thoát",
+      "askChoose": "Ảnh này là từ nào?",
+      "askType": "Gõ từ đúng với ảnh",
+      "typeHere": "Gõ từ…",
+      "check": "Kiểm tra",
+      "right": "Chính xác!",
+      "answerIs": "Đáp án:",
+      "next": "Tiếp",
+      "retryWrong": "Luyện lại câu sai",
+      "typingRound": "Vòng tự gõ"
+    }
   },
   "writing": {
     "title": "Luyện Writing",
@@ -1038,7 +1056,8 @@
       "learn": "Học",
       "test": "Kiểm tra",
       "match": "Ghép thẻ",
-      "write": "Viết câu"
+      "write": "Viết câu",
+      "picture": "Nhìn ảnh"
     },
     "edit": "Sửa",
     "delete": "Xoá",
@@ -1107,14 +1126,14 @@
       "noAi": "Chưa cấu hình AI – vào Cài đặt → AI.",
       "failed": "AI chưa chấm được, thử lại.",
       "score": {
-        "0": "❌ Chưa dùng đúng từ",
-        "1": "🟡 Đúng nghĩa, cần sửa một chút",
-        "2": "✅ Chuẩn và tự nhiên!"
+        "0": "Chưa dùng đúng từ",
+        "1": "Đúng nghĩa, cần sửa một chút",
+        "2": "Chuẩn và tự nhiên!"
       },
       "better": "Câu gợi ý:",
       "next": "Tiếp",
       "saveExample": "Lưu làm ví dụ của từ",
-      "saved": "Đã lưu ví dụ ✓",
+      "saved": "Đã lưu ví dụ",
       "done": "Xong! {good}/{n} câu chuẩn",
       "doneTip": "Mỗi câu bạn viết được tính là một lần ôn: câu chuẩn giúp từ quay lại muộn hơn, câu sai thì sớm hơn.",
       "continue": "Tiếp tục",
@@ -1137,7 +1156,7 @@
       },
       "rememberTitle": "Bạn còn nhớ nghĩa các từ này không?",
       "rememberHint": "Bấm vào từ bạn đã quên nghĩa khi đọc. Từ nhớ được tính là “Nhớ”, từ quên được tính là “Quên” trong lịch ôn.",
-      "updated": "Đã cập nhật lịch ôn ✓",
+      "updated": "Đã cập nhật lịch ôn",
       "finish": "Xong – cập nhật lịch ôn",
       "continue": "Tiếp tục",
       "another": "Đoạn văn khác"
@@ -1152,11 +1171,22 @@
       },
       "finish": "Hoàn thành phiên học",
       "streak": "Chuỗi {n} ngày!",
-      "doneTip": "Bạn đã thuộc chắc {known} từ. Hẹn gặp lại ngày mai để giữ chuỗi 🔥",
+      "doneTip": "Bạn đã thuộc chắc {known} từ. Hẹn gặp lại ngày mai để giữ chuỗi ngày học.",
       "seeProgress": "Xem tiến độ",
       "more": "Luyện thêm",
       "notEnough": "Chưa đủ từ cho bước này – lưu thêm từ khi đọc nhé.",
       "continue": "Tiếp tục"
     }
+  },
+  "sound": {
+    "all": "Âm thanh",
+    "allHint": "Tắt để tắt toàn bộ âm thanh tự phát (hiệu ứng và tự đọc từ). Nút loa vẫn đọc khi bạn bấm.",
+    "effects": "Hiệu ứng khi học",
+    "effectsHint": "Tiếng khi trả lời đúng/sai, lật thẻ, ghép cặp, xong vòng học.",
+    "autoSpeak": "Tự đọc từ",
+    "autoSpeakHint": "Tự phát âm từ khi hiện thẻ mới hoặc khi hiện đáp án.",
+    "test": "Nghe thử",
+    "mute": "Tắt âm thanh",
+    "unmute": "Bật âm thanh"
   }
 }

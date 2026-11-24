@@ -72,7 +72,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
   return (
     <div>
       <Link href="/library" className="text-sm text-muted hover:text-ink">
-        ← {t("back")}
+        <I.IconArrowLeft className="h-4 w-4" /> {t("back")}
       </Link>
       <div className="mt-2 flex items-start gap-2">
         <h1 className="flex-1 font-serif text-3xl font-bold leading-tight md:text-4xl">{doc.title}</h1>
@@ -193,7 +193,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
                 {s}
               </span>
             ))}
-            {doc.meta?.suggestedSource && <span className="rounded-full border border-line bg-card px-3 py-0.5">📰 {doc.meta.suggestedSource}</span>}
+            {doc.meta?.suggestedSource && <span className="rounded-full border border-line bg-card px-3 py-0.5"><I.IconNews className="mr-1 inline-block h-4 w-4 align-[-0.2em]" />{doc.meta.suggestedSource}</span>}
           </div>
           <div className="mt-3 flex gap-2">
             <button
@@ -228,7 +228,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
 
       {firstOpen && (
         <Link href={`/lessons/${firstOpen.id}`} className="btn btn-lg btn-primary mt-5 w-full sm:w-auto">
-          {doc.lessons.some((l) => l.completedAt) ? t("continue", { n: firstOpen.position }) : t("start")} →
+          {doc.lessons.some((l) => l.completedAt) ? t("continue", { n: firstOpen.position }) : t("start")} <I.IconArrowRight className="h-4 w-4" />
         </Link>
       )}
 
@@ -242,7 +242,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
                   l.completedAt ? "bg-green-600 text-white" : "bg-paper text-muted"
                 }`}
               >
-                {l.completedAt ? "✓" : l.position}
+                {l.completedAt ? <I.IconCheck className="h-4 w-4" /> : l.position}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{l.status === "ready" ? l.title : t("part", { n: l.position })}</div>

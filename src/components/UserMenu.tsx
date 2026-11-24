@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Theme } from "@/theme/config";
 import InstallApp from "./InstallApp";
 import LanguageSwitcher from "./LanguageSwitcher";
+import SoundSettings from "./SoundSettings";
 import ThemeSwitcher from "./ThemeSwitcher";
 import * as I from "./icons";
 
@@ -61,6 +62,10 @@ export default function UserMenu({ theme }: { theme: Theme }) {
           <div className="flex items-center justify-between gap-3 px-3 py-1.5 text-sm">
             <span className="text-muted">{t("language")}</span>
             <LanguageSwitcher />
+          </div>
+          <div className="my-2 border-t border-line" />
+          <div className="px-3 py-1.5">
+            <SoundSettings compact />
           </div>
           <div className="px-3 py-1.5 empty:hidden">
             <InstallApp />

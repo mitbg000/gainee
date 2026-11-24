@@ -49,7 +49,7 @@
   },
   "dashboard": {
     "kicker": "Dashboard",
-    "greeting": "Hello 👋",
+    "greeting": "Hello",
     "intro": "Import an article, read it in short parts, and keep your streak going.",
     "stats": {
       "documents": "Texts",
@@ -189,7 +189,7 @@
   "settings": {
     "kicker": "Settings",
     "title": "Settings",
-    "saved": "Saved ✓",
+    "saved": "Saved",
     "saveError": "Could not save",
     "profile": {
       "title": "Learning profile",
@@ -212,7 +212,7 @@
       "enabled": "Enabled",
       "test": "Test",
       "testing": "Testing…",
-      "testOk": "Connected ✓ – the model replied “{reply}”.",
+      "testOk": "Connected – the model replied “{reply}”.",
       "testFail": "Failed: {error}",
       "modelsFound": "{n} models available.",
       "edit": "Edit",
@@ -259,7 +259,7 @@
       "enabled": "Make pictures",
       "provider": "Provider",
       "note": "Each picture takes about 10–60 seconds and is billed by the provider. Small labels can be wrong, so the drawn diagram stays below it.",
-      "saved": "Saved ✓",
+      "saved": "Saved",
       "saveError": "Could not save"
     },
     "tabs": {
@@ -326,7 +326,8 @@
       "sampleSecondary": "Save word",
       "sampleChip": "Selected",
       "reset": "Reset to default",
-      "language": "Language"
+      "language": "Language",
+      "sound": "Sound"
     }
   },
   "import": {
@@ -455,7 +456,7 @@
     "completed": "Done",
     "completedToast": "Lesson completed! +XP",
     "pinned": "Pinned to the margin",
-    "saved": "Saved to your notebook ⭐",
+    "saved": "Saved to your notebook",
     "unsaved": "Removed from notebook",
     "error": "Something went wrong",
     "notFoundInText": "Could not find that quote in the text",
@@ -595,7 +596,7 @@
     "edit": {
       "open": "Edit text / split / merge",
       "title": "Edit lesson text",
-      "help": "Delete unrelated parts (author, date, links…), fix the text, apply bold/italic/UPPERCASE, add images. Use the ✂ button where a new lesson should start.",
+      "help": "Delete unrelated parts (author, date, links…), fix the text, apply bold/italic/UPPERCASE, add images. Use the scissors button where a new lesson should start.",
       "regenerate": "Regenerate vocabulary and exercises from the new text",
       "save": "Save",
       "cancel": "Cancel",
@@ -620,7 +621,7 @@
   },
   "wordList": {
     "title": "Saved words",
-    "empty": "No saved words yet. Tap a word while reading, then ☆.",
+    "empty": "No saved words yet. Tap a word while reading, then the star to save it.",
     "fromLesson": "From a lesson",
     "remove": "Remove",
     "total": "{n} saved words, grouped by text and lesson",
@@ -700,7 +701,8 @@
       "recognize": "Word → meaning",
       "recall": "Meaning → word",
       "cloze": "Fill the gap",
-      "listen": "Listen"
+      "listen": "Listen",
+      "image": "Picture"
     },
     "rating": {
       "1": "Again",
@@ -884,7 +886,8 @@
       "test": "Test",
       "match": "Match",
       "write": "Write",
-      "passage": "Review passage"
+      "passage": "Review passage",
+      "picture": "Picture → word"
     },
     "activityHint": {
       "cards": "Flip cards, mark Know / Still learning, repeat the ones you don't know",
@@ -892,7 +895,8 @@
       "test": "A scored test, saved to the Progress chart",
       "match": "Match words to meanings as fast as you can, timed",
       "write": "Write your own sentence with each word; AI checks it and suggests a better one – the best for memory",
-      "passage": "AI writes an IELTS passage from the words you're about to forget, with T/F/NG questions"
+      "passage": "AI writes an IELTS passage from the words you're about to forget, with T/F/NG questions",
+      "picture": "Look at the picture, then pick or type the word – tying words to images helps them stick"
     },
     "orderLabel": "Which words",
     "order": {
@@ -951,7 +955,21 @@
       "exit": "Exit",
       "tooFew": "You need at least 2 words with a meaning to play."
     },
-    "passageNote": "AI picks 8 words you're about to forget (due within 3 days) and writes a passage. Tap a highlighted word to see its meaning."
+    "passageNote": "AI picks 8 words you're about to forget (due within 3 days) and writes a passage. Tap a highlighted word to see its meaning.",
+    "withImages": "{n} words with pictures",
+    "picture": {
+      "none": "No words have pictures yet. Add pictures in the notebook or when editing a set.",
+      "exit": "Exit",
+      "askChoose": "Which word is this?",
+      "askType": "Type the word for this picture",
+      "typeHere": "Type the word…",
+      "check": "Check",
+      "right": "Correct!",
+      "answerIs": "The answer:",
+      "next": "Next",
+      "retryWrong": "Retry the misses",
+      "typingRound": "Typing round"
+    }
   },
   "writing": {
     "title": "Writing practice",
@@ -1038,7 +1056,8 @@
       "learn": "Learn",
       "test": "Test",
       "match": "Match",
-      "write": "Write"
+      "write": "Write",
+      "picture": "Pictures"
     },
     "edit": "Edit",
     "delete": "Delete",
@@ -1107,14 +1126,14 @@
       "noAi": "AI is not set up – go to Settings → AI.",
       "failed": "AI couldn't check it, try again.",
       "score": {
-        "0": "❌ The word isn't used correctly",
-        "1": "🟡 Right meaning, small fix needed",
-        "2": "✅ Correct and natural!"
+        "0": "The word isn't used correctly",
+        "1": "Right meaning, small fix needed",
+        "2": "Correct and natural!"
       },
       "better": "Suggested:",
       "next": "Next",
       "saveExample": "Save as the word's example",
-      "saved": "Example saved ✓",
+      "saved": "Example saved",
       "done": "Done! {good}/{n} sentences spot on",
       "doneTip": "Each sentence counts as a review: a good one brings the word back later, a wrong one sooner.",
       "continue": "Continue",
@@ -1137,7 +1156,7 @@
       },
       "rememberTitle": "Did you still know these words?",
       "rememberHint": "Tap the words whose meaning you had forgotten. Remembered words count as “Good”, forgotten ones as “Again” in your review schedule.",
-      "updated": "Review schedule updated ✓",
+      "updated": "Review schedule updated",
       "finish": "Done – update my reviews",
       "continue": "Continue",
       "another": "Another passage"
@@ -1152,11 +1171,22 @@
       },
       "finish": "Finish session",
       "streak": "{n}-day streak!",
-      "doneTip": "You know {known} words for sure. See you tomorrow to keep the streak 🔥",
+      "doneTip": "You know {known} words for sure. See you tomorrow to keep your streak.",
       "seeProgress": "See progress",
       "more": "Practise more",
       "notEnough": "Not enough words for this step yet – save more while reading.",
       "continue": "Continue"
     }
+  },
+  "sound": {
+    "all": "Sound",
+    "allHint": "Turn off to silence every automatic sound (effects and reading words aloud). Speaker buttons still read when you press them.",
+    "effects": "Study sound effects",
+    "effectsHint": "Sounds for right/wrong answers, flipping cards, matching, finishing a round.",
+    "autoSpeak": "Read words aloud",
+    "autoSpeakHint": "Pronounce the word when a new card appears or when the answer is shown.",
+    "test": "Test",
+    "mute": "Mute",
+    "unmute": "Unmute"
   }
 }

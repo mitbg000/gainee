@@ -35,3 +35,13 @@ export function speak(text: string) {
 if (typeof window !== "undefined" && "speechSynthesis" in window) {
   speechSynthesis.addEventListener("voiceschanged", () => (cached = null));
 }
+
+/** Read a word aloud by itself (new card, answer shown) – only when "read words automatically" is on and sound is not muted. */
+export function autoSpeak(text: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const p = { muted: false, autoSpeak: true, ...JSON.parse(localStorage.getItem("rl_sound") ?? "{}") };
+    if (p.muted || !p.autoSpeak) return;
+  } catch {}
+  speak(text);
+}

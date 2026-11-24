@@ -2,9 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { speak } from "@/lib/speech";
+import { autoSpeak, speak } from "@/lib/speech";
 import { buildQuestions, isRight, type Mode, type PWord, type Question } from "./questions";
 import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 /** Test: choose the meaning, choose the word, spell what you hear, or fill the sentence – scored, for the Progress chart. */
 export default function Quiz({ words, all, mode, onExit }: { words: PWord[]; all: { term: string; meaning: string }[]; mode: Mode; onExit: () => void }) {
@@ -22,11 +23,13 @@ export default function Quiz({ words, all, mode, onExit }: { words: PWord[]; all
   useEffect(() => {
     if (q || posted.current === qs) return;
     posted.current = qs;
+    sfx("done");
     fetch("/api/practice/result", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ score: qs.length - wrong.length, total: qs.length, mode }) }).catch(() => {});
   }, [qs, q, wrong.length, mode]);
   useEffect(() => {
     if (!q) return;
     if (q.kind === "spell") speak(q.word.term);
+    if (q.kind === "meaning") autoSpeak(q.word.term);
     if (q.kind === "spell" || q.kind === "cloze") setTimeout(() => input.current?.focus(), 50);
   }, [q]);
 
@@ -40,8 +43,10 @@ export default function Quiz({ words, all, mode, onExit }: { words: PWord[]; all
   function answer(a: string) {
     if (!q || given !== null) return;
     setGiven(a);
-    if (!isRight(q, a)) setWrong((w) => [...w, q.word]);
-    if (q.kind !== "spell") speak(q.word.term);
+    const ok = isRight(q, a);
+    sfx(ok ? "correct" : "wrong");
+    if (!ok) setWrong((w) => [...w, q.word]);
+    if (q.kind !== "spell" && q.kind !== "meaning") autoSpeak(q.word.term);
   }
   function next() {
     setGiven(null);
@@ -65,7 +70,7 @@ export default function Quiz({ words, all, mode, onExit }: { words: PWord[]; all
     return (
       <div className="rounded-2xl border border-line bg-card p-5">
         <p className="font-serif text-3xl font-bold">
-          {score}/{qs.length} {score === qs.length ? "🎉" : score >= qs.length * 0.7 ? "👍" : "💪"}
+          {score}/{qs.length} {score === qs.length ? <I.IconTrophy className="inline-block h-8 w-8 align-[-0.1em] text-amber-500" /> : score >= qs.length * 0.7 ? <I.IconCheckCircle className="inline-block h-8 w-8 align-[-0.1em] text-green-600" /> : <I.IconTarget className="inline-block h-8 w-8 align-[-0.1em] text-accent" />}
         </p>
         {wrong.length > 0 && (
           <>
@@ -84,7 +89,7 @@ export default function Quiz({ words, all, mode, onExit }: { words: PWord[]; all
         <div className="mt-5 flex flex-wrap gap-2">
           {wrong.length > 0 && (
             <button onClick={() => start([...new Map(wrong.map((w) => [w.id, w])).values()])} className="btn btn-primary">
-              ↻ {t("retryWrong")}
+              <I.IconRefresh /> {t("retryWrong")}
             </button>
           )}
           <button onClick={() => start(words)} className="btn btn-secondary">
@@ -181,7 +186,7 @@ export default function Quiz({ words, all, mode, onExit }: { words: PWord[]; all
 
       {given !== null && (
         <div className="mt-4 rounded-xl bg-paper p-3">
-          <p className="font-semibold">{right ? `✅ ${t("right")}` : `❌ ${t("answerIs")}`}</p>
+          <p className="flex items-center gap-1.5 font-semibold">{right ? <><I.IconCheckCircle className="h-5 w-5 text-green-600" /> {t("right")}</> : <><I.IconXCircle className="h-5 w-5 text-red-600" /> {t("answerIs")}</>}</p>
           <p className="mt-1 flex flex-wrap items-baseline gap-x-2">
             <b className="font-serif text-lg">{w.term}</b>
             {w.ipa && <span className="text-sm text-muted">{w.ipa}</span>}
@@ -189,7 +194,7 @@ export default function Quiz({ words, all, mode, onExit }: { words: PWord[]; all
           </p>
           {w.context && <p className="mt-1 font-serif text-[15px] italic text-muted">“{w.context}”</p>}
           <button onClick={next} autoFocus className="btn btn-primary mt-3">
-            {t("next")} ↵
+            {t("next")} <I.IconEnter />
           </button>
         </div>
       )}

@@ -8,13 +8,14 @@ import SentencePractice from "@/components/learn/SentencePractice";
 import Flashcards from "./Flashcards";
 import Learn from "./Learn";
 import Match from "./Match";
+import PicturePractice from "./PicturePractice";
 import Quiz from "./Quiz";
 import { MODES, shuffle, type Mode, type PWord } from "./questions";
 import * as I from "@/components/icons";
 
-const ACTIVITIES = ["cards", "learn", "write", "passage", "test", "match"] as const;
+const ACTIVITIES = ["cards", "learn", "write", "picture", "passage", "test", "match"] as const;
 type Activity = (typeof ACTIVITIES)[number];
-const ICON: Record<Activity, React.ReactNode> = { cards: <I.IconCards />, learn: <I.IconTarget />, write: <I.IconPen />, passage: <I.IconBook />, test: <I.IconChecklist />, match: <I.IconSpark /> };
+const ICON: Record<Activity, React.ReactNode> = { cards: <I.IconCards />, learn: <I.IconTarget />, write: <I.IconPen />, picture: <I.IconImage />, passage: <I.IconBook />, test: <I.IconChecklist />, match: <I.IconSpark /> };
 const ORDERS = ["recent", "random", "weak"] as const;
 type Order = (typeof ORDERS)[number];
 
@@ -58,7 +59,8 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
             [...words].sort((a, b) => (b.lapses ?? 0) - (a.lapses ?? 0) || (a.reps ?? 0) - (b.reps ?? 0))
           : words; // already newest first
     // writing sentences takes longer: at most 10 words a round
-    setRunning(list.slice(0, activity === "match" ? Math.max(size, 6) : activity === "write" ? Math.min(size || 10, 10) : size || list.length));
+    const usable = activity === "picture" ? list.filter((w) => w.images?.length) : list;
+    setRunning(usable.slice(0, activity === "match" ? Math.max(size, 6) : activity === "write" ? Math.min(size || 10, 10) : size || list.length));
   }
   const exit = () => setRunning(null);
 
@@ -68,6 +70,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
     if (activity === "match") return <Match words={running} onExit={exit} />;
     if (activity === "write") return <SentencePractice words={running.filter((w) => w.meaningVi || w.definitionEn)} onExit={exit} />;
     if (activity === "passage") return <ReviewPassage onExit={exit} />;
+    if (activity === "picture") return <PicturePractice words={running} all={all} onExit={exit} />;
     return <Quiz words={shuffle(running)} all={all} mode={mode} onExit={exit} />;
   }
 
@@ -75,13 +78,13 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
     <div className="space-y-6">
       {/* what to do first, Anki style: due reviews before new learning */}
       <div className={`flex flex-wrap items-center gap-3 rounded-2xl border p-4 ${due ? "border-accent/40 bg-accent/5" : "border-line bg-card"}`}>
-        <span className="text-2xl">{due ? "⏰" : "✅"}</span>
+        <span className={`flex size-10 flex-none items-center justify-center rounded-full ${due ? "bg-accent/10 text-accent" : "bg-green-500/15 text-green-600"}`}>{due ? <I.IconClock /> : <I.IconCheckCircle />}</span>
         <div className="min-w-0 flex-1">
           <p className="font-semibold">{due ? t("plan.due", { n: due }) : t("plan.none")}</p>
           <p className="text-sm text-muted">{due ? t("plan.dueTip") : t("plan.noneTip")}</p>
         </div>
         <Link href="/quick" className="btn btn-primary">
-          ⚡ {t("plan.quick")}
+          <I.IconBolt /> {t("plan.quick")}
         </Link>
         {due > 0 && (
           <Link href="/review" className="btn btn-secondary">
@@ -106,6 +109,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
               <span className={`flex size-10 items-center justify-center rounded-xl [&>svg]:size-5 ${activity === a ? "bg-accent text-on-accent" : "bg-paper text-accent"}`}>{ICON[a]}</span>
               <b>{t(`activity.${a}`)}</b>
               <span className="text-xs leading-snug text-muted">{t(`activityHint.${a}`)}</span>
+              {a === "picture" && <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-muted">{t("withImages", { n: words.filter((w) => w.images?.length).length })}</span>}
             </button>
           ))}
         </div>
@@ -115,7 +119,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
         <div className="rounded-2xl border border-line bg-card p-5">
           <p className="text-sm text-muted">{t("passageNote")}</p>
           <button onClick={start} className="btn btn-lg btn-primary mt-4">
-            ▶ {t("startActivity", { a: t("activity.passage") })}
+            <I.IconPlay /> {t("startActivity", { a: t("activity.passage") })}
           </button>
         </div>
       ) : (
@@ -169,7 +173,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
         )}
         <div className="md:col-span-2">
           <button onClick={start} className="btn btn-lg btn-primary">
-            ▶ {t("startActivity", { a: t(`activity.${activity}`) })}
+            <I.IconPlay /> {t("startActivity", { a: t(`activity.${activity}`) })}
           </button>
         </div>
       </div>

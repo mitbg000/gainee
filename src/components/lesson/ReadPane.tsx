@@ -316,7 +316,7 @@ export default function ReadPane(props: Props) {
 
       <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
         <span className="rounded-lg bg-card px-2.5 py-1 font-mono tabular-nums text-muted" title={t("timer")}>
-          ⏱ {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+          <I.IconClock className="inline-block h-4 w-4 align-[-0.2em]" /> {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
         </span>
         <span className="text-muted">{t("hint")}</span>
         <span className="ml-auto flex gap-1">
@@ -423,7 +423,7 @@ export default function ReadPane(props: Props) {
               </p>
             ) : (
               <button onClick={finishReading} className="btn btn-primary">
-                ✓ {t("finish")}
+                <I.IconCheck /> {t("finish")}
               </button>
             )}
             {props.summary && (

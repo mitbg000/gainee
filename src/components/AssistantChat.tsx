@@ -138,7 +138,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
 
   const contextSelect = (
     <select value={lessonId ?? ""} onChange={(e) => setLessonId(Number(e.target.value) || null)} aria-label={t("context")} className="field field-sm min-w-0 max-w-[16rem] truncate">
-      <option value="">📄 {t("noContext")}</option>
+      <option value="">{t("noContext")}</option>
       {docs.map((d) => (
         <optgroup key={d.id} label={d.title}>
           {d.lessons.map((l) => (

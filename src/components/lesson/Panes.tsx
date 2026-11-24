@@ -240,7 +240,7 @@ export function ExercisesPane({
                   </div>
                   {checked && (
                     <div className="mt-2 text-sm">
-                      <b>{a.correct ? "✅" : "❌"} {t("answer")}: {t(`tf.${q.answer}`)}</b> — {q.explanation}
+                      <b>{a.correct ? <I.IconCheckCircle className="inline-block h-4 w-4 align-[-0.2em] text-green-600" /> : <I.IconXCircle className="inline-block h-4 w-4 align-[-0.2em] text-red-600" />} {t("answer")}: {t(`tf.${q.answer}`)}</b> — {q.explanation}
                       {q.evidence && <p className="mt-1 font-serif italic text-muted">“{q.evidence}”</p>}
                       <Evidence quote={q.evidence} />
                     </div>
@@ -278,7 +278,7 @@ export function ExercisesPane({
                   </div>
                   {checked && (
                     <div className="mt-2 text-sm">
-                      <b>{a.correct ? "✅" : "❌"} {t("answer")}: {"ABCD"[q.answer]}</b> — {q.explanation}
+                      <b>{a.correct ? <I.IconCheckCircle className="inline-block h-4 w-4 align-[-0.2em] text-green-600" /> : <I.IconXCircle className="inline-block h-4 w-4 align-[-0.2em] text-red-600" />} {t("answer")}: {"ABCD"[q.answer]}</b> — {q.explanation}
                       <Evidence quote={q.evidence} />
                     </div>
                   )}
@@ -319,7 +319,7 @@ export function ExercisesPane({
                     />
                     {rest.join("____")}
                   </p>
-                  {checked && <p className="mt-1 text-sm">{a.correct ? "✅" : "❌"} {t("answer")}: <b>{q.answers.join(" / ")}</b></p>}
+                  {checked && <p className="mt-1 text-sm">{a.correct ? <I.IconCheckCircle className="inline-block h-4 w-4 align-[-0.2em] text-green-600" /> : <I.IconXCircle className="inline-block h-4 w-4 align-[-0.2em] text-red-600" />} {t("answer")}: <b>{q.answers.join(" / ")}</b></p>}
                 </div>
               );
             })}
@@ -339,7 +339,7 @@ export function ExercisesPane({
         )}
         {result && (
           <span className="text-lg font-bold">
-            {result.score}/{result.total} {result.score === result.total ? "🎉" : result.score >= result.total * 0.7 ? "👍" : "💪"}
+            {result.score}/{result.total} {result.score === result.total ? <I.IconTrophy className="inline-block h-7 w-7 align-[-0.1em] text-amber-500" /> : result.score >= result.total * 0.7 ? <I.IconCheckCircle className="inline-block h-7 w-7 align-[-0.1em] text-green-600" /> : <I.IconTarget className="inline-block h-7 w-7 align-[-0.1em] text-accent" />}
           </span>
         )}
         {result && <span className="text-sm text-muted">{t("doneAt", { date: new Date(result.at).toLocaleString() })}</span>}

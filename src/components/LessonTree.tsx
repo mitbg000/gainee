@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { TreeDoc } from "@/lib/documents/queries";
+import * as I from "@/components/icons";
 
 /** Under "Library" in the sidebar: one link per text (two levels only); its parts are on the text's page and the lesson header. */
 export default function LessonTree({ docs }: { docs: TreeDoc[] }) {
@@ -28,7 +29,7 @@ export default function LessonTree({ docs }: { docs: TreeDoc[] }) {
               <span className="min-w-0 flex-1 truncate">{d.title}</span>
               {d.lessons.length > 0 && (
                 <span className={`flex-none text-[11px] tabular-nums ${done === d.lessons.length ? "text-green-600 dark:text-green-400" : "opacity-70"}`}>
-                  {done === d.lessons.length ? "✓" : `${done}/${d.lessons.length}`}
+                  {done === d.lessons.length ? <I.IconCheck className="h-3.5 w-3.5" /> : `${done}/${d.lessons.length}`}
                 </span>
               )}
             </Link>

@@ -10,16 +10,19 @@ import Learn from "@/components/practice/Learn";
 import Match from "@/components/practice/Match";
 import Quiz from "@/components/practice/Quiz";
 import SentencePractice from "@/components/learn/SentencePractice";
+import PicturePractice from "@/components/practice/PicturePractice";
 import { meaningOf, shuffle, type PWord } from "@/components/practice/questions";
-import { speak } from "@/lib/speech";
+import { autoSpeak, speak } from "@/lib/speech";
 import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 export type SetCardData = PWord & { example: string | null; note: string | null; state: number };
-type Mode = "cards" | "learn" | "write" | "test" | "match";
+type Mode = "cards" | "learn" | "write" | "picture" | "test" | "match";
 const MODES: { m: Mode; icon: React.ReactNode }[] = [
   { m: "cards", icon: <I.IconCards /> },
   { m: "learn", icon: <I.IconTarget /> },
   { m: "write", icon: <I.IconPen /> },
+  { m: "picture", icon: <I.IconImage /> },
   { m: "test", icon: <I.IconChecklist /> },
   { m: "match", icon: <I.IconSpark /> },
 ];
@@ -61,12 +64,13 @@ export default function SetView({
     return (
       <div>
         <button onClick={exit} className="btn btn-sm btn-ghost mb-4">
-          ← {title}
+          <I.IconArrowLeft /> {title}
         </button>
         {mode === "cards" && <Flashcards words={cards} onExit={exit} />}
         {mode === "learn" && <Learn words={cards} all={all} onExit={exit} />}
         {mode === "test" && <Quiz words={shuffle(cards)} all={all} mode="mix" onExit={exit} />}
         {mode === "match" && <Match words={cards} onExit={exit} />}
+        {mode === "picture" && <PicturePractice words={cards} all={all} onExit={exit} />}
         {mode === "write" && <SentencePractice words={shuffle(cards).slice(0, 10)} onExit={exit} />}
       </div>
     );
@@ -112,8 +116,8 @@ export default function SetView({
         </div>
       ) : (
         <>
-          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
-            {MODES.map(({ m, icon }) => (
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {MODES.filter(({ m }) => m !== "picture" || cards.some((c) => c.images?.length)).map(({ m, icon }) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
@@ -178,6 +182,7 @@ function Viewer({ cards }: { cards: SetCardData[] }) {
   const [flip, setFlip] = useState(false);
   const c = cards[Math.min(i, cards.length - 1)];
   const go = (d: number) => {
+    autoSpeak(cards[(i + d + cards.length) % cards.length].term);
     setFlip(false);
     setI((n) => (n + d + cards.length) % cards.length);
   };
@@ -188,6 +193,7 @@ function Viewer({ cards }: { cards: SetCardData[] }) {
       else if (e.key === "ArrowLeft") go(-1);
       else if (e.key === " ") {
         e.preventDefault();
+        sfx("flip");
         setFlip((f) => !f);
       }
     };
@@ -198,7 +204,12 @@ function Viewer({ cards }: { cards: SetCardData[] }) {
   const face = "absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-line bg-card p-6 text-center shadow-sm [backface-visibility:hidden]";
   return (
     <div className="mt-5">
-      <button onClick={() => setFlip(!flip)} className="relative block h-72 w-full [perspective:1200px] md:h-80" aria-label={t("flip")}>
+      <button
+        onClick={() => {
+          sfx("flip");
+          setFlip(!flip);
+        }}
+        className="relative block h-72 w-full [perspective:1200px] md:h-80" aria-label={t("flip")}>
         <span className={`absolute inset-0 transition-transform duration-500 [transform-style:preserve-3d] ${flip ? "[transform:rotateY(180deg)]" : ""}`}>
           <span className={face}>
             <span className="font-serif text-4xl font-bold">{c.term}</span>
@@ -216,13 +227,13 @@ function Viewer({ cards }: { cards: SetCardData[] }) {
       </button>
       <div className="mt-3 flex items-center justify-center gap-4">
         <button onClick={() => go(-1)} className="icon-btn icon-btn-outline rounded-full" aria-label={t("prev")}>
-          ←
+          <I.IconArrowLeft />
         </button>
         <span className="min-w-16 text-center text-sm font-semibold tabular-nums">
           {i + 1} / {cards.length}
         </span>
         <button onClick={() => go(1)} className="icon-btn icon-btn-outline rounded-full" aria-label={t("next")}>
-          →
+          <I.IconArrowRight />
         </button>
         <button onClick={() => speak(c.term)} className="icon-btn" aria-label={t("listen")}>
           <I.IconSpeaker />

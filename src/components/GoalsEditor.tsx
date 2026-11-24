@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import * as I from "@/components/icons";
 
 /** Edit goal targets (0 = off). */
 export default function GoalsEditor({ targets }: { targets: Record<string, number> }) {
@@ -38,7 +39,7 @@ export default function GoalsEditor({ targets }: { targets: Record<string, numbe
         }}
         className="mt-2 min-h-10 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent"
       >
-        {state === "saved" ? `✓ ${t("saved")}` : t("save")}
+        {state === "saved" ? <><I.IconCheck /> {t("saved")}</> : t("save")}
       </button>
     </details>
   );

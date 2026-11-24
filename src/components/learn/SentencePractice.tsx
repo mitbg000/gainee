@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { meaningOf, type PWord } from "@/components/practice/questions";
 import { speak } from "@/lib/speech";
 import * as I from "@/components/icons";
+import { sfx } from "@/lib/sound";
 
 type Result = { score: 0 | 1 | 2; feedback: string; better: string };
 const SCORE_STYLE = ["border-red-400 bg-red-50 dark:bg-red-950/30", "border-amber-400 bg-amber-50 dark:bg-amber-950/30", "border-green-500 bg-green-50 dark:bg-green-950/30"];
@@ -31,6 +32,7 @@ export default function SentencePractice({ words, onExit, onDone }: { words: PWo
     if (!r?.ok) return setError(r?.status === 409 ? t("noAi") : t("failed"));
     const data = (await r.json()) as Result;
     setRes(data);
+    sfx(data.score === 2 ? "correct" : data.score === 1 ? "tap" : "wrong");
     setScores((s) => [...s, data.score]);
   }
   async function saveExample() {
@@ -50,7 +52,7 @@ export default function SentencePractice({ words, onExit, onDone }: { words: PWo
     const good = scores.filter((s) => s === 2).length;
     return (
       <div className="mx-auto max-w-2xl rounded-3xl border border-line bg-card p-8 text-center">
-        <p className="text-4xl">✍️</p>
+        <I.BigIcon icon={I.IconPen} />
         <p className="mt-2 font-serif text-2xl font-bold">{t("done", { good, n: scores.length })}</p>
         <p className="mt-1 text-sm text-muted">{t("doneTip")}</p>
         <div className="mt-5 flex justify-center gap-2">
@@ -125,7 +127,10 @@ export default function SentencePractice({ words, onExit, onDone }: { words: PWo
         {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
         {res && (
           <div className={`mt-4 rounded-2xl border-2 p-4 ${SCORE_STYLE[res.score]}`}>
-            <p className="font-semibold">{t(`score.${res.score}`)}</p>
+            <p className="flex items-center gap-1.5 font-semibold">
+              {res.score === 2 ? <I.IconCheckCircle className="h-5 w-5 text-green-600" /> : res.score === 1 ? <I.IconHalfCircle className="h-5 w-5 text-amber-600" /> : <I.IconXCircle className="h-5 w-5 text-red-600" />}
+              {t(`score.${res.score}`)}
+            </p>
             <p className="mt-1 text-sm">{res.feedback}</p>
             {res.better.trim() && res.better.trim() !== text.trim() && (
               <p className="mt-2 font-serif italic">
@@ -134,11 +139,11 @@ export default function SentencePractice({ words, onExit, onDone }: { words: PWo
             )}
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={next} autoFocus className="btn btn-primary">
-                {t("next")} ↵
+                {t("next")} <I.IconEnter />
               </button>
               {res.score > 0 && (
                 <button onClick={saveExample} disabled={saved} className="btn btn-secondary">
-                  {saved ? t("saved") : t("saveExample")}
+                  {saved ? <><I.IconCheck /> {t("saved")}</> : t("saveExample")}
                 </button>
               )}
             </div>
