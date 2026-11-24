@@ -1072,6 +1072,7 @@
     "searchSaved": "Tìm trong từ đã lưu…",
     "image": "Hình ảnh",
     "imageHint": "Chọn ảnh, hoặc dán (Ctrl/Cmd+V) / kéo thả ảnh vào đây – PNG, JPG, GIF, WebP tối đa 8 MB",
-    "removeImage": "Xoá ảnh"
+    "removeImage": "Xoá ảnh",
+    "removeFromText": "Bỏ khỏi bài đọc này (từ vẫn còn trong sổ tay)"
   }
 }

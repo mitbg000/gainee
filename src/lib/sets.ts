@@ -66,6 +66,20 @@ export const SetInput = z.object({
   wordIds: z.array(z.number().int().positive()).max(5000).optional(),
 });
 
+/** Update edited cards and save new ones as words (of `lessonId` when given); returns the word ids in card order. */
+async function upsertCards(cards: z.infer<typeof SetCard>[], lessonId?: number) {
+  const ids: number[] = [];
+  for (const c of cards) {
+    // only the fields the editor sent; "" clears one
+    const fields = Object.fromEntries(Object.entries({ term: c.term, meaningVi: c.meaningVi, ipa: c.ipa, pos: c.pos, example: c.example }).filter(([, v]) => v !== undefined));
+    if (c.id) {
+      await updateWord(c.id, fields);
+      ids.push(c.id);
+    } else ids.push(await addWord({ term: c.term, meaningVi: c.meaningVi, ipa: c.ipa, pos: c.pos, example: c.example, lessonId }));
+  }
+  return ids;
+}
+
 /** Create or replace a set: new cards become saved words, edited ones are updated, order is kept.
  *  Returns the set id and the word id of each card (same order), so the editor can attach images to new cards. */
 export async function saveSet(id: number | null, input: z.infer<typeof SetInput>) {
@@ -75,18 +89,7 @@ export async function saveSet(id: number | null, input: z.infer<typeof SetInput>
   if (setId) await db.update(wordSets).set(meta).where(eq(wordSets.id, setId));
   else [{ id: setId }] = await db.insert(wordSets).values(meta).$returningId();
 
-  let ids = input.wordIds;
-  if (input.cards) {
-    ids = [];
-    for (const c of input.cards) {
-      // only the fields the editor sent; "" clears one
-      const fields = Object.fromEntries(Object.entries({ term: c.term, meaningVi: c.meaningVi, ipa: c.ipa, pos: c.pos, example: c.example }).filter(([, v]) => v !== undefined));
-      if (c.id) {
-        await updateWord(c.id, fields);
-        ids.push(c.id);
-      } else ids.push(await addWord({ term: c.term, meaningVi: c.meaningVi, ipa: c.ipa, pos: c.pos, example: c.example }));
-    }
-  }
+  const ids = input.cards ? await upsertCards(input.cards) : input.wordIds;
   if (ids) {
     const unique = [...new Set(ids)];
     const existing = unique.length ? (await db.select({ id: words.id }).from(words).where(inArray(words.id, unique))).map((w) => w.id) : [];
@@ -97,6 +100,25 @@ export async function saveSet(id: number | null, input: z.infer<typeof SetInput>
     });
   }
   return { id: setId!, wordIds: input.cards ? ids! : [] };
+}
+
+export const TextSetInput = z.object({ cards: z.array(SetCard).max(1000) });
+
+/**
+ * Edit the words of a reading text like a set. New cards (and saved words added to it) belong to the text's first part;
+ * a card removed here leaves the text but stays in the notebook (under "other words").
+ */
+export async function saveTextSet(documentId: number, cards: z.infer<typeof SetCard>[]) {
+  const db = getDb();
+  const parts = await db.select({ id: lessons.id }).from(lessons).where(eq(lessons.documentId, documentId)).orderBy(asc(lessons.position));
+  if (!parts.length) return null;
+  const before = (await db.select({ id: words.id }).from(words).where(inArray(words.lessonId, parts.map((l) => l.id)))).map((w) => w.id);
+  const ids = await upsertCards(cards, parts[0].id);
+  const moveIn = ids.filter((id) => !before.includes(id));
+  const moveOut = before.filter((id) => !ids.includes(id));
+  if (moveIn.length) await db.update(words).set({ lessonId: parts[0].id }).where(inArray(words.id, moveIn));
+  if (moveOut.length) await db.update(words).set({ lessonId: null }).where(inArray(words.id, moveOut));
+  return { id: documentId, wordIds: ids };
 }
 
 export const deleteSet = (id: number) => getDb().delete(wordSets).where(eq(wordSets.id, id));

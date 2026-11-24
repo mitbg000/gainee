@@ -101,8 +101,8 @@ export default function SetView({
       {cards.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-line p-8 text-center">
           <p className="text-muted">{t("emptySet")}</p>
-          {setId && (
-            <Link href={`/words/sets/${setId}/edit`} className="btn btn-primary mt-3">
+          {(setId || docId) && (
+            <Link href={setId ? `/words/sets/${setId}/edit` : `/words/text/${docId}/edit`} className="btn btn-primary mt-3">
               {t("addTerms")}
             </Link>
           )}
@@ -126,12 +126,11 @@ export default function SetView({
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-2 border-y border-line py-3">
-        {setId ? (
-          <Link href={`/words/sets/${setId}/edit`} className="btn btn-sm btn-secondary">
-            <I.IconEdit /> {t("edit")}
-          </Link>
-        ) : (
-          <button onClick={copyToSet} disabled={busy} className="btn btn-sm btn-secondary">
+        <Link href={setId ? `/words/sets/${setId}/edit` : `/words/text/${docId}/edit`} className="btn btn-sm btn-secondary">
+          <I.IconEdit /> {t("edit")}
+        </Link>
+        {!setId && (
+          <button onClick={copyToSet} disabled={busy} className="btn btn-sm btn-ghost">
             <I.IconPlus /> {t("makeSet")}
           </button>
         )}
@@ -158,9 +157,9 @@ export default function SetView({
           <TermRow key={c.id} card={c} onSaved={(n) => setCards((cs) => cs.map((x) => (x.id === n.id ? n : x)))} />
         ))}
       </ul>
-      {setId && (
+      {(setId || docId) && (
         <div className="mt-4 text-center">
-          <Link href={`/words/sets/${setId}/edit`} className="btn btn-secondary">
+          <Link href={setId ? `/words/sets/${setId}/edit` : `/words/text/${docId}/edit`} className="btn btn-secondary">
             {t("addOrRemove")}
           </Link>
         </div>

@@ -1072,6 +1072,7 @@
     "searchSaved": "Search saved words…",
     "image": "Image",
     "imageHint": "Choose an image, or paste (Ctrl/Cmd+V) / drop one here – PNG, JPG, GIF, WebP up to 8 MB",
-    "removeImage": "Remove image"
+    "removeImage": "Remove image",
+    "removeFromText": "Remove from this text (the word stays in the notebook)"
   }
 }

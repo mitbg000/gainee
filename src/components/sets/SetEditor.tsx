@@ -18,7 +18,10 @@ const blank = (): Row => ({ key: `n${seq++}`, term: "", meaningVi: "", ipa: "", 
 export default function SetEditor({
   initial,
   saved,
+  textId,
 }: {
+  /** editing the word list of a reading text: its title is the text's, cards keep the text's order */
+  textId?: number;
   initial?: { id: number; title: string; description: string | null; cards: { id: number; term: string; meaningVi: string | null; ipa: string | null; pos: string | null; example: string | null; images: Img[] }[] };
   saved: Saved[];
 }) {
@@ -68,7 +71,8 @@ export default function SetEditor({
           : { id: r.id, term: r.term.trim(), meaningVi: r.meaningVi.trim(), ipa: r.ipa.trim(), pos: r.pos.trim(), example: r.example.trim() },
       ),
     };
-    const r = await fetch(initial ? `/api/sets/${initial.id}` : "/api/sets", { method: initial ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
+    const url = textId ? `/api/sets/text/${textId}` : initial ? `/api/sets/${initial.id}` : "/api/sets";
+    const r = await fetch(url, { method: textId || initial ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     if (!r?.ok) {
       setBusy(false);
       return setError(true);
@@ -82,19 +86,24 @@ export default function SetEditor({
         await fetch(`/api/words/${res.wordIds[k]}/images`, { method: "POST", body: fd }).catch(() => null);
       }
     setBusy(false);
-    router.push(`/words/sets/${res.id}`);
+    router.push(textId ? `/words/text/${textId}` : `/words/sets/${res.id}`);
     router.refresh();
   }
 
   return (
     <div className="pb-10">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="flex-1 font-serif text-2xl font-bold md:text-3xl">{initial ? t("editTitle") : t("newTitle")}</h1>
+        <h1 className="flex-1 font-serif text-2xl font-bold md:text-3xl">{initial || textId ? t("editTitle") : t("newTitle")}</h1>
         <button onClick={save} disabled={busy} className="btn btn-primary">
-          {busy ? t("saving") : initial ? t("done") : t("create")}
+          {busy ? t("saving") : initial || textId ? t("done") : t("create")}
         </button>
       </div>
 
+      {textId ? (
+        <p className="mt-3 text-lg font-semibold">
+          {title} <span className="text-sm font-normal text-muted">· {t("fromText")}</span>
+        </p>
+      ) : (
       <div className="mt-6 space-y-4">
         <label className="block">
           <input
@@ -110,6 +119,7 @@ export default function SetEditor({
           <span className="mt-1 block text-xs font-semibold uppercase tracking-wide text-muted">{t("descLabel")}</span>
         </label>
       </div>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-2">
         <button onClick={() => setPanel(panel === "import" ? null : "import")} aria-pressed={panel === "import"} className={`btn btn-sm ${panel === "import" ? "btn-primary" : "btn-secondary"}`}>
@@ -148,13 +158,17 @@ export default function SetEditor({
                 <button onClick={() => set(r.key, { more: !r.more })} className="icon-btn" aria-label={t("more")} title={t("more")}>
                   <I.IconEdit />
                 </button>
-                <button onClick={() => move(i, -1)} disabled={!i} className="icon-btn" aria-label={t("up")}>
-                  ↑
-                </button>
-                <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="icon-btn" aria-label={t("down")}>
-                  ↓
-                </button>
-                <button onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} className="icon-btn hover:text-red-600" aria-label={t("removeCard")} title={t("removeCard")}>
+                {!textId && (
+                  <>
+                    <button onClick={() => move(i, -1)} disabled={!i} className="icon-btn" aria-label={t("up")}>
+                      ↑
+                    </button>
+                    <button onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="icon-btn" aria-label={t("down")}>
+                      ↓
+                    </button>
+                  </>
+                )}
+                <button onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} className="icon-btn hover:text-red-600" aria-label={t(textId ? "removeFromText" : "removeCard")} title={t(textId ? "removeFromText" : "removeCard")}>
                   <I.IconTrash />
                 </button>
               </span>
@@ -193,7 +207,7 @@ export default function SetEditor({
       {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{title.trim() ? t("saveFailed") : t("needTitle")}</p>}
       <div className="mt-6 flex justify-end">
         <button onClick={save} disabled={busy} className="btn btn-lg btn-primary">
-          {busy ? t("saving") : initial ? t("done") : t("create")}
+          {busy ? t("saving") : initial || textId ? t("done") : t("create")}
         </button>
       </div>
     </div>
