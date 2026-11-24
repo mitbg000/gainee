@@ -12,7 +12,7 @@ export const CARD_FIELDS = { id: words.id, term: words.term, ipa: words.ipa, pos
 /** All sets with their size, most recently changed first. */
 export async function listSets() {
   return getDb()
-    .select({ id: wordSets.id, title: wordSets.title, description: wordSets.description, updatedAt: wordSets.updatedAt, n: sql<number>`(select count(*) from ${wordSetItems} i where i.set_id = ${wordSets.id})` })
+    .select({ id: wordSets.id, title: wordSets.title, description: wordSets.description, updatedAt: wordSets.updatedAt, n: sql<number>`(select count(*) from ${wordSetItems} i where i.set_id = \`word_sets\`.\`id\`)` })
     .from(wordSets)
     .orderBy(desc(wordSets.updatedAt))
     .then((r) => r.map((s) => ({ ...s, n: Number(s.n) })));

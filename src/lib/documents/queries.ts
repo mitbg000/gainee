@@ -19,6 +19,10 @@ export async function labelsForDocuments(ids: number[]): Promise<Map<number, Lab
 }
 
 /** Library list, optionally filtered by labels (all must match) and a search term. */
+// Drizzle writes a column of the main table without its table name ("id") when a query reads one table,
+// and inside a subquery over lessons that "id" would mean lessons.id – so name it in full.
+const DOC_ID = sql.raw("`documents`.`id`");
+
 export async function listDocuments(opts: { labelIds?: number[]; q?: string } = {}) {
   const db = getDb();
   const where = [];
@@ -27,7 +31,7 @@ export async function listDocuments(opts: { labelIds?: number[]; q?: string } = 
     where.push(or(like(documents.title, q), like(documents.author, q), like(documents.source, q)));
   }
   for (const labelId of opts.labelIds ?? []) {
-    where.push(sql`exists (select 1 from ${documentLabels} dl where dl.document_id = ${documents.id} and dl.label_id = ${labelId})`);
+    where.push(sql`exists (select 1 from ${documentLabels} dl where dl.document_id = ${DOC_ID} and dl.label_id = ${labelId})`);
   }
   const docs = await db
     .select({
@@ -40,17 +44,18 @@ export async function listDocuments(opts: { labelIds?: number[]; q?: string } = 
       level: documents.level,
       status: documents.status,
       createdAt: documents.createdAt,
-      lessons: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${documents.id})`,
-      ready: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${documents.id} and l.status = 'ready')`,
-      done: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${documents.id} and l.completed_at is not null)`,
+      lessons: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${DOC_ID})`,
+      ready: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${DOC_ID} and l.status = 'ready')`,
+      done: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${DOC_ID} and l.completed_at is not null)`,
       // the first unfinished part, to continue reading from the library
-      nextLessonId: sql<number | null>`(select l.id from ${lessons} l where l.document_id = ${documents.id} and l.completed_at is null order by l.position limit 1)`,
-      nextPosition: sql<number | null>`(select l.position from ${lessons} l where l.document_id = ${documents.id} and l.completed_at is null order by l.position limit 1)`,
-      firstLessonId: sql<number | null>`(select l.id from ${lessons} l where l.document_id = ${documents.id} order by l.position limit 1)`,
-      lastRead: sql<string | null>`(select max(x.at) from (
-        select rs.created_at as at from reading_sessions rs join ${lessons} l on l.id = rs.lesson_id where l.document_id = ${documents.id}
-        union all select a.created_at from attempts a join ${lessons} l on l.id = a.lesson_id where l.document_id = ${documents.id}
-        union all select l.completed_at from ${lessons} l where l.document_id = ${documents.id}) x)`,
+      nextLessonId: sql<number | null>`(select l.id from ${lessons} l where l.document_id = ${DOC_ID} and l.completed_at is null order by l.position limit 1)`,
+      nextPosition: sql<number | null>`(select l.position from ${lessons} l where l.document_id = ${DOC_ID} and l.completed_at is null order by l.position limit 1)`,
+      firstLessonId: sql<number | null>`(select l.id from ${lessons} l where l.document_id = ${DOC_ID} order by l.position limit 1)`,
+      // latest reading session, exercise attempt or finished part (no derived table: MySQL 5.7 / MariaDB cannot correlate one)
+      lastRead: sql<string | null>`nullif(greatest(
+        coalesce((select max(rs.created_at) from reading_sessions rs join ${lessons} l on l.id = rs.lesson_id where l.document_id = ${DOC_ID}), '1000-01-01'),
+        coalesce((select max(a.created_at) from attempts a join ${lessons} l on l.id = a.lesson_id where l.document_id = ${DOC_ID}), '1000-01-01'),
+        coalesce((select max(l.completed_at) from ${lessons} l where l.document_id = ${DOC_ID}), '1000-01-01')), '1000-01-01')`,
     })
     .from(documents)
     .where(where.length ? and(...where) : undefined)
