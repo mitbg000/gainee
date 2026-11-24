@@ -9,6 +9,8 @@ const { words, lessons, documents, reviewLogs } = schema;
 const scheduler = fsrs({ enable_fuzz: true });
 export const REVIEW_MODES = ["recognize", "recall", "cloze", "listen"] as const;
 export type ReviewMode = (typeof REVIEW_MODES)[number];
+/** Also logged as reviews: writing a sentence with the word, meeting it in a review passage. */
+export type LogMode = ReviewMode | "sentence" | "passage";
 
 type WordRow = typeof words.$inferSelect;
 
@@ -85,7 +87,7 @@ export async function dueByDocument() {
 }
 
 /** Apply a rating (1 Again … 4 Easy), log it, and return the next due date. */
-export async function gradeWord(id: number, rating: Grade, mode: ReviewMode, durationMs?: number) {
+export async function gradeWord(id: number, rating: Grade, mode: LogMode, durationMs?: number) {
   const db = getDb();
   const [w] = await db.select().from(words).where(eq(words.id, id));
   if (!w) return null;

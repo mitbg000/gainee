@@ -48,10 +48,10 @@ export async function progressData() {
   const { readingSessions, answerLogs } = schema;
   const since = new Date(`${today()}T00:00:00Z`);
   since.setUTCDate(since.getUTCDate() - 7 * 26);
-  const [days, [w], [mastered], [done], sessions, acc, s] = await Promise.all([
+  const [days, [w], mastered, [done], sessions, acc, s] = await Promise.all([
     db.select().from(activity).where(sql`${activity.day} >= ${since.toISOString().slice(0, 10)}`).orderBy(asc(activity.day)),
     db.select({ n: count() }).from(words),
-    db.select({ n: count() }).from(words).where(sql`${words.state} = 2 and ${words.stability} >= 21`),
+    masteredByWeek(), // one definition of "known" everywhere: remembered 3 times
     db.select({ n: count() }).from(lessons).where(isNotNull(lessons.completedAt)),
     db.select({ at: readingSessions.createdAt, wpm: readingSessions.wpm, words: readingSessions.words, lookups: readingSessions.lookups }).from(readingSessions).orderBy(desc(readingSessions.id)).limit(20),
     db
@@ -66,7 +66,8 @@ export async function progressData() {
   return {
     days,
     since: since.toISOString().slice(0, 10),
-    totals: { streak: s, xp: Number(xp), words: w.n, mastered: mastered.n, lessonsDone: done.n },
+    totals: { streak: s, xp: Number(xp), words: w.n, mastered: mastered.known, lessonsDone: done.n },
+    mastered,
     wpm: read.map((r) => ({ at: r.at, wpm: r.wpm })),
     lookupsPer100: totalWords ? Math.round((read.reduce((a, r) => a + r.lookups, 0) / totalWords) * 1000) / 10 : null,
     accuracy: acc.map((a) => ({ qtype: a.qtype, total: a.total, pct: Math.round((Number(a.correct) / a.total) * 100) })),
@@ -95,4 +96,54 @@ export async function scoreHistory() {
     practice: practice.reverse().map((r) => ({ pct: pct(r.score, r.max), at: r.at })),
     writing: [...byKind].map(([kind, pts]) => ({ kind, pts })),
   };
+}
+
+/** A word counts as "known for sure" once it has been remembered (Good/Easy, any mode) 3 times. */
+export const MASTER_AFTER = 3;
+
+/**
+ * Words known for sure, week by week (last 12 weeks, Monday-based, in the app's time zone):
+ * the running total at the end of each week and how many became known that week.
+ */
+export async function masteredByWeek(weeks = 12) {
+  const { reviewLogs } = schema;
+  const rows = await getDb()
+    .select({ wordId: reviewLogs.wordId, at: reviewLogs.createdAt })
+    .from(reviewLogs)
+    .innerJoin(words, eq(words.id, reviewLogs.wordId))
+    .where(sql`${reviewLogs.rating} >= 3`)
+    .orderBy(asc(reviewLogs.id));
+  // the moment each word reached its 3rd good review
+  const seen = new Map<number, number>();
+  const knownAt: Date[] = [];
+  for (const r of rows) {
+    const n = (seen.get(r.wordId) ?? 0) + 1;
+    seen.set(r.wordId, n);
+    if (n === MASTER_AFTER) knownAt.push(r.at);
+  }
+  const tz = process.env.TZ || "Asia/Ho_Chi_Minh";
+  const local = (d: Date) => new Date(new Date(d).toLocaleString("en-US", { timeZone: tz }));
+  const monday = (d: Date) => {
+    const x = local(d);
+    x.setHours(0, 0, 0, 0);
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  };
+  const start = monday(new Date());
+  start.setDate(start.getDate() - 7 * (weeks - 1));
+  const out = Array.from({ length: weeks }, (_, i) => {
+    const from = new Date(start);
+    from.setDate(from.getDate() + 7 * i);
+    return { week: from, total: 0, added: 0 };
+  });
+  for (const at of knownAt) {
+    const w = monday(at);
+    const i = Math.round((w.getTime() - start.getTime()) / (7 * 86400_000));
+    if (i < weeks) {
+      for (let k = Math.max(0, i); k < weeks; k++) out[k].total++;
+      if (i >= 0) out[i].added++;
+    }
+  }
+  const [learning] = await getDb().select({ n: count() }).from(words).where(sql`${words.reps} > 0`);
+  return { weeks: out, known: knownAt.length, studied: learning?.n ?? 0, thisWeek: out[weeks - 1].added };
 }

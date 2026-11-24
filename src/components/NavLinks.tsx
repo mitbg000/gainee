@@ -11,7 +11,7 @@ import * as I from "./icons";
 
 const ICONS: Record<string, (p: { className?: string }) => React.ReactElement> = {
   home: I.IconHome, book: I.IconBook, plus: I.IconPlus, dict: I.IconDict, words: I.IconWords,
-  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag, target: I.IconTarget, pen: I.IconPen,
+  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag, target: I.IconTarget, pen: I.IconPen, bolt: I.IconBolt,
 };
 
 function isActive(path: string, href: string) {

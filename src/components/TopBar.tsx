@@ -11,7 +11,7 @@ import { NAV } from "./nav";
 import * as I from "./icons";
 
 /** Desktop top bar, kept minimal: where you are (breadcrumbs), quick look-up, due reviews and the user menu. */
-export default function TopBar({ tree, due, theme }: { tree: TreeDoc[]; due: number; theme: Theme }) {
+export default function TopBar({ tree, due, theme, streak }: { tree: TreeDoc[]; due: number; theme: Theme; streak: number }) {
   const t = useTranslations("nav");
   const tt = useTranslations("topbar");
   const path = usePathname();
@@ -72,6 +72,14 @@ export default function TopBar({ tree, due, theme }: { tree: TreeDoc[]; due: num
         />
       </form>
 
+      {/* daily habit: quick study + the streak of days in a row */}
+      <Link href="/quick" title={tt("quickTitle")} className="flex h-9 items-center gap-1.5 rounded-full bg-ink/5 px-3 text-sm font-semibold transition-colors hover:bg-accent/10 hover:text-accent">
+        <I.IconBolt className="h-4 w-4" />
+        <span className="hidden lg:inline">{tt("quick")}</span>
+        <span className={`tabular-nums ${streak ? "text-orange-600 dark:text-orange-400" : "text-muted"}`} title={tt("streak", { n: streak })}>
+          🔥{streak}
+        </span>
+      </Link>
       <Link href="/review" className="icon-btn relative" aria-label={`${t("review")}${due ? ` (${due})` : ""}`} title={t("review")}>
         <I.IconCards />
         {due > 0 && (

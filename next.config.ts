@@ -4,7 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["mysql2"],
+  serverExternalPackages: ["mysql2", "sharp"],
   poweredByHeader: false,
   // Keep visited pages in the browser for a short while so moving between pages does not refetch every time.
   // router.refresh() (used after edits) still clears it.

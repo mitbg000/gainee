@@ -8,6 +8,7 @@ export const NAV: NavItem[] = [
   { href: "/dictionary", key: "dictionary", icon: "dict", mobileTab: true },
   { href: "/words", key: "words", icon: "words" },
   { href: "/labels", key: "labels", icon: "tag" },
+  { href: "/quick", key: "quick", icon: "bolt" },
   { href: "/review", key: "review", icon: "cards", mobileTab: true },
   { href: "/practice", key: "practice", icon: "target" },
   { href: "/writing", key: "writing", icon: "pen" },

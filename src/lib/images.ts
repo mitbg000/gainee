@@ -15,6 +15,35 @@ export function sniff(b: Uint8Array): keyof typeof MIME | null {
   return null;
 }
 
+/** Longest side kept: plenty for a flashcard, a word card or a Task 1 diagram on a large screen. */
+const MAX_SIDE = 1600;
+
+/**
+ * Shrink an uploaded picture to what the app needs: at most 1600 px on the longest side, WebP quality 80,
+ * phone photos turned upright, camera metadata (GPS…) dropped. GIFs are kept as they are (they may be animated),
+ * and the original is kept when the result would not be smaller or the image library is unavailable.
+ */
+export async function optimizeImage(bytes: Uint8Array, ext: keyof typeof MIME): Promise<{ bytes: Uint8Array; ext: keyof typeof MIME }> {
+  if (ext === "gif") return { bytes, ext };
+  try {
+    const sharp = (await import("sharp")).default;
+    const out = await sharp(bytes, { limitInputPixels: 100_000_000 })
+      .rotate()
+      .resize({ width: MAX_SIDE, height: MAX_SIDE, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+    return out.length < bytes.length ? { bytes: new Uint8Array(out), ext: "webp" } : { bytes, ext };
+  } catch {
+    return { bytes, ext };
+  }
+}
+
+/** Optimise, then store under images/; returns the path relative to the upload folder and the stored type. */
+export async function saveImage(bytes: Uint8Array, ext: keyof typeof MIME) {
+  const img = await optimizeImage(bytes, ext);
+  return { path: await saveUpload(img.bytes, "images", img.ext), ext: img.ext, size: img.bytes.length };
+}
+
 /** Public URL of a stored image (served by /api/images/[...path]). */
 export const imageUrl = (path: string) => `/api/${path}`;
 
@@ -24,9 +53,10 @@ export async function addWordImage(wordId: number, file: File) {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const ext = sniff(bytes);
   if (!ext) return null;
-  const path = await saveUpload(bytes, "images", ext);
+  const img = await saveImage(bytes, ext);
+  const path = img.path;
   const db = getDb();
-  const [{ id }] = await db.insert(schema.media).values({ kind: "image", path, mime: MIME[ext], bytes: bytes.length, source: "upload" }).$returningId();
+  const [{ id }] = await db.insert(schema.media).values({ kind: "image", path, mime: MIME[img.ext], bytes: img.size, source: "upload" }).$returningId();
   const existing = await db.select({ p: schema.wordMedia.position }).from(schema.wordMedia).where(eq(schema.wordMedia.wordId, wordId));
   await db.insert(schema.wordMedia).values({ wordId, mediaId: id, position: existing.length });
   return { id, url: imageUrl(path) };

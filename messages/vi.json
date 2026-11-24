@@ -33,7 +33,8 @@
     "expand": "Mở rộng thanh bên",
     "tree": "Bài đọc",
     "practice": "Luyện từ đã lưu",
-    "writing": "Luyện Writing"
+    "writing": "Luyện Writing",
+    "quick": "Học nhanh 5 phút"
   },
   "login": {
     "username": "Tên đăng nhập",
@@ -725,7 +726,9 @@
     "keysShow": "Space: hiện đáp án · H: gợi ý · R: nghe",
     "keysRate": "1 Quên · 2 Khó · 3 Nhớ · 4 Dễ · Space: Nhớ",
     "doneTip": "Hệ thống (FSRS, giống Anki) sẽ đưa từ quay lại đúng lúc bạn sắp quên. Muốn luyện thêm thì dùng Luyện từ – không ảnh hưởng lịch ôn.",
-    "toPractice": "Luyện thêm"
+    "toPractice": "Luyện thêm",
+    "nothingNow": "Không có thẻ nào đến hạn lúc này.",
+    "continue": "Tiếp tục"
   },
   "progress": {
     "title": "Tiến độ",
@@ -734,7 +737,7 @@
       "xp": "Tổng XP",
       "lessonsDone": "Bài đã học",
       "words": "Từ đã lưu",
-      "mastered": "Từ đã thuộc"
+      "mastered": "Từ đã thuộc chắc"
     },
     "activity": "Hoạt động (26 tuần)",
     "activityHint": "Ô càng đậm = ngày đó càng nhiều XP.",
@@ -775,7 +778,14 @@
     "attempt": "Lần {n}",
     "noReadingScores": "Làm và chấm bài tập trong bài đọc để thấy biểu đồ.",
     "noWordScores": "Hoàn thành một lượt Luyện từ để thấy biểu đồ.",
-    "noWritingScores": "Chấm điểm một bài Writing để thấy biểu đồ."
+    "noWritingScores": "Chấm điểm một bài Writing để thấy biểu đồ.",
+    "masteredTitle": "Từ đã thuộc chắc",
+    "masteredNow": "{known} / {studied} từ đã học",
+    "masteredWeek": "+{n} tuần này",
+    "masteredHint": "Một từ được tính là thuộc chắc khi bạn nhớ được nó 3 lần (Nhớ/Dễ khi ôn, câu viết chuẩn, nhớ khi đọc đoạn văn).",
+    "masteredTotal": "Tổng số từ đã thuộc",
+    "masteredAdded": "Từ mới thuộc mỗi tuần",
+    "wordsUnit": "từ"
   },
   "assistant": {
     "title": "Trợ lý AI",
@@ -821,7 +831,7 @@
   },
   "practice": {
     "title": "Luyện từ đã lưu",
-    "intro": "Học và luyện các từ đã lưu theo kiểu Quizlet. Phần này không đổi lịch ôn – lịch ôn (kiểu Anki) nằm ở trang Ôn tập.",
+    "intro": "Học và luyện các từ đã lưu theo kiểu Quizlet. “Viết câu” và “Đoạn văn ôn tập” được tính là lần ôn trong lịch ôn; các cách còn lại thì không.",
     "all": "Tất cả",
     "empty": "Bạn chưa lưu từ nào. Hãy lưu từ khi đọc bài.",
     "modeLabel": "Kiểu luyện",
@@ -864,20 +874,25 @@
       "dueTip": "Nên ôn các từ đến hạn trước (vài phút): ôn đúng lúc sắp quên giúp nhớ lâu nhất. Sau đó học thêm ở đây.",
       "review": "Ôn ngay",
       "none": "Không có từ nào đến hạn ôn",
-      "noneTip": "Giờ là lúc học từ mới: dùng “Học” để nắm chắc từ, hoặc “Thẻ ghi nhớ” để lướt nhanh."
+      "noneTip": "Giờ là lúc học từ mới: dùng “Học” để nắm chắc từ, hoặc “Thẻ ghi nhớ” để lướt nhanh.",
+      "quick": "Học nhanh 5 phút"
     },
     "activityLabel": "Chọn cách học",
     "activity": {
       "cards": "Thẻ ghi nhớ",
       "learn": "Học",
       "test": "Kiểm tra",
-      "match": "Ghép thẻ"
+      "match": "Ghép thẻ",
+      "write": "Viết câu",
+      "passage": "Đoạn văn ôn tập"
     },
     "activityHint": {
       "cards": "Lật thẻ, tự đánh giá Đã biết / Đang học, lặp lại thẻ chưa thuộc",
       "learn": "Từng vòng 7 từ: trắc nghiệm rồi tự gõ, sai thì hỏi lại đến khi thuộc",
       "test": "Bài kiểm tra có điểm, được lưu vào biểu đồ Tiến độ",
-      "match": "Ghép từ với nghĩa nhanh nhất có thể, tính giờ"
+      "match": "Ghép từ với nghĩa nhanh nhất có thể, tính giờ",
+      "write": "Tự viết câu với từng từ, AI chấm và gợi ý câu tốt hơn – nhớ lâu nhất",
+      "passage": "AI viết đoạn văn IELTS từ các từ bạn sắp quên, kèm câu hỏi T/F/NG"
     },
     "orderLabel": "Lấy từ nào",
     "order": {
@@ -935,7 +950,8 @@
       "again": "Chơi lại",
       "exit": "Thoát",
       "tooFew": "Cần ít nhất 2 từ có nghĩa để chơi."
-    }
+    },
+    "passageNote": "AI tự chọn 8 từ bạn sắp quên (đến hạn ôn trong 3 ngày tới) để viết đoạn văn. Bấm vào từ được tô để xem nghĩa."
   },
   "writing": {
     "title": "Luyện Writing",
@@ -996,7 +1012,10 @@
     "account": "Tài khoản",
     "appearance": "Giao diện",
     "theme": "Sáng / tối",
-    "language": "Ngôn ngữ"
+    "language": "Ngôn ngữ",
+    "quick": "Học nhanh",
+    "quickTitle": "Học nhanh 5 phút mỗi ngày",
+    "streak": "Chuỗi {n} ngày học liên tiếp"
   },
   "sets": {
     "notebook": "Sổ tay từ vựng",
@@ -1018,7 +1037,8 @@
       "cards": "Thẻ ghi nhớ",
       "learn": "Học",
       "test": "Kiểm tra",
-      "match": "Ghép thẻ"
+      "match": "Ghép thẻ",
+      "write": "Viết câu"
     },
     "edit": "Sửa",
     "delete": "Xoá",
@@ -1074,5 +1094,69 @@
     "imageHint": "Chọn ảnh, hoặc dán (Ctrl/Cmd+V) / kéo thả ảnh vào đây – PNG, JPG, GIF, WebP tối đa 8 MB",
     "removeImage": "Xoá ảnh",
     "removeFromText": "Bỏ khỏi bài đọc này (từ vẫn còn trong sổ tay)"
+  },
+  "learn": {
+    "sentence": {
+      "ask": "Viết một câu tiếng Anh dùng từ này",
+      "listen": "Nghe",
+      "placeholder": "Viết câu của bạn với “{term}”…",
+      "skip": "Bỏ qua",
+      "hint": "Enter để chấm · Shift+Enter xuống dòng",
+      "check": "Chấm câu",
+      "checking": "AI đang chấm…",
+      "noAi": "Chưa cấu hình AI – vào Cài đặt → AI.",
+      "failed": "AI chưa chấm được, thử lại.",
+      "score": {
+        "0": "❌ Chưa dùng đúng từ",
+        "1": "🟡 Đúng nghĩa, cần sửa một chút",
+        "2": "✅ Chuẩn và tự nhiên!"
+      },
+      "better": "Câu gợi ý:",
+      "next": "Tiếp",
+      "saveExample": "Lưu làm ví dụ của từ",
+      "saved": "Đã lưu ví dụ ✓",
+      "done": "Xong! {good}/{n} câu chuẩn",
+      "doneTip": "Mỗi câu bạn viết được tính là một lần ôn: câu chuẩn giúp từ quay lại muộn hơn, câu sai thì sớm hơn.",
+      "continue": "Tiếp tục",
+      "exit": "Thoát"
+    },
+    "passage": {
+      "tooFew": "Cần ít nhất 3 từ đã học để tạo đoạn văn ôn tập.",
+      "noAi": "Chưa cấu hình AI – vào Cài đặt → AI.",
+      "failed": "AI chưa viết được đoạn văn, thử lại.",
+      "retry": "Thử lại",
+      "skip": "Bỏ qua",
+      "exit": "Thoát",
+      "writing": "AI đang viết đoạn văn từ các từ bạn sắp quên…",
+      "kicker": "Đoạn văn ôn tập · {n} từ của bạn",
+      "questions": "True / False / Not Given",
+      "tfng": {
+        "T": "True",
+        "F": "False",
+        "NG": "Not Given"
+      },
+      "rememberTitle": "Bạn còn nhớ nghĩa các từ này không?",
+      "rememberHint": "Bấm vào từ bạn đã quên nghĩa khi đọc. Từ nhớ được tính là “Nhớ”, từ quên được tính là “Quên” trong lịch ôn.",
+      "updated": "Đã cập nhật lịch ôn ✓",
+      "finish": "Xong – cập nhật lịch ôn",
+      "continue": "Tiếp tục",
+      "another": "Đoạn văn khác"
+    },
+    "quick": {
+      "title": "Học nhanh 5 phút",
+      "intro": "Mỗi ngày một phiên ngắn, luôn theo thứ tự: ôn thẻ đến hạn → tự viết 2 câu → ghép thẻ nhanh. Đều đặn quan trọng hơn học nhiều.",
+      "step": {
+        "review": "Ôn thẻ",
+        "write": "Viết câu",
+        "match": "Ghép thẻ"
+      },
+      "finish": "Hoàn thành phiên học",
+      "streak": "Chuỗi {n} ngày!",
+      "doneTip": "Bạn đã thuộc chắc {known} từ. Hẹn gặp lại ngày mai để giữ chuỗi 🔥",
+      "seeProgress": "Xem tiến độ",
+      "more": "Luyện thêm",
+      "notEnough": "Chưa đủ từ cho bước này – lưu thêm từ khi đọc nhé.",
+      "continue": "Tiếp tục"
+    }
   }
 }

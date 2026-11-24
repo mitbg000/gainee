@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { bad } from "@/lib/api";
-import { MAX_IMAGE_BYTES, sniff } from "@/lib/images";
-import { saveUpload } from "@/lib/storage";
+import { MAX_IMAGE_BYTES, saveImage, sniff } from "@/lib/images";
 
 export const runtime = "nodejs";
 /** multipart "file" → { url } (served by /api/images/...). */
@@ -12,6 +11,6 @@ export async function POST(req: Request) {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const ext = sniff(bytes);
   if (!ext) return bad("unsupported_file");
-  const rel = await saveUpload(bytes, "images", ext);
-  return NextResponse.json({ url: `/api/${rel}` }, { status: 201 });
+  const { path } = await saveImage(bytes, ext);
+  return NextResponse.json({ url: `/api/${path}` }, { status: 201 });
 }

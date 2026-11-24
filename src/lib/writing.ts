@@ -4,9 +4,8 @@ import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { chat, generateImage, parseJsonReply, type ChatOptions } from "@/lib/ai/client";
 import type { ImageSetting } from "@/lib/ai/tasks";
-import { imageUrl, sniff } from "@/lib/images";
+import { imageUrl, saveImage, sniff } from "@/lib/images";
 import { getSetting } from "@/lib/settings";
-import { saveUpload } from "@/lib/storage";
 import { getProfile } from "@/lib/profile";
 import { wordCount } from "@/lib/text/clean";
 
@@ -165,7 +164,7 @@ export async function addPicture(text: string): Promise<string | null> {
   const bytes = await generateImage(cfg.providerId, cfg.model, `IELTS Academic Writing Task 1 exam illustration: ${what}. Clean flat textbook style, white background, clear short English labels spelled exactly as given, no extra text, no numbers that are not given.`);
   const ext = sniff(bytes);
   if (!ext) throw new Error("The image API did not return a PNG, JPEG, GIF or WebP picture");
-  const url = imageUrl(await saveUpload(bytes, "images", ext));
+  const url = imageUrl((await saveImage(bytes, ext)).path);
   return text.replace(block![0], `![${spec.title ?? "Task 1"}](${url})\n\n${block![0]}`);
 }
 

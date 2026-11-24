@@ -9,15 +9,17 @@ import Flashcards from "@/components/practice/Flashcards";
 import Learn from "@/components/practice/Learn";
 import Match from "@/components/practice/Match";
 import Quiz from "@/components/practice/Quiz";
+import SentencePractice from "@/components/learn/SentencePractice";
 import { meaningOf, shuffle, type PWord } from "@/components/practice/questions";
 import { speak } from "@/lib/speech";
 import * as I from "@/components/icons";
 
 export type SetCardData = PWord & { example: string | null; note: string | null; state: number };
-type Mode = "cards" | "learn" | "test" | "match";
+type Mode = "cards" | "learn" | "write" | "test" | "match";
 const MODES: { m: Mode; icon: React.ReactNode }[] = [
   { m: "cards", icon: <I.IconCards /> },
   { m: "learn", icon: <I.IconTarget /> },
+  { m: "write", icon: <I.IconPen /> },
   { m: "test", icon: <I.IconChecklist /> },
   { m: "match", icon: <I.IconSpark /> },
 ];
@@ -65,6 +67,7 @@ export default function SetView({
         {mode === "learn" && <Learn words={cards} all={all} onExit={exit} />}
         {mode === "test" && <Quiz words={shuffle(cards)} all={all} mode="mix" onExit={exit} />}
         {mode === "match" && <Match words={cards} onExit={exit} />}
+        {mode === "write" && <SentencePractice words={shuffle(cards).slice(0, 10)} onExit={exit} />}
       </div>
     );
   }
@@ -109,7 +112,7 @@ export default function SetView({
         </div>
       ) : (
         <>
-          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
             {MODES.map(({ m, icon }) => (
               <button
                 key={m}

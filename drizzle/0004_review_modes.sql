@@ -1,0 +1,1 @@
+ALTER TABLE `review_logs` MODIFY COLUMN `mode` enum('recognize','recall','cloze','listen','spell','image','sentence','passage') NOT NULL;

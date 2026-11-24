@@ -33,7 +33,8 @@
     "expand": "Expand sidebar",
     "tree": "Texts",
     "practice": "Practise saved words",
-    "writing": "Writing practice"
+    "writing": "Writing practice",
+    "quick": "Quick study"
   },
   "login": {
     "username": "Username",
@@ -725,7 +726,9 @@
     "keysShow": "Space: show answer · H: hint · R: listen",
     "keysRate": "1 Again · 2 Hard · 3 Good · 4 Easy · Space: Good",
     "doneTip": "The scheduler (FSRS, as in Anki) brings words back just before you'd forget them. For extra practice use Practice – it doesn't change the schedule.",
-    "toPractice": "Practise more"
+    "toPractice": "Practise more",
+    "nothingNow": "No cards are due right now.",
+    "continue": "Continue"
   },
   "progress": {
     "title": "Progress",
@@ -734,7 +737,7 @@
       "xp": "Total XP",
       "lessonsDone": "Lessons done",
       "words": "Saved words",
-      "mastered": "Words mastered"
+      "mastered": "Words known"
     },
     "activity": "Activity (26 weeks)",
     "activityHint": "Darker = more XP that day.",
@@ -775,7 +778,14 @@
     "attempt": "#{n}",
     "noReadingScores": "Do and check the exercises of a lesson to see this chart.",
     "noWordScores": "Finish a round of word practice to see this chart.",
-    "noWritingScores": "Score a writing to see this chart."
+    "noWritingScores": "Score a writing to see this chart.",
+    "masteredTitle": "Words known for sure",
+    "masteredNow": "{known} / {studied} studied words",
+    "masteredWeek": "+{n} this week",
+    "masteredHint": "A word counts as known once you have remembered it 3 times (Good/Easy in review, a correct sentence, remembered in a passage).",
+    "masteredTotal": "Total words known",
+    "masteredAdded": "Newly known each week",
+    "wordsUnit": "words"
   },
   "assistant": {
     "title": "AI assistant",
@@ -821,7 +831,7 @@
   },
   "practice": {
     "title": "Practise saved words",
-    "intro": "Study and practise your saved words Quizlet-style. This doesn't change the review schedule – that (Anki-style) is on the Review page.",
+    "intro": "Study and practise your saved words Quizlet-style. “Write” and “Review passage” count as reviews in your schedule; the others don't.",
     "all": "All",
     "empty": "No saved words yet. Save words while reading.",
     "modeLabel": "Practice type",
@@ -864,20 +874,25 @@
       "dueTip": "Review due words first (a few minutes): reviewing just before you forget makes memories last. Then study more here.",
       "review": "Review now",
       "none": "Nothing is due for review",
-      "noneTip": "A good time for new words: use “Learn” to really know them, or “Flashcards” for a quick pass."
+      "noneTip": "A good time for new words: use “Learn” to really know them, or “Flashcards” for a quick pass.",
+      "quick": "5-minute quick study"
     },
     "activityLabel": "Choose how to study",
     "activity": {
       "cards": "Flashcards",
       "learn": "Learn",
       "test": "Test",
-      "match": "Match"
+      "match": "Match",
+      "write": "Write",
+      "passage": "Review passage"
     },
     "activityHint": {
       "cards": "Flip cards, mark Know / Still learning, repeat the ones you don't know",
       "learn": "Rounds of 7 words: multiple choice, then typing; misses come back until you know them",
       "test": "A scored test, saved to the Progress chart",
-      "match": "Match words to meanings as fast as you can, timed"
+      "match": "Match words to meanings as fast as you can, timed",
+      "write": "Write your own sentence with each word; AI checks it and suggests a better one – the best for memory",
+      "passage": "AI writes an IELTS passage from the words you're about to forget, with T/F/NG questions"
     },
     "orderLabel": "Which words",
     "order": {
@@ -935,7 +950,8 @@
       "again": "Play again",
       "exit": "Exit",
       "tooFew": "You need at least 2 words with a meaning to play."
-    }
+    },
+    "passageNote": "AI picks 8 words you're about to forget (due within 3 days) and writes a passage. Tap a highlighted word to see its meaning."
   },
   "writing": {
     "title": "Writing practice",
@@ -996,7 +1012,10 @@
     "account": "Account",
     "appearance": "Appearance",
     "theme": "Light / dark",
-    "language": "Language"
+    "language": "Language",
+    "quick": "Quick study",
+    "quickTitle": "5-minute quick study every day",
+    "streak": "{n}-day streak"
   },
   "sets": {
     "notebook": "Vocabulary notebook",
@@ -1018,7 +1037,8 @@
       "cards": "Flashcards",
       "learn": "Learn",
       "test": "Test",
-      "match": "Match"
+      "match": "Match",
+      "write": "Write"
     },
     "edit": "Edit",
     "delete": "Delete",
@@ -1074,5 +1094,69 @@
     "imageHint": "Choose an image, or paste (Ctrl/Cmd+V) / drop one here – PNG, JPG, GIF, WebP up to 8 MB",
     "removeImage": "Remove image",
     "removeFromText": "Remove from this text (the word stays in the notebook)"
+  },
+  "learn": {
+    "sentence": {
+      "ask": "Write an English sentence with this word",
+      "listen": "Listen",
+      "placeholder": "Write your sentence with “{term}”…",
+      "skip": "Skip",
+      "hint": "Enter to check · Shift+Enter new line",
+      "check": "Check",
+      "checking": "AI is checking…",
+      "noAi": "AI is not set up – go to Settings → AI.",
+      "failed": "AI couldn't check it, try again.",
+      "score": {
+        "0": "❌ The word isn't used correctly",
+        "1": "🟡 Right meaning, small fix needed",
+        "2": "✅ Correct and natural!"
+      },
+      "better": "Suggested:",
+      "next": "Next",
+      "saveExample": "Save as the word's example",
+      "saved": "Example saved ✓",
+      "done": "Done! {good}/{n} sentences spot on",
+      "doneTip": "Each sentence counts as a review: a good one brings the word back later, a wrong one sooner.",
+      "continue": "Continue",
+      "exit": "Exit"
+    },
+    "passage": {
+      "tooFew": "You need at least 3 studied words for a review passage.",
+      "noAi": "AI is not set up – go to Settings → AI.",
+      "failed": "AI couldn't write the passage, try again.",
+      "retry": "Try again",
+      "skip": "Skip",
+      "exit": "Exit",
+      "writing": "AI is writing a passage from the words you're about to forget…",
+      "kicker": "Review passage · {n} of your words",
+      "questions": "True / False / Not Given",
+      "tfng": {
+        "T": "True",
+        "F": "False",
+        "NG": "Not Given"
+      },
+      "rememberTitle": "Did you still know these words?",
+      "rememberHint": "Tap the words whose meaning you had forgotten. Remembered words count as “Good”, forgotten ones as “Again” in your review schedule.",
+      "updated": "Review schedule updated ✓",
+      "finish": "Done – update my reviews",
+      "continue": "Continue",
+      "another": "Another passage"
+    },
+    "quick": {
+      "title": "5-minute quick study",
+      "intro": "One short session a day, always in this order: due cards → write 2 sentences → a quick match. Regularity beats quantity.",
+      "step": {
+        "review": "Review",
+        "write": "Write",
+        "match": "Match"
+      },
+      "finish": "Finish session",
+      "streak": "{n}-day streak!",
+      "doneTip": "You know {known} words for sure. See you tomorrow to keep the streak 🔥",
+      "seeProgress": "See progress",
+      "more": "Practise more",
+      "notEnough": "Not enough words for this step yet – save more while reading.",
+      "continue": "Continue"
+    }
   }
 }

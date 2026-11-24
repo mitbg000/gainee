@@ -205,7 +205,7 @@ export const reviewLogs = mysqlTable(
     id: pk(),
     wordId: int("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
     rating: tinyint("rating").notNull(), // 1 Again, 2 Hard, 3 Good, 4 Easy
-    mode: mysqlEnum("mode", ["recognize", "recall", "cloze", "listen", "spell", "image"]).notNull(),
+    mode: mysqlEnum("mode", ["recognize", "recall", "cloze", "listen", "spell", "image", "sentence", "passage"]).notNull(), // sentence: wrote a sentence with it; passage: met it in a review passage
     stateBefore: tinyint("state_before").notNull(),
     durationMs: int("duration_ms"),
     createdAt: createdAt(),

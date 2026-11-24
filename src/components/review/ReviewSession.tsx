@@ -45,7 +45,8 @@ function cloze(c: Card): string | null {
 /** "p _ _ _ _ _ _ e" – first and last letter, the rest as blanks. */
 const letters = (term: string) => term.split(" ").map((w) => (w.length <= 2 ? w[0] + " _" : `${w[0]} ${"_ ".repeat(w.length - 2)}${w[w.length - 1]}`)).join("   ");
 
-export default function ReviewSession({ doc }: { doc?: number }) {
+/** limit + onDone: a short round inside "Quick study", which moves on when the cards are done. */
+export default function ReviewSession({ doc, limit, onDone }: { doc?: number; limit?: number; onDone?: () => void }) {
   const t = useTranslations("review");
   const [queue, setQueue] = useState<Card[] | null>(null);
   const [mode, setMode] = useState<Mode>("recognize");
@@ -59,11 +60,14 @@ export default function ReviewSession({ doc }: { doc?: number }) {
       const m = localStorage.getItem("review_mode") as Mode | null;
       if (m && MODES.includes(m)) setMode(m);
     } catch {}
-    fetch(`/api/review${doc ? `?doc=${doc}` : ""}`, { cache: "no-store" })
+    const q = new URLSearchParams();
+    if (doc) q.set("doc", String(doc));
+    if (limit) q.set("limit", String(limit));
+    fetch(`/api/review${q.size ? `?${q}` : ""}`, { cache: "no-store" })
       .then((r) => r.json())
       .then(setQueue)
       .catch(() => setQueue([]));
-  }, [doc]);
+  }, [doc, limit]);
 
   const card = queue?.[0];
   const effective: Mode = card && mode === "cloze" && !cloze(card) ? "recognize" : mode;
@@ -122,6 +126,16 @@ export default function ReviewSession({ doc }: { doc?: number }) {
   }, [rate, shown, card]);
 
   if (!queue) return <p className="text-muted">{t("loading")}</p>;
+  if (!card && onDone)
+    return (
+      <div className="mx-auto max-w-2xl rounded-3xl border border-line bg-card p-8 text-center">
+        <p className="text-4xl">✅</p>
+        <p className="mt-2 text-lg font-semibold">{done ? t("finished", { n: done }) : t("nothingNow")}</p>
+        <button onClick={onDone} autoFocus className="btn btn-primary mt-4">
+          {t("continue")}
+        </button>
+      </div>
+    );
   if (!card)
     return (
       <div className="rounded-3xl border border-line bg-card p-8 text-center">

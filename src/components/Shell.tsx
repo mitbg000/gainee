@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
 import { dueCount } from "@/lib/review";
+import { streak } from "@/lib/stats";
 import { getTheme } from "@/theme/server";
 import ChatBubble from "./ChatBubble";
 import CollapsibleSidebar from "./CollapsibleSidebar";
@@ -17,7 +18,7 @@ import { IconGear } from "./icons";
  *  - Mobile: compact top bar + bottom tab bar; respects iPhone safe areas (notch / home indicator).
  */
 export default async function Shell({ children, wide = false, full = false }: { children: React.ReactNode; wide?: boolean; full?: boolean }) {
-  const [t, tree, due, theme] = await Promise.all([getTranslations(), sidebarTree().catch(() => []), dueCount().catch(() => 0), getTheme()]);
+  const [t, tree, due, theme, days] = await Promise.all([getTranslations(), sidebarTree().catch(() => []), dueCount().catch(() => 0), getTheme(), streak().catch(() => 0)]);
 
   return (
     <div className="min-h-dvh md:flex">
@@ -43,7 +44,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
       </header>
 
       <div className="min-w-0 flex-1 md:flex md:flex-col">
-        <TopBar tree={tree} due={due} theme={theme} />
+        <TopBar tree={tree} due={due} theme={theme} streak={days} />
         <main
           className={`min-w-0 flex-1 px-4 pt-5 md:py-8 ${full ? "md:px-5" : "md:px-10"}`}
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}

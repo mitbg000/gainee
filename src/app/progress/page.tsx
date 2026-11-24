@@ -15,6 +15,7 @@ export default async function ProgressPage() {
   const t = await getTranslations("progress");
   const tw = await getTranslations("writing");
   const [d, goals, targets, hist] = await Promise.all([progressData(), goalProgress(), getGoals(), scoreHistory()]);
+  const mastered = d.mastered;
   const day = (at: Date) => `${at.getDate()}/${at.getMonth() + 1}`;
   const longest = Math.max(0, ...hist.writing.map((w) => w.pts.length));
   const badges = await syncAchievements({ streak: d.totals.streak, words: d.totals.words, lessons: d.totals.lessonsDone, mastered: d.totals.mastered, xp: d.totals.xp });
@@ -51,6 +52,22 @@ export default async function ProgressPage() {
           </div>
         ))}
       </div>
+
+      {/* words known for sure, week by week: the clearest sign of progress */}
+      <section className={`mt-5 ${box}`}>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-serif text-xl font-bold">{t("masteredTitle")}</h2>
+          <p className="text-sm text-muted">
+            {t("masteredNow", { known: mastered.known, studied: mastered.studied })}
+            {mastered.thisWeek > 0 && <b className="ml-2 text-green-600 dark:text-green-400">{t("masteredWeek", { n: mastered.thisWeek })}</b>}
+          </p>
+        </div>
+        <p className="mt-1 text-xs text-muted">{t("masteredHint")}</p>
+        <div className="mt-3 grid gap-4 md:grid-cols-2">
+          <Chart spec={{ type: "line", title: t("masteredTotal"), unit: t("wordsUnit"), labels: mastered.weeks.map((w) => day(w.week)), series: [{ name: t("masteredTotal"), values: mastered.weeks.map((w) => w.total) }] }} />
+          <Chart spec={{ type: "bar", title: t("masteredAdded"), unit: t("wordsUnit"), labels: mastered.weeks.map((w) => day(w.week)), series: [{ name: t("masteredAdded"), values: mastered.weeks.map((w) => w.added) }] }} />
+        </div>
+      </section>
 
       <section className={`mt-5 ${box}`}>
         <h2 className="font-serif text-xl font-bold">{t("goals")}</h2>
