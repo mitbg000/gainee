@@ -371,7 +371,31 @@
     "importFirst": "Import your first article →",
     "generating": "Generating lessons… {ready}/{total}",
     "failed": "Generation failed – open to retry",
-    "progress": "{done}/{total} lessons done · {words, number} words"
+    "progress": "{done}/{total} lessons done · {words, number} words",
+    "continueTitle": "Continue reading",
+    "continuePart": "Continue · Part {n}",
+    "start": "Start reading",
+    "readAgain": "Read again",
+    "details": "Details",
+    "parts": "{done}/{total} parts",
+    "meta": "{parts} parts · {words, number} words · ~{min} min",
+    "status": {
+      "all": "All",
+      "reading": "Reading",
+      "new": "Not started",
+      "done": "Finished"
+    },
+    "sortLabel": "Sort",
+    "sort": {
+      "added": "Recently added",
+      "read": "Recently read",
+      "title": "Title A–Z"
+    },
+    "viewLabel": "View",
+    "view": {
+      "grid": "Cards",
+      "list": "List"
+    }
   },
   "document": {
     "back": "Library",
@@ -644,7 +668,17 @@
       "download": "Download ({n} words)",
       "copy": "Copy to paste",
       "copied": "Copied"
-    }
+    },
+    "aiShorten": "Shorten with AI",
+    "aiBusy": "AI is shortening…",
+    "aiSuggested": "AI suggested a shorter card – check it, then Save.",
+    "aiFailed": "AI couldn't shorten it (check the AI setup in Settings).",
+    "edit": "Edit",
+    "longMeanings": "{n} words have meanings too long to memorise easily.",
+    "shortenAll": "Shorten all with AI",
+    "shortening": "Shortening {i}/{n}…",
+    "shortenFailed": "{n} words couldn't be shortened",
+    "shortenAllConfirm": "AI will rewrite the meaning, definition, example and note of {n} words to be short and save them. Continue?"
   },
   "review": {
     "title": "Today's review",
@@ -950,5 +984,11 @@
     "pictureError": "Could not draw the picture: {error}",
     "retry": "Try again",
     "network": "connection lost or the server cut the request"
+  },
+  "topbar": {
+    "breadcrumbs": "Breadcrumbs",
+    "part": "Part {n}: {title}",
+    "lookup": "Quick look-up…",
+    "review": "Review"
   }
 }

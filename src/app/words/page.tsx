@@ -3,6 +3,7 @@ import { desc, eq, like, or } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import AddWord from "@/components/AddWord";
 import ExportWords, { type ExportGroup } from "@/components/ExportWords";
+import ShortenWords from "@/components/ShortenWords";
 import Shell from "@/components/Shell";
 import WordCard from "@/components/WordCard";
 import { getDb, schema } from "@/db";
@@ -87,6 +88,8 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
       </form>
       <AddWord />
       {rows.length > 0 && <ExportWords groups={groups} />}
+      {/* meanings copied whole from the dictionary are hard to memorise */}
+      <ShortenWords ids={rows.filter((w) => (w.meaningVi?.length ?? 0) > 40 || (w.definitionEn?.length ?? 0) > 120).map((w) => w.id)} />
       {rows.length === 0 && <p className="mt-4 text-muted">{q ? t("noResults") : t("empty")}</p>}
 
       {[...docs].map(([docId, d]) => (

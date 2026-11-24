@@ -3,6 +3,8 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { addXp, bumpActivity, XP } from "./activity";
+import { chat } from "./ai/client";
+import { CARD_RULES } from "./ai/prompts";
 
 const { words, lessonVocab, lessons, documentLabels, wordLabels } = schema;
 
@@ -84,4 +86,36 @@ export async function updateWord(id: number, patch: z.infer<typeof WordPatch>) {
   if (term) set.term = term;
   if (!Object.keys(set).length) return;
   await getDb().update(words).set(set).where(eq(words.id, id));
+}
+
+/**
+ * Rewrite a saved word as a short flashcard (one sense, few words) with AI. Returns the new fields;
+ * saves them too when `save` is set. Term, IPA and the sentence it came from are kept.
+ */
+export async function shortenWord(id: number, save: boolean) {
+  const [w] = await getDb().select().from(words).where(eq(words.id, id));
+  if (!w) return null;
+  const r = await chat({
+    task: "reader_quick",
+    json: true,
+    temperature: 0.2,
+    maxTokens: 400,
+    messages: [
+      { role: "system", content: "You tidy vocabulary flashcards for a Vietnamese IELTS learner. Reply with ONE JSON object only." },
+      {
+        role: "user",
+        content: `Word: "${w.term}"${w.context ? `\nSentence it was saved from: "${w.context}"` : ""}
+Current card (may be long or messy, copied from a dictionary):
+${JSON.stringify({ pos: w.pos, meaningVi: w.meaningVi, definitionEn: w.definitionEn, example: w.example, note: w.note })}
+Rewrite it for the sense used in the sentence (or the most common sense if there is no sentence). JSON keys (strings): {"pos":"n. | v. | adj. | adv. | phr.v. | idiom …","meaningVi":"","definitionEn":"","example":"","note":""}
+${CARD_RULES}`,
+      },
+    ],
+  });
+  const o = JSON.parse(/\{[\s\S]*\}/.exec(r.text)?.[0] ?? "{}") as Record<string, unknown>;
+  const s = (k: string, max: number) => (typeof o[k] === "string" ? (o[k] as string).trim().slice(0, max) : undefined);
+  const card = { pos: s("pos", 32), meaningVi: s("meaningVi", 500), definitionEn: s("definitionEn", 2000), example: s("example", 2000), note: s("note", 2000) };
+  if (!card.meaningVi) throw new Error("bad_response");
+  if (save) await updateWord(id, card);
+  return card;
 }

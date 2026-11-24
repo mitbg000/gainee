@@ -1,20 +1,23 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
+import { dueCount } from "@/lib/review";
+import { getTheme } from "@/theme/server";
 import ChatBubble from "./ChatBubble";
 import CollapsibleSidebar from "./CollapsibleSidebar";
 import InstallApp from "./InstallApp";
 import LogoutButton from "./LogoutButton";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
+import TopBar from "./TopBar";
 import { IconGear } from "./icons";
 
 /**
  * App frame.
- *  - Desktop (md+): sticky sidebar with full navigation and settings at the bottom.
+ *  - Desktop (md+): sticky sidebar with full navigation, and a top bar (breadcrumbs, look-up, due reviews, theme, settings).
  *  - Mobile: compact top bar + bottom tab bar; respects iPhone safe areas (notch / home indicator).
  */
 export default async function Shell({ children, wide = false, full = false }: { children: React.ReactNode; wide?: boolean; full?: boolean }) {
-  const [t, tree] = await Promise.all([getTranslations(), sidebarTree().catch(() => [])]);
+  const [t, tree, due, theme] = await Promise.all([getTranslations(), sidebarTree().catch(() => []), dueCount().catch(() => 0), getTheme()]);
 
   return (
     <div className="min-h-dvh md:flex">
@@ -43,12 +46,15 @@ export default async function Shell({ children, wide = false, full = false }: { 
         </Link>
       </header>
 
-      <main
-        className={`min-w-0 flex-1 px-4 pt-5 md:py-8 ${full ? "md:px-5" : "md:px-10"}`}
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}
-      >
-        <div className={full ? "" : `mx-auto ${wide ? "max-w-6xl" : "max-w-4xl"}`}>{children}</div>
-      </main>
+      <div className="min-w-0 flex-1 md:flex md:flex-col">
+        <TopBar tree={tree} due={due} theme={theme} />
+        <main
+          className={`min-w-0 flex-1 px-4 pt-5 md:py-8 ${full ? "md:px-5" : "md:px-10"}`}
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}
+        >
+          <div className={full ? "" : `mx-auto ${wide ? "max-w-6xl" : "max-w-4xl"}`}>{children}</div>
+        </main>
+      </div>
 
       <ChatBubble docs={tree} />
 

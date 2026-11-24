@@ -1,6 +1,12 @@
 /** Prompts for the reader's quick-AI panel and practice feedback. */
 import type { Profile } from "@/lib/profile";
 
+/** Keeps cards short enough to memorise; shared by new cards and by "shorten with AI" on saved words. */
+export const CARD_RULES = `Keep the card short – it is a flashcard to memorise, not a dictionary entry:
+- meaningVi: ONLY the one sense used here, 1–5 words (at most 2 synonyms separated by ", "). No explanations, no brackets, no field labels like "(giải phẫu)".
+- definitionEn: at most 12 words.
+- example: at most 15 words. note: at most 10 words, collocations only (e.g. "blood vessel; cargo vessel").`;
+
 export const ASK_ACTIONS = ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase", "custom", "feedback", "vocab_card"] as const;
 export type AskAction = (typeof ASK_ACTIONS)[number];
 
@@ -20,7 +26,8 @@ export function askMessages(
         role: "user" as const,
         content: `Selection: "${input.selection}"${input.context ? `\nContext from the text:\n"""${input.context}"""` : ""}
 Make a vocabulary card for the word or phrase AS USED HERE. JSON keys (all strings):
-{"term":"dictionary form (lemma) of the selection","ipa":"British IPA with slashes, e.g. /ˈplætəʊ/","pos":"n. | v. | adj. | adv. | phr.v. | idiom | prep. | conj.","meaningVi":"short Vietnamese meaning as used here","definitionEn":"one short English definition","example":"one NEW example sentence","note":"1-2 useful collocations or a usage tip"}`,
+{"term":"dictionary form (lemma) of the selection","ipa":"British IPA with slashes, e.g. /ˈplætəʊ/","pos":"n. | v. | adj. | adv. | phr.v. | idiom | prep. | conj.","meaningVi":"Vietnamese meaning","definitionEn":"English definition","example":"one NEW example sentence","note":"1-2 collocations"}
+${CARD_RULES}`,
       },
     ];
   }

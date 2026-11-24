@@ -31,6 +31,19 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
   const [form, setForm] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [ai, setAi] = useState<"idle" | "busy" | "done" | "error">("idle");
+
+  /** Ask AI for a short flashcard version and open it in the editor to check before saving. */
+  async function shorten() {
+    setAi("busy");
+    const r = await fetch(`/api/words/${word.id}/shorten`, { method: "POST" }).catch(() => null);
+    if (!r?.ok) return setAi("error");
+    const card = (await r.json()) as Record<string, string>; // JSON drops undefined fields
+    const base = editing ? form : Object.fromEntries(FIELDS.map((k) => [k, word[k] ?? ""]));
+    setForm({ ...base, ...card });
+    setEditing(true);
+    setAi("done");
+  }
 
   async function addImages(files: File[]) {
     setImgError(false);
@@ -49,6 +62,7 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
 
   const start = () => {
     setForm(Object.fromEntries(FIELDS.map((k) => [k, word[k] ?? ""])));
+    setAi("idle");
     setEditing(true);
   };
   async function save() {
@@ -70,6 +84,7 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
   if (editing)
     return (
       <li className="rounded-2xl border border-accent bg-card p-4">
+        {ai === "done" && <p className="mb-3 rounded-lg bg-accent/10 px-3 py-2 text-sm text-accent">{t("aiSuggested")}</p>}
         <div className="grid gap-2 sm:grid-cols-2">
           {FIELDS.map((k) => (
             <label key={k} className={`text-xs text-muted ${["definitionEn", "example", "note", "context"].includes(k) ? "sm:col-span-2" : ""}`}>
@@ -124,7 +139,11 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
           <button onClick={() => setEditing(false)} className="btn btn-secondary">
             {t("cancel")}
           </button>
+          <button onClick={shorten} disabled={ai === "busy"} className="btn btn-ghost ml-auto">
+            <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {ai === "busy" ? t("aiBusy") : t("aiShorten")}
+          </button>
         </div>
+        {ai === "error" && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{t("aiFailed")}</p>}
       </li>
     );
 
@@ -149,13 +168,17 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
             ))}
           </div>
         )}
+        {ai === "error" && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{t("aiFailed")}</p>}
         {!word.meaningVi && !word.ipa && <button onClick={start} className="mt-1 text-sm text-accent underline">{t("addDetails")}</button>}
       </div>
       <div className="flex flex-none gap-1">
         <button onClick={() => speak(word.term)} className="icon-btn icon-btn-outline" aria-label={t("listen")}>
           <I.IconSpeaker className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
-        <button onClick={start} className="icon-btn icon-btn-outline">
+        <button onClick={shorten} disabled={ai === "busy"} className={`icon-btn icon-btn-outline ${ai === "busy" ? "animate-pulse" : ""}`} aria-label={t("aiShorten")} title={t("aiShorten")}>
+          <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" />
+        </button>
+        <button onClick={start} className="icon-btn icon-btn-outline" aria-label={t("edit")} title={t("edit")}>
           <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" />
         </button>
         <button onClick={remove} className="icon-btn icon-btn-outline" aria-label={t("remove")}>

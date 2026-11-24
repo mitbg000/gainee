@@ -101,7 +101,7 @@ export default function SplitPassage({
           A+
         </button>
       </div>
-      <article ref={ref} onMouseUp={readSelection} onClick={onClick} onScroll={close} className="max-h-[calc(100dvh-7.5rem)] overflow-y-auto rounded-2xl border border-line bg-card p-5 font-serif leading-[1.8] text-ink no-scrollbar" style={{ fontSize: font }}>
+      <article ref={ref} onMouseUp={readSelection} onClick={onClick} onScroll={close} className="max-h-[calc(100dvh-11rem)] overflow-y-auto rounded-2xl border border-line bg-card p-5 font-serif leading-[1.8] text-ink no-scrollbar" style={{ fontSize: font }}>
         {blocks.map((b, i) =>
           b.kind === "img" ? (
             // eslint-disable-next-line @next/next/no-img-element

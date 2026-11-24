@@ -43,13 +43,31 @@ export async function listDocuments(opts: { labelIds?: number[]; q?: string } = 
       lessons: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${documents.id})`,
       ready: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${documents.id} and l.status = 'ready')`,
       done: sql<number>`(select count(*) from ${lessons} l where l.document_id = ${documents.id} and l.completed_at is not null)`,
+      // the first unfinished part, to continue reading from the library
+      nextLessonId: sql<number | null>`(select l.id from ${lessons} l where l.document_id = ${documents.id} and l.completed_at is null order by l.position limit 1)`,
+      nextPosition: sql<number | null>`(select l.position from ${lessons} l where l.document_id = ${documents.id} and l.completed_at is null order by l.position limit 1)`,
+      firstLessonId: sql<number | null>`(select l.id from ${lessons} l where l.document_id = ${documents.id} order by l.position limit 1)`,
+      lastRead: sql<string | null>`(select max(x.at) from (
+        select rs.created_at as at from reading_sessions rs join ${lessons} l on l.id = rs.lesson_id where l.document_id = ${documents.id}
+        union all select a.created_at from attempts a join ${lessons} l on l.id = a.lesson_id where l.document_id = ${documents.id}
+        union all select l.completed_at from ${lessons} l where l.document_id = ${documents.id}) x)`,
     })
     .from(documents)
     .where(where.length ? and(...where) : undefined)
     .orderBy(desc(documents.createdAt))
     .limit(200);
   const labelMap = await labelsForDocuments(docs.map((d) => d.id));
-  return docs.map((d) => ({ ...d, lessons: Number(d.lessons), ready: Number(d.ready), done: Number(d.done), labels: labelMap.get(d.id) ?? [] }));
+  return docs.map((d) => ({
+    ...d,
+    lessons: Number(d.lessons),
+    ready: Number(d.ready),
+    done: Number(d.done),
+    nextLessonId: d.nextLessonId == null ? null : Number(d.nextLessonId),
+    nextPosition: d.nextPosition == null ? null : Number(d.nextPosition),
+    firstLessonId: d.firstLessonId == null ? null : Number(d.firstLessonId),
+    lastRead: d.lastRead ? new Date(d.lastRead).toISOString() : null,
+    labels: labelMap.get(d.id) ?? [],
+  }));
 }
 export type LibraryItem = Awaited<ReturnType<typeof listDocuments>>[number];
 

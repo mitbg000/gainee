@@ -4,7 +4,7 @@
  *   "thy·roid — /ˈθaɪrɔɪd/" header · "tính từ" · "1. (giải phẫu) tuyến giáp" · "‣ thyroid cartilage ↔ sụn tuyến giáp"
  *   "pro·ced·ure — [UK] /…/ [US] /…/" header · "CEFR: B2" · "■ danh từ" · later "■ …" / "≈ …" sections (synonyms, origin) are skipped
  *   "@hat /hæt/" header · "* danh từ" · "- cái mũ" · "=to wear a hat+ đội mũ"
- * Only the first part of speech is used, so the card stays short like an AI card.
+ * Only the first part of speech and a short meaning (shortMeaning) are kept, so the card stays easy to memorise.
  */
 const POS: [RegExp, string][] = [
   [/danh từ|\bnoun\b/i, "n."],
@@ -78,5 +78,26 @@ export function parseDictEntry(html: string, headword: string) {
     if (sense && senses.length < 3) senses.push(sense);
   }
 
-  return { ipa, pos, meaningVi: senses.join("; ").slice(0, 400) || null, example: example?.slice(0, 400) ?? null };
+  return { ipa, pos, meaningVi: shortMeaning(senses), example: example?.slice(0, 160) ?? null };
+}
+
+/**
+ * A flashcard needs a short meaning, not the whole entry: the first sense without field labels like "(giải phẫu)",
+ * at most two of its synonyms, plus the second sense only when both stay short.
+ */
+export function shortMeaning(senses: string[]): string | null {
+  const clean = senses
+    .map((s) =>
+      s
+        .replace(/\([^)]*\)/g, "")
+        .split(/[,;]/)
+        .map((x) => x.trim())
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(", "),
+    )
+    .filter(Boolean);
+  if (!clean.length) return null;
+  const two = clean.slice(0, 2).join("; ");
+  return (clean.length > 1 && two.length <= 40 ? two : clean[0]).slice(0, 80);
 }

@@ -240,7 +240,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
       </header>
       {editing && <LessonEditor lessonId={lesson.id} paragraphs={lesson.paragraphs} hasNext={!!next} onClose={() => setEditing(false)} />}
 
-      <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-0 md:mx-0 md:px-0">
+      <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-14 md:mx-0 md:px-0">
         {tabs.map((k) => (
           <button
             key={k}
@@ -289,7 +289,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
         {tab !== "read" && (
           // Desktop: keep the passage visible beside the vocab/exercises/practice pane.
           <div ref={splitBox} className="lg:grid lg:grid-cols-[var(--split)_20px_minmax(0,1fr)] lg:items-start" style={{ "--split": `${split}%` } as React.CSSProperties}>
-            <div className="sticky top-14 hidden lg:block">
+            <div className="sticky top-28 hidden lg:block">
               <SplitPassage
                 blocks={blocks}
                 plain={plain}
@@ -307,7 +307,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
               onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
               onPointerMove={dragSplit}
               onDoubleClick={() => setSplit(50)}
-              className="sticky top-14 hidden h-[calc(100dvh-5rem)] cursor-col-resize touch-none select-none items-center justify-center lg:flex"
+              className="sticky top-28 hidden h-[calc(100dvh-8.5rem)] cursor-col-resize touch-none select-none items-center justify-center lg:flex"
             >
               <span className="h-12 w-1 rounded-full bg-line" />
             </div>

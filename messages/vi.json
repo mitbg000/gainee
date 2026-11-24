@@ -371,7 +371,31 @@
     "importFirst": "Nhập bài báo đầu tiên →",
     "generating": "Đang tạo bài học… {ready}/{total}",
     "failed": "Tạo bài lỗi – mở để thử lại",
-    "progress": "Xong {done}/{total} bài · {words, number} từ"
+    "progress": "Xong {done}/{total} bài · {words, number} từ",
+    "continueTitle": "Đọc tiếp",
+    "continuePart": "Đọc tiếp · Phần {n}",
+    "start": "Bắt đầu đọc",
+    "readAgain": "Đọc lại",
+    "details": "Chi tiết",
+    "parts": "{done}/{total} phần",
+    "meta": "{parts} phần · {words, number} từ · ~{min} phút",
+    "status": {
+      "all": "Tất cả",
+      "reading": "Đang đọc",
+      "new": "Chưa đọc",
+      "done": "Đã xong"
+    },
+    "sortLabel": "Sắp xếp",
+    "sort": {
+      "added": "Mới thêm",
+      "read": "Đọc gần đây",
+      "title": "Tên A–Z"
+    },
+    "viewLabel": "Kiểu hiển thị",
+    "view": {
+      "grid": "Dạng thẻ",
+      "list": "Dạng danh sách"
+    }
   },
   "document": {
     "back": "Thư viện",
@@ -644,7 +668,17 @@
       "download": "Tải file ({n} từ)",
       "copy": "Copy để dán",
       "copied": "Đã copy"
-    }
+    },
+    "aiShorten": "Rút gọn bằng AI",
+    "aiBusy": "AI đang rút gọn…",
+    "aiSuggested": "AI đã đề xuất bản ngắn gọn – kiểm tra rồi bấm Lưu.",
+    "aiFailed": "AI chưa rút gọn được (kiểm tra cấu hình AI trong Cài đặt).",
+    "edit": "Sửa",
+    "longMeanings": "{n} từ có nghĩa quá dài, khó nhớ.",
+    "shortenAll": "Rút gọn tất cả bằng AI",
+    "shortening": "Đang rút gọn {i}/{n}…",
+    "shortenFailed": "{n} từ chưa rút gọn được",
+    "shortenAllConfirm": "AI sẽ viết lại nghĩa, định nghĩa, ví dụ và ghi chú của {n} từ cho ngắn gọn và lưu luôn. Tiếp tục?"
   },
   "review": {
     "title": "Ôn tập hôm nay",
@@ -950,5 +984,11 @@
     "pictureError": "Không vẽ được hình: {error}",
     "retry": "Thử lại",
     "network": "mất kết nối hoặc máy chủ ngắt yêu cầu"
+  },
+  "topbar": {
+    "breadcrumbs": "Vị trí trang",
+    "part": "Phần {n}: {title}",
+    "lookup": "Tra từ nhanh…",
+    "review": "Ôn tập"
   }
 }

@@ -443,7 +443,7 @@ export default function ReadPane(props: Props) {
         {/* desktop right column: tool panel (sticky) above margin notes */}
         {desktop && (
           <aside className="relative">
-            {tool && <div className="sticky top-4 z-10 mb-3 max-h-[calc(100dvh-2rem)] overflow-y-auto no-scrollbar">{toolPanel}</div>}
+            {tool && <div className="sticky top-[4.5rem] z-10 mb-3 max-h-[calc(100dvh-5.5rem)] overflow-y-auto no-scrollbar">{toolPanel}</div>}
             <div className={tool ? "pointer-events-none absolute inset-0 opacity-30" : "absolute inset-0"}>
               <MarginNotes
                 annotations={annotations}

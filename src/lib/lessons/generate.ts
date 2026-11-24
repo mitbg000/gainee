@@ -81,7 +81,8 @@ Return ONE JSON object only – no markdown, no comments.
 Rules (strict – your output is checked automatically against the text):
 - vocab: 8–12 items that are useful for IELTS and slightly above the learner's level (skip very easy words and proper names).
   "match" MUST be copied exactly as it appears in the text (inflected form, e.g. "smothered"), "headword" is the dictionary form ("smother").
-  Include IPA (British), part of speech (n., v., adj., adv., phr.v., idiom…), a short English definition, a NEW example sentence, and a collocation/usage note.
+  Include IPA (British), part of speech (n., v., adj., adv., phr.v., idiom…), a short English definition (≤12 words), a NEW example sentence (≤15 words), and a collocation note (≤10 words).
+  "meaningVi" = only the sense used in the text, 1–5 Vietnamese words (at most 2 synonyms), no explanations or brackets – it is a flashcard.
 - tfng: exactly 4 IELTS True/False/Not Given statements, PARAPHRASED (do not copy sentences). Use at least one of each answer type.
   For T and F, "evidence" MUST be a verbatim quote from the text (5–25 words). For NG use evidence null and explain why it is not given.
 - mcq: exactly 2 questions with 4 options, "answer" = index 0–3, verbatim "evidence".

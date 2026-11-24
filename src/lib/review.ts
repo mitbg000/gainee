@@ -110,3 +110,9 @@ export async function gradeWord(id: number, rating: Grade, mode: ReviewMode, dur
   await addXp("review", 1, { type: "word", id });
   return { due: card.due, state: card.state, next: preview(card, now) };
 }
+
+/** Number of words due now (badge in the top bar). */
+export async function dueCount() {
+  const [r] = await getDb().select({ n: count() }).from(words).where(and(eq(words.suspended, false), lte(words.due, new Date())));
+  return r?.n ?? 0;
+}
