@@ -42,6 +42,7 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
   const [asked, setAsked] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [attemptId, setAttemptId] = useState<number | null>(null);
+  const [picked, setPicked] = useState("");
   const pending = useRef<{ n: number | null; question: string } | null>(null);
   const ai = useAiAsk();
   const audio = useRef<HTMLAudioElement>(null);
@@ -58,11 +59,16 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
     if (audio.current) audio.current.playbackRate = speed;
   }, [speed]);
   // a finished AI answer is kept in this try's history
+  // (asked before checking: kept until the try is saved, then stored with it)
+  const queue = useRef<{ n: number | null; question: string; answer: string }[]>([]);
   useEffect(() => {
     const p = pending.current;
-    if (ai.loading || !p || !attemptId || !ai.text || ai.text.startsWith("⚠️")) return;
-    pending.current = null;
-    fetch(`/api/ielts/attempts/${attemptId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...p, answer: ai.text.slice(0, 20000) }) }).catch(() => {});
+    if (!ai.loading && p && ai.text && !ai.text.startsWith("⚠️")) {
+      pending.current = null;
+      queue.current.push({ ...p, answer: ai.text.slice(0, 20000) });
+    }
+    if (!attemptId) return;
+    for (const note of queue.current.splice(0)) fetch(`/api/ielts/attempts/${attemptId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(note) }).catch(() => {});
   }, [ai.loading, ai.text, attemptId]);
 
   const nums = useMemo(() => c.groups.flatMap((g, i) => (only === undefined || only === i ? numbersOfGroup(g) : [])), [c.groups, only]);
@@ -85,6 +91,7 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
   }
   function retry() {
     setMarks(null);
+    setAttemptId(null); // notes from now on belong to the next try
     setValues((v) => Object.fromEntries(Object.entries(v).filter(([k]) => marks?.[Number(k.split(":")[1])])));
     setStarted(Date.now());
     ai.reset();
@@ -114,6 +121,31 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
     });
     setTimeout(() => aiBox.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 50);
   }
+  // text selected in the passage / transcript (areas marked data-ask) can be sent to AI
+  useEffect(() => {
+    const onSel = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+      const node = sel.getRangeAt(0).commonAncestorContainer;
+      const el = node instanceof Element ? node : node.parentElement;
+      const text = sel.toString().replace(/\s+/g, " ").trim();
+      if (el?.closest("[data-ask]") && text.length >= 2) setPicked(text.slice(0, 1500));
+    };
+    document.addEventListener("selectionchange", onSel);
+    return () => document.removeEventListener("selectionchange", onSel);
+  }, []);
+  function run(label: string, input: Parameters<typeof ai.ask>[0]) {
+    setAsked(label);
+    pending.current = { n: null, question: clip(label, 1990) };
+    ai.ask(input);
+    setTimeout(() => aiBox.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 50);
+  }
+  const askPicked = (action: "explain_sentence" | "translate" | "grammar" | "paraphrase") =>
+    run(`${t(`pick.${action}`)}: “${clip(picked, 300)}”`, { action, selection: picked, context: clip(source, 3900) });
+  const whole = data.skill === "reading" ? "passage" : "recording";
+  const summarise = () => run(t("summary"), { action: "custom", selection: clip(source, 5900), question: `Summarise this IELTS ${whole} for a Vietnamese learner: who is speaking/writing, the situation, and the main points in order (bullets). Then list 5 useful words or phrases from it with Vietnamese meanings.` });
+  const translateAll = () => run(t("translateAll"), { action: "custom", selection: clip(source, 5900), question: `Translate this IELTS ${whole} into natural Vietnamese, paragraph by paragraph${data.skill === "listening" ? ", keeping the speaker names" : ""}.` });
+
   function askFree(e: React.FormEvent) {
     e.preventDefault();
     if (!question.trim()) return;
@@ -133,7 +165,35 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
       <p className="flex items-center gap-1.5 text-sm font-semibold">
         <I.IconSpark className="h-4 w-4 text-accent" /> {t("askAi")}
       </p>
-      {asked && <p className="mt-2 text-sm text-muted">{asked}</p>}
+      {picked && (
+        <div className="mt-2 rounded-xl bg-paper p-2.5">
+          <p className="flex items-start gap-2 text-sm">
+            <span className="min-w-0 flex-1 italic">“{clip(picked, 220)}”</span>
+            <button onClick={() => setPicked("")} className="text-muted" aria-label={t("clearPick")}>
+              <I.IconX className="h-4 w-4" />
+            </button>
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {(["explain_sentence", "translate", "grammar", "paraphrase"] as const).map((a) => (
+              <button key={a} onClick={() => askPicked(a)} disabled={ai.loading} className="chip">
+                {t(`pick.${a}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {!picked && source && <p className="mt-1 text-xs text-muted">{t(data.skill === "reading" ? "pickHintReading" : "pickHintListening")}</p>}
+      {source && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <button onClick={summarise} disabled={ai.loading} className="chip">
+            {t("summary")}
+          </button>
+          <button onClick={translateAll} disabled={ai.loading} className="chip">
+            {t("translateAll")}
+          </button>
+        </div>
+      )}
+      {asked && <p className="mt-3 text-sm font-semibold text-muted">{asked}</p>}
       {ai.notConfigured && <p className="mt-2 text-sm text-muted">{t("noAi")}</p>}
       {(ai.text || ai.loading) && <Markdown text={ai.text || "…"} className="mt-2 text-[15px]" />}
       <form onSubmit={askFree} className="mt-3 flex gap-2">
@@ -237,29 +297,32 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
       {data.skill === "reading" ? (
         <div className="grid gap-5 lg:grid-cols-2">
           <ReaderLookup className="rounded-2xl border border-line bg-card p-5 font-serif text-[17px] lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
-            <Passage text={c.passage ?? ""} intro={c.intro} />
+            <div data-ask>
+              <Passage text={c.passage ?? ""} intro={c.intro} />
+            </div>
           </ReaderLookup>
           <div className="space-y-4">
             <div className="rounded-2xl border border-line bg-card p-5">{questions}</div>
-            {marks && aiPanel}
+            {aiPanel}
           </div>
         </div>
       ) : (
         <div className="space-y-4">
           <ReaderLookup className="rounded-2xl border border-line bg-card p-5">{questions}</ReaderLookup>
-          {marks && data.transcript && (
+          {data.transcript && (
             <div className="rounded-2xl border border-line bg-card p-5">
               <button onClick={() => setShowScript(!showScript)} className="btn btn-sm btn-secondary">
                 {showScript ? t("hideScript") : t("showScript")}
               </button>
+              {!marks && !showScript && <span className="ml-2 text-xs text-muted">{t("scriptSpoiler")}</span>}
               {showScript && (
                 <ReaderLookup className="mt-3 whitespace-pre-line font-serif text-[16px] leading-relaxed">
-                  <p>{data.transcript}</p>
+                  <p data-ask>{data.transcript}</p>
                 </ReaderLookup>
               )}
             </div>
           )}
-          {marks && aiPanel}
+          {aiPanel}
         </div>
       )}
       <p className="mt-4 text-center text-xs text-muted">{t("lookupTip")}</p>

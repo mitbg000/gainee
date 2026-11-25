@@ -1233,7 +1233,19 @@
       "hideScript": "Hide transcript",
       "showScript": "Show transcript",
       "lookupTip": "Click a word or select a phrase to look it up. After checking, press “Explain” next to a wrong answer and AI points to the sentence with the answer.",
-      "replayAll": "Replay from start"
+      "replayAll": "Replay from start",
+      "pick": {
+        "explain_sentence": "Explain",
+        "translate": "Translate",
+        "grammar": "Grammar",
+        "paraphrase": "Paraphrase"
+      },
+      "clearPick": "Clear selection",
+      "pickHintReading": "Select a sentence or paragraph in the passage to have AI explain, translate or analyse it.",
+      "pickHintListening": "Open the transcript and select a line of the conversation to have AI explain, translate or analyse it.",
+      "summary": "Summarise",
+      "translateAll": "Translate all",
+      "scriptSpoiler": "Showing it before checking gives the answers away"
     },
     "part": {
       "listening": "Listening Part {n}",

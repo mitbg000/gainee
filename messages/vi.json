@@ -1233,7 +1233,19 @@
       "hideScript": "Ẩn transcript",
       "showScript": "Xem transcript",
       "lookupTip": "Bấm vào một từ hoặc bôi đen cụm từ để tra từ điển. Sau khi kiểm tra, bấm “Giải thích” cạnh câu sai để AI chỉ ra câu trong bài chứa đáp án.",
-      "replayAll": "Nghe lại từ đầu"
+      "replayAll": "Nghe lại từ đầu",
+      "pick": {
+        "explain_sentence": "Giải thích",
+        "translate": "Dịch",
+        "grammar": "Ngữ pháp",
+        "paraphrase": "Paraphrase"
+      },
+      "clearPick": "Bỏ chọn",
+      "pickHintReading": "Bôi đen một câu hay đoạn trong bài đọc để AI giải thích, dịch hoặc phân tích ngữ pháp.",
+      "pickHintListening": "Mở transcript rồi bôi đen một câu hay đoạn hội thoại để AI giải thích, dịch hoặc phân tích ngữ pháp.",
+      "summary": "Tóm tắt nội dung",
+      "translateAll": "Dịch cả bài",
+      "scriptSpoiler": "Xem trước khi kiểm tra sẽ lộ đáp án"
     },
     "part": {
       "listening": "Listening Part {n}",
