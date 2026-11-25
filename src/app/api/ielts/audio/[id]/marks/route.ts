@@ -10,7 +10,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function POST(req: Request, { params }: Ctx) {
   const id = idParam((await params).id);
   if (!id) return bad("not_found", 404);
-  const [d, err] = await parseBody(req, z.object({ marks: z.record(z.enum(["1", "2", "3", "4"]), z.number().min(0).max(4 * 3600)) }));
+  const [d, err] = await parseBody(req, z.object({ marks: z.partialRecord(z.enum(["1", "2", "3", "4"]), z.number().min(0).max(4 * 3600)) }));
   if (err) return err;
   return NextResponse.json({ parts: await applyMarks(id, d.marks) });
 }

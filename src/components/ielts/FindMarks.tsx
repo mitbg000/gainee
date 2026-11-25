@@ -31,7 +31,8 @@ export default function FindMarks({ id, marks: initial }: { id: number; marks: P
       setMsg(Object.keys(r.marks).length ? t("done", { found: Object.keys(r.marks).length, parts: r.parts }) : t("none"));
       router.refresh();
     } catch (e) {
-      setMsg(String(e));
+      const code = e instanceof Error ? e.message : String(e);
+      setMsg(code === "lib_timeout" || code === "model_timeout" ? t(`errors.${code}`) : t("errors.failed", { error: code }));
     } finally {
       setBusy(null);
     }

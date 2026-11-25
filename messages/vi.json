@@ -1446,12 +1446,18 @@
       "done": "Tìm thấy {found} Part, đã gắn cho {parts} phần",
       "none": "Không nghe ra câu thông báo Part nào, hãy đặt mốc tay ở trang duyệt.",
       "step": {
-        "model": "Đang tải AI nghe (~40MB, lần đầu)…",
+        "model": "Đang tải model AI nghe (~28MB, chỉ lần đầu) {pct}%",
         "decode": "Đang giải mã audio…",
-        "listen": "AI đang nghe {pct}%"
+        "listen": "AI đang nghe {pct}%",
+        "lib": "Đang tải thư viện AI nghe…"
       },
       "auto": "Tự tìm mốc từng Part trong audio bằng AI (trên máy này)",
-      "autoHint": "Với file audio chứa cả đề, Whisper chạy ngay trên trình duyệt sẽ nghe các câu “Part 1”, “Now turn to Part 2”… để đặt mốc. Miễn phí, mất khoảng 1–3 phút mỗi file."
+      "autoHint": "Với file audio chứa cả đề, Moonshine chạy ngay trên trình duyệt sẽ nghe các câu “Part 1”, “Now turn to Part 2”… để đặt mốc. Miễn phí, mất khoảng 1–3 phút mỗi file.",
+      "errors": {
+        "lib_timeout": "Không tải được thư viện AI từ cdn.jsdelivr.net (mạng chặn hoặc quá chậm). Thử lại sau hoặc đặt mốc tay.",
+        "model_timeout": "Tải model AI bị đứng hơn 90 giây. Bấm “Tìm lại mốc” để thử lại; phần đã tải được giữ lại.",
+        "failed": "Tìm mốc lỗi: {error}"
+      }
     }
   }
 }

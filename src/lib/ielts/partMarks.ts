@@ -1,34 +1,39 @@
 /**
  * Find where each Listening part starts in one recording of a whole test, in the browser:
- * Whisper (tiny English model, ~40 MB, cached by the browser after the first time) hears the few seconds after each
+ * a small speech model (Moonshine tiny, ~28 MB, cached by the browser after the first time) hears the few seconds after each
  * long pause and we look for the announcements "Part 2" / "Now turn to Section 2". Free, no server work.
  */
 export type PartMarks = Record<string, number>; // part → second where its announcement starts
 
 const LIB = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js";
-const MODEL = "Xenova/whisper-tiny.en";
+/** Moonshine: compute grows with the clip length (Whisper always works on 30 s), so short clips are several times faster. */
+export const MODEL = "onnx-community/moonshine-tiny-ONNX";
 const RATE = 16000;
 
 const NUM: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, "1": 1, "2": 2, "3": 3, "4": 4 };
 
-/** "...That is the end of Part 1. ... Now turn to Part 2." → part numbers announced as a start, with the text before them. */
-export function announcedParts(text: string): number[] {
-  const out: number[] = [];
-  for (const m of text.matchAll(/(end of\s+)?\b(?:part|section)\s+(one|two|three|four|[1-4])\b/gi)) if (!m[1]) out.push(NUM[m[2].toLowerCase()]);
-  return out;
+/** Announcements in a piece of text: "Part 2" starts part 2, "That is the end of Part 1" ends part 1. */
+export function announcements(text: string): { part: number; end: boolean }[] {
+  return [...text.matchAll(/(end of\s+)?\b(?:part|section)\s+(one|two|three|four|[1-4])\b/gi)].map((m) => ({ part: NUM[m[2].toLowerCase()], end: !!m[1] }));
 }
 
-/** Marks from timed transcript pieces: the first announcement of part n after part n-1, in order. */
-export function marksFrom(chunks: { start: number; text: string }[]): PartMarks {
+/**
+ * Marks from the clips heard after each pause (in time order). A part starts at the first clip announcing it after
+ * the previous part; if that announcement was misheard, the clip right after "That is the end of Part n-1" is used.
+ */
+export function marksFrom(clips: { start: number; text: string }[]): PartMarks {
+  const cs = [...clips].sort((a, b) => a.start - b.start);
   const marks: PartMarks = {};
-  let next = 1;
-  for (const c of [...chunks].sort((a, b) => a.start - b.start)) {
-    for (const p of announcedParts(c.text)) {
-      if (p === next && (next === 1 || c.start > marks[next - 1] + 60)) {
-        marks[p] = Math.max(0, Math.floor(c.start - 0.5));
-        next++;
-      }
+  let after = -Infinity;
+  for (let p = 1; p <= 4; p++) {
+    let at = cs.find((c) => c.start > after && announcements(c.text).some((a) => a.part === p && !a.end))?.start;
+    if (at === undefined && p > 1) {
+      const endIdx = cs.findIndex((c) => c.start > after && announcements(c.text).some((a) => a.part === p - 1 && a.end));
+      if (endIdx >= 0 && cs[endIdx + 1]) at = cs[endIdx + 1].start;
     }
+    if (at === undefined) continue;
+    marks[p] = Math.max(0, Math.floor(at - 0.5));
+    after = at + 60; // a part lasts minutes: ignore repeats of the same announcement
   }
   return marks;
 }
@@ -62,13 +67,39 @@ export function speechAfterPauses(pcm: Float32Array, rate = RATE, minGap = 2): n
   return out;
 }
 
+/** Fail instead of waiting forever when a download never answers. */
+function withTimeout<T>(p: Promise<T>, ms: number, code: string): Promise<T> {
+  return Promise.race([p, new Promise<T>((_, no) => setTimeout(() => no(new Error(code)), ms))]);
+}
+/** Like withTimeout, but the clock restarts whenever `lastActivity` moves (a slow download is fine, a stuck one is not). */
+function stalled<T>(p: Promise<T>, lastActivity: () => number, ms: number, code: string): Promise<T> {
+  return new Promise<T>((ok, no) => {
+    const tick = setInterval(() => Date.now() - lastActivity() > ms && (clearInterval(tick), no(new Error(code))), 2000);
+    p.then((v) => (clearInterval(tick), ok(v)), (e) => (clearInterval(tick), no(e)));
+  });
+}
+
 const CLIP = 7; // seconds heard after each pause: "Part 2. You will hear a…" fits easily
 
 export async function findPartMarks(src: Blob | string, onProgress: (msg: string, pct: number) => void): Promise<PartMarks> {
+  onProgress("lib", 0);
+  const lib = await withTimeout(import(/* webpackIgnore: true */ LIB), 90_000, "lib_timeout");
+  // model files come through our own server (it downloads them from huggingface.co once and keeps them)
+  lib.env.allowLocalModels = false;
+  lib.env.remoteHost = `${location.origin}/api/ielts/hf/`;
+  const files: Record<string, { loaded: number; total: number }> = {};
+  let last = Date.now();
+  const progress_callback = (p: { status: string; file?: string; loaded?: number; total?: number }) => {
+    last = Date.now();
+    if (p.status !== "progress" || !p.file || !p.total) return;
+    files[p.file] = { loaded: p.loaded ?? 0, total: p.total };
+    const all = Object.values(files);
+    onProgress("model", all.reduce((a, f) => a + f.loaded, 0) / all.reduce((a, f) => a + f.total, 0));
+  };
   onProgress("model", 0);
-  const lib = await import(/* webpackIgnore: true */ LIB);
-  // WASM on purpose: the quantised model gives garbage text on WebGPU in some browsers
-  const asr: Asr = await lib.pipeline("automatic-speech-recognition", MODEL, { device: "wasm", dtype: "q8" });
+  // WASM on purpose: quantised speech models give garbage text on WebGPU in some browsers
+  const loading = lib.pipeline("automatic-speech-recognition", MODEL, { device: "wasm", dtype: "q8", progress_callback });
+  const asr: Asr = await stalled(loading, () => last, 90_000, "model_timeout");
 
   onProgress("decode", 0);
   const bytes = typeof src === "string" ? await (await fetch(src)).arrayBuffer() : await src.arrayBuffer();

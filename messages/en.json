@@ -1446,12 +1446,18 @@
       "done": "Found {found} parts, set on {parts} sections",
       "none": "No part announcements heard – set the marks by hand on the review screen.",
       "step": {
-        "model": "Loading the listening AI (~40 MB, first time)…",
+        "model": "Downloading the listening AI (~28 MB, first time only) {pct}%",
         "decode": "Decoding audio…",
-        "listen": "AI listening {pct}%"
+        "listen": "AI listening {pct}%",
+        "lib": "Loading the listening AI library…"
       },
       "auto": "Find where each part starts with AI (on this computer)",
-      "autoHint": "For a recording of a whole test, Whisper runs in the browser and listens for “Part 1”, “Now turn to Part 2”… to set the marks. Free; about 1–3 minutes per file."
+      "autoHint": "For a recording of a whole test, Moonshine runs in the browser and listens for “Part 1”, “Now turn to Part 2”… to set the marks. Free; about 1–3 minutes per file.",
+      "errors": {
+        "lib_timeout": "Could not load the AI library from cdn.jsdelivr.net (blocked or too slow). Try later or set marks by hand.",
+        "model_timeout": "The AI model download stalled for over 90 seconds. Press “Find marks again”; what was downloaded is kept.",
+        "failed": "Finding marks failed: {error}"
+      }
     }
   }
 }
