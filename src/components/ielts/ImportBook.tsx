@@ -7,7 +7,7 @@ import * as I from "@/components/icons";
 import { saveMarks } from "./FindMarks";
 import { pageText, shownAt } from "@/lib/ielts/pdfText";
 
-const CHUNK = 8 * 1024 * 1024;
+const CHUNK = 4 * 1024 * 1024; // small enough to finish well inside proxy time limits on a slow upload
 const PAGE_WIDTH = 1400; // px: sharp enough to crop a map or chart, ~150 KB per page as WebP
 const BATCH = 4;
 
@@ -24,8 +24,8 @@ export async function uploadAudio(bookId: number, file: File, onProgress: (done:
       offset = (await res.json()).received;
       tries = 0;
       onProgress(offset / file.size);
-    } else if (++tries > 4) throw new Error(`${file.name}: upload failed`);
-    else await new Promise((ok) => setTimeout(ok, 1500 * tries));
+    } else if (++tries > 8) throw new Error(`${file.name}: upload failed`);
+    else await new Promise((ok) => setTimeout(ok, Math.min(15_000, 1500 * tries)));
   }
   return id as number;
 }
@@ -111,9 +111,12 @@ export default function ImportBook() {
       await ocr?.terminate();
       ocr = null;
 
+      const skipped: string[] = [];
       for (const [i, f] of audio.entries()) {
         setStatus(t("audio", { i: i + 1, n: audio.length, name: f.name }));
-        const audioId = await uploadAudio(id, f, setPct);
+        // one failed file does not stop the book: it can be added later on the book page
+        const audioId = await uploadAudio(id, f, setPct).catch(() => (skipped.push(f.name), null));
+        if (!audioId) continue;
         // one file for a whole test: let Whisper (in this browser) find where each part starts
         if (autoMarks && !/(section|part)[\s_-]*[1-4]/i.test(f.name))
           await saveMarks(audioId, f, (step, pct) => {
@@ -125,6 +128,7 @@ export default function ImportBook() {
       const q = await fetch(`/api/ielts/books/${id}/import`, { method: "POST" });
       if (!q.ok) throw new Error(`import: HTTP ${q.status}`);
       if (scanned && !localOcr) console.info(`${scanned} scanned pages will be read by AI on the server`);
+      if (skipped.length) alert(t("audioSkipped", { names: skipped.join(", ") }));
       router.push(`/ielts/books/${id}`);
     } catch (e) {
       await ocr?.terminate().catch(() => {});

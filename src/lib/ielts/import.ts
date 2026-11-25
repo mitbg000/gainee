@@ -13,6 +13,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { chat, parseJsonReply } from "@/lib/ai/client";
 import { setProgress, type Job } from "@/lib/jobs";
+import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
 import { GROUP_TYPES, type Group, type SectionContent, type Skill } from "./types";
 
@@ -239,13 +240,22 @@ export async function importBook(job: Job) {
     }
     pages = pages.filter((p) => !EMPTY(p.text));
 
-    // 2) outline
-    await setProgress(job.id, "outline");
-    const plan = await outline(pages);
-    if (!plan.tests?.length) throw new Error("No tests found in the book");
+    // A retry after a restart, or "Continue", keeps the tests and parts already made and does only the rest,
+    // with the same outline as before. "Read again" (a fresh job) replaces the draft.
+    const resume = job.payload.resume === true || job.attempts > 1;
+    const planKey = `ielts.plan.${bookId}`;
 
-    // re-import replaces the previous draft
-    await db.delete(ieltsTests).where(eq(ieltsTests.bookId, bookId));
+    // 2) outline
+    let plan = resume ? await getSetting<Outline>(planKey) : undefined;
+    if (!plan?.tests?.length) {
+      await setProgress(job.id, "outline");
+      plan = await outline(pages);
+      if (!plan.tests?.length) throw new Error("No tests found in the book");
+      await setSetting(planKey, plan);
+    }
+    if (!resume) await db.delete(ieltsTests).where(eq(ieltsTests.bookId, bookId));
+    const oldTests = await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId));
+    const oldSections = oldTests.length ? await db.select({ testId: ieltsSections.testId, skill: ieltsSections.skill, part: ieltsSections.part }).from(ieltsSections).where(inArray(ieltsSections.testId, oldTests.map((x) => x.id))) : [];
     const pageImg = new Map(pages.map((p) => [p.page, p.imagePath ? `/api/${p.imagePath}` : undefined]));
     const audio = await db.select().from(ieltsAudio).where(eq(ieltsAudio.bookId, bookId));
 
@@ -257,16 +267,20 @@ export async function importBook(job: Job) {
     const total = plan.tests.reduce((a, t) => a + (t.listening?.length ?? 0) + (t.reading?.length ?? 0) + (t.writing?.length ?? 0) + 1, 0);
     let done = 0;
     for (const t of plan.tests) {
-      const [{ id: testId }] = await db.insert(ieltsTests).values({ bookId, number: t.number, title: `Test ${t.number}` }).$returningId();
+      const testId = oldTests.find((x) => x.number === t.number)?.id ?? (await db.insert(ieltsTests).values({ bookId, number: t.number, title: `Test ${t.number}` }).$returningId())[0].id;
+      const made = (skill: string, part: number) => oldSections.some((s) => s.testId === testId && s.skill === skill && s.part === part);
+      const left = (["listening", "reading", "writing"] as const).some((sk) => (t[sk] ?? []).some((r) => !made(sk, r.part)));
 
       await setProgress(job.id, `answers ${t.number} (${++done}/${total})`);
-      const key = t.answerPages?.length ? await answerKey(t.number, textOfList(pages, t.answerPages)).catch(() => ({ listening: {}, reading: {} })) : { listening: {}, reading: {} };
+      const key = left && t.answerPages?.length ? await answerKey(t.number, textOfList(pages, t.answerPages)).catch(() => ({ listening: {}, reading: {} })) : { listening: {}, reading: {} };
       const scripts = splitScript(textOfList(pages, t.scriptPages));
       const files = audio.map((a) => ({ a, to: audioTarget(a.name) ?? byOrder.get(a.id) ?? null })).filter((x) => x.to?.test === t.number);
 
       for (const skill of ["listening", "reading", "writing"] as const) {
         for (const r of t[skill] ?? []) {
-          await setProgress(job.id, `test ${t.number} ${skill} ${r.part} (${++done}/${total})`);
+          ++done;
+          if (made(skill, r.part)) continue; // done before the restart
+          await setProgress(job.id, `test ${t.number} ${skill} ${r.part} (${done}/${total})`);
           const range: [number, number] = [Number(r.pages[0]), Number(r.pages[1] ?? r.pages[0])];
           let c: RawSection;
           try {

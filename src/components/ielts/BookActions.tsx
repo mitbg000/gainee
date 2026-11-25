@@ -7,7 +7,7 @@ import { uploadAudio } from "./ImportBook";
 import * as I from "@/components/icons";
 
 /** Book page tools: live progress while the worker reads the book, read again, add audio, delete. */
-export default function BookActions({ id, status, hasTests, brokenScripts = 0 }: { id: number; status: string; hasTests: boolean; brokenScripts?: number }) {
+export default function BookActions({ id, status, hasTests, brokenScripts = 0, jobActive = false }: { id: number; status: string; hasTests: boolean; brokenScripts?: number; jobActive?: boolean }) {
   const t = useTranslations("ielts.book");
   const router = useRouter();
   const [progress, setProgress] = useState<string | null>(null);
@@ -31,6 +31,12 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0 }:
     await fetch(`/api/ielts/books/${id}/import`, { method: "POST" });
     router.refresh();
   }
+  /** Carry on after a stop or failure: parts already made are kept. */
+  async function resume() {
+    await fetch(`/api/ielts/books/${id}/import`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ resume: true }) });
+    router.refresh();
+  }
+  const stuck = !jobActive && (status === "parsing" || status === "failed");
   async function fixScripts() {
     const r = await fetch(`/api/ielts/books/${id}/fix-scripts`, { method: "POST" });
     if (r.ok) setFixSent(true);
@@ -52,7 +58,7 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0 }:
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {status === "parsing" && (
+      {status === "parsing" && jobActive && (
         <span className="flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-sm text-accent">
           <span className="size-2 animate-pulse rounded-full bg-accent" /> {t("parsing")} {progress && `· ${progress}`}
         </span>
@@ -66,7 +72,12 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0 }:
           <I.IconSpark /> {fixSent ? t("fixScriptsSent") : t("fixScripts", { n: brokenScripts })}
         </button>
       )}
-      <button onClick={reimport} disabled={status === "parsing"} className="btn btn-sm btn-secondary">
+      {stuck && (
+        <button onClick={resume} className="btn btn-sm btn-primary">
+          <I.IconPlay /> {t("resume")}
+        </button>
+      )}
+      <button onClick={reimport} disabled={jobActive} className="btn btn-sm btn-secondary">
         <I.IconRefresh /> {t("reimport")}
       </button>
       <button onClick={remove} className="btn btn-sm btn-danger">

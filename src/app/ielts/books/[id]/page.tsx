@@ -10,6 +10,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { scriptLooksBroken } from "@/lib/ielts/import";
 import { audioFiles, audioTests, listBooks } from "@/lib/ielts/queries";
+import { getSetting } from "@/lib/settings";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,10 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const t = await getTranslations("ielts.book");
   const book = (await listBooks()).find((b) => b.id === id);
   if (!book) notFound();
-  const [files, usedBy] = await Promise.all([audioFiles(id), audioTests(id)]);
+  const [files, usedBy, beat] = await Promise.all([audioFiles(id), audioTests(id), getSetting<number>("worker.heartbeat")]);
+  const jobActive = book.job?.status === "queued" || book.job?.status === "running";
+  // the worker writes a heartbeat every 30 s; none for 2 minutes means it is not running (AI steps then never start)
+  const workerDown = jobActive && (!beat || Date.now() - beat > 120_000);
   const testIds = book.tests.map((x) => x.id);
   const scripts = testIds.length
     ? await getDb().select({ t: schema.ieltsSections.transcript }).from(schema.ieltsSections).where(and(inArray(schema.ieltsSections.testId, testIds), eq(schema.ieltsSections.skill, "listening")))
@@ -37,8 +41,14 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       <BookTitle id={id} title={book.title} />
       <p className="mt-1 text-sm text-muted">{t("summary", { pages: book.pageCount, tests: book.tests.length, reviewed, total: all.length })}</p>
       <div className="mt-3">
-        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} />
+        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} jobActive={jobActive} />
       </div>
+      {workerDown && (
+        <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+          {t("workerDown")} <code className="rounded bg-black/10 px-1">pm2 restart gainee-worker</code>
+        </p>
+      )}
+      {book.status === "parsing" && !jobActive && <p className="mt-3 text-sm text-muted">{t("stopped")}</p>}
       {book.error && <p className="mt-3 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">{book.error}</p>}
       {book.status === "uploading" && <p className="mt-3 text-sm text-muted">{t("uploading")}</p>}
 

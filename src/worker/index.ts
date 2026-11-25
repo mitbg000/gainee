@@ -48,7 +48,8 @@ async function loop() {
 
 async function main() {
   await getDb().execute(sql`select 1`);
-  const n = await requeueStale();
+  // only one worker runs: a job still "running" when it starts was cut off by a restart (deploy, crash) – run it again now
+  const n = await requeueStale(0);
   if (n) console.log(`[worker] re-queued ${n} interrupted job(s)`);
   await heartbeat();
   setInterval(heartbeat, 30_000);

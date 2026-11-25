@@ -1352,7 +1352,8 @@
       "localOcrHint": "Free and no server load, but slower (a few seconds per page). Pages it cannot read are read by AI from the picture (needs a vision model).",
       "start": "Upload and split",
       "keepOpen": "Keep this page open until the upload finishes. The AI step runs on the server; you can leave then.",
-      "marks": "Finding part marks in {name}: {step}"
+      "marks": "Finding part marks in {name}: {step}",
+      "audioSkipped": "Could not upload: {names}. The book is still read; add these files again on the book page (Add audio)."
     },
     "book": {
       "parsing": "AI is reading the book",
@@ -1380,7 +1381,10 @@
       "cancel": "Cancel",
       "namePart": "add a name…",
       "audioFor": "This file is for test",
-      "audioNone": "Not attached"
+      "audioNone": "Not attached",
+      "resume": "Continue reading",
+      "stopped": "Reading stopped part-way. Press “Continue reading”: finished parts are kept and AI does only the rest.",
+      "workerDown": "The background worker is not running, so AI cannot go on. On the server run:"
     },
     "edit": {
       "back": "Back to the book",

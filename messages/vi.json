@@ -1352,7 +1352,8 @@
       "localOcrHint": "Miễn phí và không tốn tài nguyên server, nhưng chậm hơn (vài giây mỗi trang). Trang máy bạn đọc không ra sẽ được AI đọc từ ảnh (cần model đọc được ảnh).",
       "start": "Tải lên và tách đề",
       "keepOpen": "Giữ trang này mở cho tới khi tải xong. Bước AI chạy ở server, bạn có thể đóng trang lúc đó.",
-      "marks": "Đang tìm mốc Part trong {name}: {step}"
+      "marks": "Đang tìm mốc Part trong {name}: {step}",
+      "audioSkipped": "Không tải lên được: {names}. Đề vẫn được tách; hãy thêm lại file này ở trang bộ đề (nút Thêm audio)."
     },
     "book": {
       "parsing": "AI đang đọc sách",
@@ -1380,7 +1381,10 @@
       "cancel": "Huỷ",
       "namePart": "đặt tên…",
       "audioFor": "File này dùng cho đề",
-      "audioNone": "Chưa gắn đề nào"
+      "audioNone": "Chưa gắn đề nào",
+      "resume": "Tiếp tục đọc",
+      "stopped": "Việc đọc sách đã dừng giữa chừng. Bấm “Tiếp tục đọc”: các phần đã xong được giữ lại, AI chỉ làm phần còn thiếu.",
+      "workerDown": "Worker xử lý nền không chạy nên AI không đọc tiếp được. Trên server chạy:"
     },
     "edit": {
       "back": "Quay lại bộ đề",
