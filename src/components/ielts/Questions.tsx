@@ -67,7 +67,11 @@ const LABEL = /^\s*([A-Za-z][^:[\]]{0,40}):\s*(.*)$/;
 
 /** Notes / form / table / summary with [[n]] blanks. */
 function GapText({ text, p }: { text: string; p: QProps }) {
-  const inline = (s: string) => splitBlanks(s).map((x, i) => (typeof x === "number" ? <Blank key={i} n={x} p={p} /> : <Fragment key={i}>{x.replace(/\*\*/g, "")}</Fragment>));
+  // "9. [[9]]" (simple answer lines): the number is already written, so no "(9)" before the box
+  const inline = (s: string) =>
+    splitBlanks(s).map((x, i, all) =>
+      typeof x === "number" ? <Blank key={i} n={x} p={p} numbered={!String(all[i - 1] ?? "").trimEnd().endsWith(`${x}.`)} /> : <Fragment key={i}>{x.replace(/\*\*/g, "")}</Fragment>,
+    );
   const lines = text.split("\n");
   const out: React.ReactNode[] = [];
   for (let i = 0; i < lines.length; i++) {
@@ -133,12 +137,9 @@ function GapText({ text, p }: { text: string; p: QProps }) {
   return <div>{out}</div>;
 }
 
-/**
- * Answer lines "9. [ ]" under the picture: every number when the group keeps its picture (the questions are read on it),
- * otherwise only numbers whose blank is missing from the text.
- */
+/** Numbers whose blank is missing from the text (e.g. only on the picture): one "9. [ ]" line each, so they can be answered. */
 function PictureBlanks({ g, p }: { g: Group; p: QProps }) {
-  const inText = new Set(g.image ? [] : splitBlanks(g.text ?? "").filter((x) => typeof x === "number"));
+  const inText = new Set(splitBlanks(g.text ?? "").filter((x) => typeof x === "number"));
   const rest = numbersOfGroup(g).filter((n) => !inText.has(n));
   if (!rest.length) return null;
   return (
@@ -278,7 +279,7 @@ export function GroupView({ g, p }: { g: Group; p: QProps }) {
         <img src={g.image} alt="" className="my-3 max-h-[28rem] max-w-full rounded border border-ink/10 bg-white object-contain" />
       )}
       <div className="mt-3">
-        {g.type === "gap" && !g.image && <GapText text={g.text ?? ""} p={p} />}
+        {g.type === "gap" && <GapText text={g.text ?? ""} p={p} />}
         {g.type === "gap" && <PictureBlanks g={g} p={p} />}
         {(g.type === "mcq" || g.type === "multi") && (g.items ?? []).map((it) => <Choice key={it.n[0]} item={it} p={p} multi={it.n.length > 1} />)}
         {(g.type === "tfng" || g.type === "ynng") && (g.items ?? []).map((it) => <Statement key={it.n[0]} item={it} p={p} labels={TF[g.type as "tfng"]} />)}

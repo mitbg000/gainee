@@ -1459,13 +1459,14 @@
       "readingPicture": "AI đang chép…",
       "readPictureFailed": "AI không đọc được hình.",
       "readPictureCheck": "AI chép xong nhưng ô trống {nums} chưa đúng số – sửa lại trong ô chữ.",
-      "pictureMode": "Đang giữ hình: khi làm bài chỉ hiện hình và các ô trả lời “1. … 2. …”. Bỏ hình (✕) để dùng chữ đục lỗ ở trên.",
       "cropPassage": "Thêm hình vào đoạn văn",
       "readKey": "AI đọc lại đáp án",
       "readingKey": "AI đang đọc đáp án…",
       "readKeyDone": "AI tìm được {found} đáp án, thêm {added} đáp án còn thiếu – xem lại rồi bấm Lưu.",
       "readKeyFailed": "AI không đọc được trang đáp án.",
-      "noKeyPages": "Không tìm thấy trang đáp án của đề này trong sách."
+      "noKeyPages": "Không tìm thấy trang đáp án của đề này trong sách.",
+      "simpleBlanks": "Tạo ô trả lời đơn giản",
+      "simpleBlanksConfirm": "Thay nội dung hiện tại bằng các dòng “1. [[1]]”, “2. [[2]]”…?"
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",
