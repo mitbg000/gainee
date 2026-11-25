@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { enqueue } from "@/lib/jobs";
 import { saveWriting } from "@/lib/writing";
+import { thinPassage } from "./coverage";
 import { band, markSection, type Answers } from "./score";
 import { GROUP_TYPES, numbersOf, type SectionContent, type Skill } from "./types";
 
@@ -32,7 +33,7 @@ export async function listBooks() {
           .filter((s) => s.testId === t.id)
           .map(({ content, ...s }) => {
             const c = content as unknown as SectionContent;
-            return { ...s, groups: c.groups.map((g) => ({ type: g.type, from: g.from, to: g.to })), warnings: c.warnings?.length ?? 0, hasAudio: !!s.audio, marked: s.audio?.start != null || s.audio?.end != null };
+            return { ...s, groups: c.groups.map((g) => ({ type: g.type, from: g.from, to: g.to })), warnings: c.warnings?.length ?? 0, thin: s.skill === "reading" && thinPassage(c.passage), hasAudio: !!s.audio, marked: s.audio?.start != null || s.audio?.end != null };
           }),
       })),
   }));

@@ -43,7 +43,7 @@ export const SKILL_TIME: Record<Skill, number> = { listening: 30 * 60, reading: 
 
 /** Question numbers a section asks, in order. */
 export const numbersOf = (c: SectionContent) => c.groups.flatMap((g) => numbersOfGroup(g));
-export function numbersOfGroup(g: Group): number[] {
+export function numbersOfGroup(g: Pick<Group, "from" | "to">): number[] {
   const out: number[] = [];
   for (let n = g.from; n <= g.to; n++) out.push(n);
   return out;

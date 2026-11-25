@@ -8,6 +8,7 @@ import FindMarks from "@/components/ielts/FindMarks";
 import AudioTest from "@/components/ielts/AudioTest";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { expectedRange, gaps, missing, spans } from "@/lib/ielts/coverage";
 import { scriptLooksBroken } from "@/lib/ielts/import";
 import { audioFiles, audioTests, listBooks } from "@/lib/ielts/queries";
 import { getSetting } from "@/lib/settings";
@@ -31,6 +32,9 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
     : [];
   const brokenScripts = scripts.filter((s) => scriptLooksBroken(s.t) || s.t?.includes("Â")).length;
   const all = book.tests.flatMap((x) => x.sections);
+  // Listening and Reading hold questions 1-40: parts missing numbers (or a cut-off passage) can be read again with more pages
+  const of = (test: (typeof book.tests)[number], skill: string) => test.sections.filter((s) => s.skill === skill);
+  const toCheck = book.tests.flatMap((test) => ["listening", "reading"].flatMap((sk) => of(test, sk).filter((s) => s.thin || gaps(s.groups, expectedRange(of(test, sk), s.part)).length))).length;
   const reviewed = all.filter((s) => s.reviewed).length;
 
   return (
@@ -41,7 +45,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       <BookTitle id={id} title={book.title} />
       <p className="mt-1 text-sm text-muted">{t("summary", { pages: book.pageCount, tests: book.tests.length, reviewed, total: all.length })}</p>
       <div className="mt-3">
-        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} jobActive={jobActive} />
+        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} toCheck={toCheck} jobActive={jobActive} />
       </div>
       {workerDown && (
         <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
@@ -59,6 +63,10 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             <h2 className="font-bold">
               <InlineRename url={`/api/ielts/tests/${test.id}`} title={test.title} />
             </h2>
+            {["listening", "reading"].map((sk) => {
+              const ns = of(test, sk).length ? missing(of(test, sk)) : [];
+              return ns.length > 0 && <p key={sk} className="mt-1 text-xs text-red-600 dark:text-red-400">{t("missing", { skill: sk[0].toUpperCase() + sk.slice(1), nums: spans(ns) })}</p>;
+            })}
             <ul className="mt-2 divide-y divide-line">
               {test.sections.map((s) => (
                 <li key={s.id} className="flex items-center gap-2 py-2 text-sm">
@@ -70,6 +78,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
                     <InlineRename url={`/api/ielts/sections/${s.id}`} method="PUT" title={s.title ?? ""} placeholder={t("namePart")} allowEmpty className="min-w-0 text-muted" />
                     {s.skill !== "writing" && <span className="flex-none text-muted">· {t("questions", { n: s.groups.reduce((a, g) => a + g.to - g.from + 1, 0) })}</span>}
                   </span>
+                  {s.thin && <span className="rounded-full bg-red-100 px-2 text-xs text-red-800 dark:bg-red-950 dark:text-red-200">{t("thin")}</span>}
                   {s.warnings > 0 && <span className="rounded-full bg-amber-100 px-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">{t("warnings", { n: s.warnings })}</span>}
                   {s.skill === "listening" && !s.hasAudio && <I.IconVolumeOff className="h-4 w-4 text-muted" aria-label={t("noAudio")} />}
                   {s.skill === "listening" && s.hasAudio && !s.marked && test.sections.some((o) => o.id !== s.id && o.audio?.fileId === s.audio?.fileId) && (

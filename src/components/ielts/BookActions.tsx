@@ -7,12 +7,13 @@ import { uploadAudio } from "./ImportBook";
 import * as I from "@/components/icons";
 
 /** Book page tools: live progress while the worker reads the book, read again, add audio, delete. */
-export default function BookActions({ id, status, hasTests, brokenScripts = 0, jobActive = false }: { id: number; status: string; hasTests: boolean; brokenScripts?: number; jobActive?: boolean }) {
+export default function BookActions({ id, status, hasTests, brokenScripts = 0, toCheck = 0, jobActive = false }: { id: number; status: string; hasTests: boolean; brokenScripts?: number; toCheck?: number; jobActive?: boolean }) {
   const t = useTranslations("ielts.book");
   const router = useRouter();
   const [progress, setProgress] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
   const [fixSent, setFixSent] = useState(false);
+  const [checkSent, setCheckSent] = useState(false);
 
   useEffect(() => {
     if (status !== "parsing") return;
@@ -40,6 +41,10 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, j
   async function fixScripts() {
     const r = await fetch(`/api/ielts/books/${id}/fix-scripts`, { method: "POST" });
     if (r.ok) setFixSent(true);
+  }
+  async function check() {
+    const r = await fetch(`/api/ielts/books/${id}/check`, { method: "POST" });
+    if (r.ok) setCheckSent(true);
   }
   async function remove() {
     if (!confirm(t("deleteConfirm"))) return;
@@ -70,6 +75,11 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, j
       {brokenScripts > 0 && (
         <button onClick={fixScripts} disabled={fixSent} className="btn btn-sm btn-primary">
           <I.IconSpark /> {fixSent ? t("fixScriptsSent") : t("fixScripts", { n: brokenScripts })}
+        </button>
+      )}
+      {toCheck > 0 && !jobActive && (
+        <button onClick={check} disabled={checkSent} className="btn btn-sm btn-primary">
+          <I.IconSpark /> {checkSent ? t("checkSent") : t("check", { n: toCheck })}
         </button>
       )}
       {stuck && (

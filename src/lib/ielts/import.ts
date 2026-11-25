@@ -15,6 +15,7 @@ import { chat, parseJsonReply } from "@/lib/ai/client";
 import { setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
+import { expectedRange, gaps, numsOf, thinPassage } from "./coverage";
 import { GROUP_TYPES, type Group, type SectionContent, type Skill } from "./types";
 
 const { ieltsBooks, ieltsPages, ieltsTests, ieltsSections, ieltsAudio } = schema;
@@ -99,8 +100,9 @@ Rules: copy the book's wording exactly; every question number from..to appears o
 
 type RawSection = SectionContent & { figure?: boolean; groups: (Group & { figure?: boolean })[] };
 
-async function parseSection(skill: Skill, part: number, text: string): Promise<RawSection> {
+async function parseSection(skill: Skill, part: number, text: string, expect?: [number, number]): Promise<RawSection> {
   const what = skill === "listening" ? `Listening Part ${part}` : skill === "reading" ? `Reading Passage ${part}` : `Writing Task ${part}`;
+  const hint = expect ? ` It should hold questions ${expect[0]}-${expect[1]}; they may go on over the next page.` : "";
   const { text: reply } = await chat({
     task: "ielts_import",
     json: true,
@@ -109,7 +111,7 @@ async function parseSection(skill: Skill, part: number, text: string): Promise<R
     timeoutMs: 300_000,
     messages: [
       { role: "system", content: "You convert IELTS practice book pages into structured JSON for a computer-based test. Reply with one JSON object only." },
-      { role: "user", content: `Extract ONLY ${what} from these pages (ignore other parts that share the pages).\n\n${FORMAT}\n\nPAGES:\n"""\n${text}\n"""` },
+      { role: "user", content: `Extract ONLY ${what} from these pages (ignore other parts that share the pages).${hint}\n\n${FORMAT}\n\nPAGES:\n"""\n${text}\n"""` },
     ],
   });
   const raw = parseJsonReply<RawSection>(reply);
@@ -221,6 +223,103 @@ const textOf = (pages: Page[], [a, b]: [number, number]) =>
 /** Pages listed or ranged → the same "===== page n =====" text. */
 const textOfList = (pages: Page[], list: number[] = []) => (list.length ? textOf(pages, [Math.min(...list), Math.max(...list)]) : "");
 
+type Key = Awaited<ReturnType<typeof answerKey>>;
+
+/** Pictures: the whole page for now, the reviewer crops it. Returns the warnings with the crop notes added. */
+function withPictures(skill: Skill, part: number, c: RawSection, img: string | undefined, old?: SectionContent): string[] {
+  const warnings = [...(c.warnings ?? [])];
+  for (const g of c.groups) {
+    const kept = old?.groups.find((o) => o.from === g.from && o.to === g.to)?.image; // already cropped by the reviewer
+    if (kept) g.image = kept;
+    else if (g.figure) {
+      g.image = img;
+      warnings.push(`Questions ${g.from}-${g.to}: crop the picture`);
+    }
+    delete g.figure;
+  }
+  if (skill === "writing" && (c.figure || part === 1)) {
+    c.image = img;
+    warnings.push("Crop the chart/diagram");
+  }
+  delete c.figure;
+  return warnings;
+}
+
+/** Answers from the key for the part's question numbers (a note when some are not in the key). */
+function answersFor(skill: Skill, c: SectionContent, key: Key, warnings: string[], had: Record<string, string> = {}) {
+  const nums = numsOf(c.groups);
+  const all: Record<string, string> = skill === "listening" ? key.listening : skill === "reading" ? key.reading : {};
+  const answers = Object.fromEntries(nums.flatMap((n) => (had[n] ? [[String(n), had[n]]] : all[n] ? [[String(n), String(all[n])]] : [])));
+  if (skill !== "writing" && nums.length && Object.keys(answers).length < nums.length) warnings.push("Some answers are missing");
+  return answers;
+}
+
+/**
+ * Listening and Reading must hold questions 1-40. A part missing numbers (or a passage cut short) is read again with one,
+ * then two more pages on each side; the better reading is kept. Returns how many parts were improved.
+ */
+async function completeTest(job: Job, testId: number, pages: Page[], pageImg: Map<number, string | undefined>, getKey: () => Promise<Key>) {
+  const db = getDb();
+  let key: Promise<Key> | undefined;
+  const last = Math.max(...pages.map((p) => p.page));
+  let improved = 0;
+  for (const skill of ["listening", "reading"] as const) {
+    const secs = await db.select().from(ieltsSections).where(and(eq(ieltsSections.testId, testId), eq(ieltsSections.skill, skill))).orderBy(asc(ieltsSections.part));
+    const parts = secs.map((s) => ({ part: s.part, groups: (s.content as unknown as SectionContent).groups }));
+    for (const [i, s] of secs.entries()) {
+      const old = s.content as unknown as SectionContent;
+      const want = expectedRange(parts, s.part); // from the current state: a part fixed before narrows this one
+      const thin = (c: SectionContent) => skill === "reading" && thinPassage(c.passage);
+      let best: RawSection | null = null;
+      let bestPages = s.pages;
+      let miss = gaps(old.groups, want).length;
+      if (!miss && !thin(old)) continue;
+      await setProgress(job.id, `check ${skill} ${s.part}`);
+      for (const w of [1, 2]) {
+        const range: [number, number] = [Math.max(1, s.pages[0] - w), Math.min(last, s.pages[1] + w)];
+        const c = await parseSection(skill, s.part, textOf(pages, range), want).catch(() => null);
+        if (!c) continue;
+        c.groups = c.groups.filter((g) => g.to >= want[0] && g.from <= want[1]); // never take a neighbour part's questions
+        const m = gaps(c.groups, want).length;
+        const longer = (c.passage?.length ?? 0) > ((best ?? old).passage?.length ?? 0);
+        if (m < miss || (m === miss && thin(best ?? old) && longer)) {
+          best = c;
+          bestPages = range;
+          miss = m;
+        }
+        if (!miss && !thin(best ?? old)) break;
+      }
+      if (!best) continue;
+      const warnings = withPictures(skill, s.part, best, pageImg.get(bestPages[0]), old);
+      const answers = answersFor(skill, best, await (key ??= getKey()), warnings, s.answers);
+      if (skill === "reading" && !best.passage) best.passage = old.passage;
+      await db.update(ieltsSections).set({ content: { ...best, warnings } as unknown as Record<string, unknown>, answers, pages: bestPages, reviewed: false }).where(eq(ieltsSections.id, s.id));
+      parts[i].groups = best.groups;
+      improved++;
+    }
+  }
+  return improved;
+}
+
+/** Worker job: re-read the parts of every test of a book that miss question numbers (payload: { bookId }). */
+export async function checkBook(job: Job) {
+  const bookId = Number(job.payload.bookId);
+  const db = getDb();
+  const pages = (await db.select().from(ieltsPages).where(eq(ieltsPages.bookId, bookId)).orderBy(asc(ieltsPages.page))).filter((p) => !EMPTY(p.text));
+  if (!pages.length) return { improved: 0 };
+  const pageImg = new Map(pages.map((p) => [p.page, p.imagePath ? `/api/${p.imagePath}` : undefined]));
+  const plan = await getSetting<Outline>(`ielts.plan.${bookId}`);
+  const tests = await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId));
+  let improved = 0;
+  for (const t of tests) {
+    // answers for questions found now: the answer key pages from the book's outline (none kept for older imports)
+    const answerPages = plan?.tests?.find((x) => x.number === t.number)?.answerPages;
+    const getKey = async () => (answerPages?.length ? await answerKey(t.number, textOfList(pages, answerPages)).catch(() => ({ listening: {}, reading: {} })) : { listening: {}, reading: {} });
+    improved += await completeTest(job, t.id, pages, pageImg, getKey);
+  }
+  return { improved };
+}
+
 export async function importBook(job: Job) {
   const bookId = Number(job.payload.bookId);
   const db = getDb();
@@ -288,24 +387,8 @@ export async function importBook(job: Job) {
           } catch (e) {
             c = { groups: [], warnings: [`AI could not read this part: ${e instanceof Error ? e.message : e}`] };
           }
-          const warnings = [...(c.warnings ?? [])];
-          // pictures: the whole page for now; the reviewer crops it
-          for (const g of c.groups) {
-            if (g.figure) {
-              g.image = pageImg.get(range[0]);
-              warnings.push(`Questions ${g.from}-${g.to}: crop the picture`);
-            }
-            delete g.figure;
-          }
-          if (skill === "writing" && (c.figure || r.part === 1)) {
-            c.image = pageImg.get(range[0]);
-            warnings.push("Crop the chart/diagram");
-          }
-          delete c.figure;
-          const nums = c.groups.flatMap((g) => Array.from({ length: g.to - g.from + 1 }, (_, k) => g.from + k));
-          const all: Record<string, string> = skill === "listening" ? key.listening : skill === "reading" ? key.reading : {};
-          const answers = Object.fromEntries(nums.filter((n) => all[n]).map((n) => [String(n), String(all[n])]));
-          if (skill !== "writing" && nums.length && Object.keys(answers).length < nums.length) warnings.push("Some answers are missing");
+          const warnings = withPictures(skill, r.part, c, pageImg.get(range[0]));
+          const answers = answersFor(skill, c, key, warnings);
           const file = skill === "listening" ? (files.find((f) => f.to?.part === r.part) ?? files.find((f) => !f.to?.part)) : undefined;
           await db.insert(ieltsSections).values({
             testId,
@@ -321,6 +404,8 @@ export async function importBook(job: Job) {
           });
         }
       }
+      // parts with question numbers missing (too few pages taken) are read again with more pages
+      await completeTest(job, testId, pages, pageImg, async () => key);
     }
     await db.update(ieltsBooks).set({ status: "review" }).where(eq(ieltsBooks.id, bookId));
     return { tests: plan.tests.length };
