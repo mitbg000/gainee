@@ -193,7 +193,7 @@ const GroupInput = z.object({
   text: z.string().max(20000).optional(),
   options: z.array(Opt).max(40).optional(),
   optionsTitle: z.string().max(300).optional(),
-  items: z.array(z.object({ n: z.array(z.number().int().min(1).max(60)).min(1).max(5), q: z.string().max(4000), options: z.array(Opt).max(12).optional() })).max(60).optional(),
+  items: z.array(z.object({ n: z.array(z.number().int().min(1).max(60)).min(1).max(5), q: z.string().max(4000), options: z.array(Opt).max(12).optional(), image: z.string().max(500).optional() })).max(60).optional(),
   image: z.string().max(500).optional(),
 });
 export const SectionPatch = z.object({

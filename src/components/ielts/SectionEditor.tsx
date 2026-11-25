@@ -8,7 +8,7 @@ import { formatAnswers, formatItems, formatOptions, GROUP_TYPES, parseAnswers, p
 import Questions, { Passage } from "./Questions";
 import * as I from "@/components/icons";
 
-type EditGroup = { type: GroupType; from: number; to: number; instructions: string; text: string; optionsTitle: string; options: string; items: string; image?: string };
+type EditGroup = { type: GroupType; from: number; to: number; instructions: string; text: string; optionsTitle: string; options: string; items: string; image?: string; itemImages: Record<number, string> };
 export type EditorData = {
   id: number;
   skill: Skill;
@@ -26,11 +26,11 @@ export type EditorData = {
   audioFiles: { id: number; name: string }[];
 };
 
-const toEdit = (g: Group): EditGroup => ({ type: g.type, from: g.from, to: g.to, instructions: g.instructions ?? "", text: g.text ?? "", optionsTitle: g.optionsTitle ?? "", options: formatOptions(g.options), items: formatItems(g.items), image: g.image });
+const toEdit = (g: Group): EditGroup => ({ type: g.type, from: g.from, to: g.to, instructions: g.instructions ?? "", text: g.text ?? "", optionsTitle: g.optionsTitle ?? "", options: formatOptions(g.options), items: formatItems(g.items), image: g.image, itemImages: Object.fromEntries((g.items ?? []).filter((it) => it.image).map((it) => [it.n[0], it.image!])) });
 const fromEdit = (g: EditGroup): Group => {
   const out: Group = { type: g.type, from: Number(g.from), to: Number(g.to), instructions: g.instructions };
   if (g.type === "gap") out.text = g.text;
-  else out.items = parseItems(g.items);
+  else out.items = parseItems(g.items).map((it) => (g.itemImages[it.n[0]] ? { ...it, image: g.itemImages[it.n[0]] } : it));
   if (g.type === "match") {
     out.options = parseOptions(g.options);
     if (g.optionsTitle) out.optionsTitle = g.optionsTitle;
@@ -107,7 +107,8 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
   const [transcript, setTranscript] = useState(data.transcript ?? "");
   const [audio, setAudio] = useState(data.audio);
   const [pages, setPages] = useState<[number, number]>(data.pages);
-  const [cropFor, setCropFor] = useState<number | "writing" | null>(null);
+  // what the next crop is for: Writing chart, a question group, or one question of a group
+  const [cropFor, setCropFor] = useState<number | "writing" | { g: number; n: number } | null>(null);
   const [tab, setTab] = useState<"preview" | "pages">("preview");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -158,7 +159,8 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     try {
       const url = await cropAndUpload(img, box);
       if (cropFor === "writing") setImage(url);
-      else setG(cropFor, { image: url });
+      else if (typeof cropFor === "number") setG(cropFor, { image: url });
+      else setG(cropFor.g, { itemImages: { ...groups[cropFor.g].itemImages, [cropFor.n]: url } });
       setCropFor(null);
       setTab("preview");
     } catch (e) {
@@ -167,7 +169,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
       setBusy(null);
     }
   }
-  const startCrop = (target: number | "writing") => {
+  const startCrop = (target: number | "writing" | { g: number; n: number }) => {
     setCropFor(target);
     setTab("pages");
   };
@@ -288,6 +290,32 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                       )}
                       <p className="mt-2 text-xs text-muted">{t(g.type === "mcq" || g.type === "multi" ? "itemsHintChoice" : "itemsHint")}</p>
                       <textarea value={g.items} onChange={(e) => setG(i, { items: e.target.value })} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
+                      {/* a picture for one question: a chart whose columns are the options, drawings A–C… */}
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                        {Object.entries(g.itemImages).map(([n, url]) => (
+                          <span key={n} className="flex items-center gap-1 rounded-lg border border-line p-1">
+                            <b className="px-1">{n}</b>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt="" className="h-10 rounded bg-white" />
+                            <button onClick={() => setG(i, { itemImages: Object.fromEntries(Object.entries(g.itemImages).filter(([k]) => k !== n)) })} className="icon-btn" aria-label={t("removeImage")}>
+                              <I.IconX />
+                            </button>
+                          </span>
+                        ))}
+                        <select
+                          value=""
+                          onChange={(e) => e.target.value && startCrop({ g: i, n: Number(e.target.value) })}
+                          className="field field-sm"
+                          aria-label={t("cropItem")}
+                        >
+                          <option value="">{t("cropItem")}</option>
+                          {Array.from({ length: Math.max(0, g.to - g.from + 1) }, (_, k) => g.from + k).map((n) => (
+                            <option key={n} value={n}>
+                              {t("question", { n })}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </>
                   )}
                 </div>
@@ -296,7 +324,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                 onClick={() => {
                   const last = groups[groups.length - 1];
                   const from = last ? last.to + 1 : data.skill === "listening" ? (data.part - 1) * 10 + 1 : 1;
-                  setGroups([...groups, { type: "gap", from, to: from, instructions: "", text: "", optionsTitle: "", options: "", items: "" }]);
+                  setGroups([...groups, { type: "gap", from, to: from, instructions: "", text: "", optionsTitle: "", options: "", items: "", itemImages: {} }]);
                 }}
                 className="btn btn-sm btn-secondary"
               >

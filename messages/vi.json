@@ -1452,7 +1452,9 @@
       "fixScript": "Sửa transcript bằng AI",
       "fixingScript": "AI đang sửa…",
       "fixScriptFailed": "AI sửa transcript bị lỗi.",
-      "fixScriptDone": "Đã sửa transcript, xem lại rồi bấm Lưu."
+      "fixScriptDone": "Đã sửa transcript, xem lại rồi bấm Lưu.",
+      "cropItem": "Cắt hình cho một câu…",
+      "question": "Câu {n}"
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",

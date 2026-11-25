@@ -16,7 +16,7 @@ import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
 import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
-import { GROUP_TYPES, type Group, type SectionContent, type Skill } from "./types";
+import { GROUP_TYPES, type Group, type Item, type SectionContent, type Skill } from "./types";
 
 const { ieltsBooks, ieltsPages, ieltsTests, ieltsSections, ieltsAudio } = schema;
 type Page = typeof ieltsPages.$inferSelect;
@@ -92,13 +92,15 @@ GROUP = {"type":"gap|mcq|multi|tfng|ynng|match","from":1,"to":6,"instructions":"
 - multi (choose TWO/THREE letters): "items":[{"n":[21,22],"q":"Which TWO …?","options":[…]}]
 - tfng (TRUE/FALSE/NOT GIVEN) and ynng (YES/NO/NOT GIVEN): "items":[{"n":[8],"q":"statement"}]
 - match (matching features/information/headings/sentence endings, map or plan letters): "optionsTitle":"List of Headings", "options":[{"key":"i","text":"…"}], "items":[{"n":[14],"q":"Paragraph A"}]. For a map/plan set "figure":true.
-Rules: copy the book's wording exactly; every question number from..to appears once; never invent answers.
+- Picture inside ONE question (its question or options are a chart, drawings or a map, e.g. "Which column of the bar chart…? A B C"): set "figure":true on that item and give each option its letter with a short text ("column A", "picture B").
+- Table with one row per question and columns A/B/C to choose from (e.g. "Strongly recommended | Recommended in certain circumstances | Not recommended"): match, "options" = the column headings with their letters, "items" = the row labels.
+Rules: copy the book's wording exactly; every question number from..to appears once; never invent answers. Leave out "Example" questions and rows (they have no number).
 "passage": Reading only – the full passage text, paragraphs separated by a blank line, paragraph letters as "**A** " at the start, title as the first line "# Title". Listening: omit.
 "intro": the line "You should spend about 20 minutes on Questions …" (Reading) or "" otherwise.
 "prompt" (Writing only): the full task text. Set "figure":true at top level when it has a chart/diagram/map.
 "warnings": short notes for a human checker about anything unclear or lost (e.g. "table layout unclear for 1-6").`;
 
-type RawSection = SectionContent & { figure?: boolean; groups: (Group & { figure?: boolean })[] };
+type RawSection = SectionContent & { figure?: boolean; groups: (Group & { figure?: boolean; items?: (Item & { figure?: boolean })[] })[] };
 
 /** Where a part sits: the parts printed before and after it (often on the same pages) and its question numbers. */
 type Place = { prev?: string; next?: string; first?: number; expect?: [number, number] };
@@ -257,6 +259,15 @@ function withPictures(skill: Skill, part: number, c: RawSection, img: string | u
       warnings.push(`Questions ${g.from}-${g.to}: crop the picture`);
     }
     delete g.figure;
+    for (const it of g.items ?? []) {
+      const keptItem = old?.groups.flatMap((o) => o.items ?? []).find((o) => o.n[0] === it.n[0])?.image;
+      if (keptItem) it.image = keptItem;
+      else if (it.figure) {
+        it.image = img;
+        warnings.push(`Question ${it.n[0]}: crop the picture`);
+      }
+      delete it.figure;
+    }
   }
   if (skill === "writing" && (c.figure || part === 1)) {
     c.image = img;

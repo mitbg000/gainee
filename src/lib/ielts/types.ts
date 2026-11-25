@@ -7,7 +7,7 @@ export type GroupType = (typeof GROUP_TYPES)[number];
 
 export type Option = { key: string; text: string };
 /** One question; `n` has two or more numbers only for "choose TWO/THREE letters" (multi). */
-export type Item = { n: number[]; q: string; options?: Option[] };
+export type Item = { n: number[]; q: string; options?: Option[]; /** the question is a picture, or its options are (bar chart columns, drawings A–C) */ image?: string };
 
 export type Group = {
   type: GroupType;

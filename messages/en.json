@@ -1452,7 +1452,9 @@
       "fixScript": "Repair transcript with AI",
       "fixingScript": "AI is repairing…",
       "fixScriptFailed": "AI could not repair the transcript.",
-      "fixScriptDone": "Transcript repaired – check it, then Save."
+      "fixScriptDone": "Transcript repaired – check it, then Save.",
+      "cropItem": "Crop a picture for one question…",
+      "question": "Question {n}"
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",

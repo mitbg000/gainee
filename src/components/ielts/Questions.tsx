@@ -124,6 +124,7 @@ function Choice({ item, p, multi }: { item: Item; p: QProps; multi: boolean }) {
           <Mark key={n} n={n} p={p} />
         ))}
       </p>
+      <ItemImage src={item.image} />
       <div className="mt-1.5 space-y-1">
         {(item.options ?? []).map((o) => {
           const on = picked.includes(o.key);
@@ -184,7 +185,10 @@ function Match({ g, p }: { g: Group; p: QProps }) {
         return (
           <div key={n} id={`q-${p.sid}-${n}`} className="mb-3 flex flex-wrap items-center gap-2">
             <b>{n}</b>
-            <span className="min-w-0 flex-1">{it.q}</span>
+            <span className="min-w-0 flex-1">
+              {it.q}
+              <ItemImage src={it.image} />
+            </span>
             <select value={p.values[k] ?? ""} onChange={(e) => p.onChange?.(k, e.target.value)} disabled={!p.onChange} aria-label={`Question ${n}`} className={`h-9 rounded border-2 border-ink/30 bg-card px-2 font-semibold ${ring(p, n)}`}>
               <option value="" />
               {(g.options ?? []).map((o) => (
@@ -199,6 +203,13 @@ function Match({ g, p }: { g: Group; p: QProps }) {
       })}
     </>
   );
+}
+
+/** Picture belonging to one question (a bar chart whose columns are the options…). */
+function ItemImage({ src }: { src?: string }) {
+  if (!src) return null;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt="" className="my-2 block max-h-80 max-w-full rounded border border-ink/10 bg-white object-contain" />;
 }
 
 export function GroupView({ g, p }: { g: Group; p: QProps }) {
