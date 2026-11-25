@@ -86,29 +86,35 @@ export default async function IeltsPage() {
                   <details className="mt-3 group" open={ti === 0}>
                     <summary className="cursor-pointer text-sm font-semibold text-muted">{t("practiceList")}</summary>
                     <ul className="mt-2 space-y-2">
-                      {test.sections
-                        .filter((s) => s.skill !== "writing")
-                        .map((s) => (
-                          <li key={s.id} className="rounded-xl bg-paper p-2.5">
-                            <Link href={`/ielts/practice/${s.id}`} className="flex items-center gap-2 text-sm font-semibold hover:text-accent">
-                              {s.skill === "listening" ? <I.IconHeadphones className="h-4 w-4" /> : <I.IconBook className="h-4 w-4" />}
-                              <span className="min-w-0 flex-1 truncate">
-                                {t(`part.${s.skill}`, { n: s.part })}
-                                {s.title && <span className="font-normal text-muted"> · {s.title}</span>}
-                              </span>
-                              <I.IconChevronRight className="h-4 w-4 text-muted" />
-                            </Link>
-                            {s.groups.length > 1 && (
-                              <div className="mt-1.5 flex flex-wrap gap-1">
-                                {s.groups.map((g, gi) => (
-                                  <Link key={gi} href={`/ielts/practice/${s.id}?g=${gi}`} className="rounded-md border border-line bg-card px-2 py-0.5 text-xs hover:border-accent/50">
-                                    {g.from}–{g.to} {t(`types.${g.type}`)}
-                                  </Link>
-                                ))}
-                              </div>
+                      {test.sections.map((s) => (
+                        <li key={s.id} className="rounded-xl bg-paper p-2.5">
+                          <div className="flex items-center gap-2 text-sm">
+                            {s.skill === "listening" ? <I.IconHeadphones className="h-4 w-4 flex-none" /> : s.skill === "reading" ? <I.IconBook className="h-4 w-4 flex-none" /> : <I.IconPen className="h-4 w-4 flex-none" />}
+                            <span className="min-w-0 flex-1 truncate font-semibold">
+                              {t(`part.${s.skill}`, { n: s.part })}
+                              {s.title && <span className="font-normal text-muted"> · {s.title}</span>}
+                            </span>
+                            {s.skill !== "writing" && (
+                              <Link href={`/ielts/practice/${s.id}`} className="btn btn-sm btn-secondary">
+                                <I.IconTarget /> {t("practicePart")}
+                              </Link>
                             )}
-                          </li>
-                        ))}
+                            <Link href={`/ielts/mock/${test.id}?part=${s.id}`} className="btn btn-sm btn-outline">
+                              <I.IconClock /> {t("mockPart")}
+                            </Link>
+                          </div>
+                          {s.groups.length > 1 && (
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                              <span className="text-xs text-muted">{t("shortLessons")}</span>
+                              {s.groups.map((g, gi) => (
+                                <Link key={gi} href={`/ielts/practice/${s.id}?g=${gi}`} className="rounded-md border border-line bg-card px-2 py-0.5 text-xs hover:border-accent/50">
+                                  {g.from}–{g.to} {t(`types.${g.type}`)}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </li>
+                      ))}
                     </ul>
                   </details>
                 </div>

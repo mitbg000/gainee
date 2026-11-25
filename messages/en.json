@@ -1237,7 +1237,8 @@
     },
     "part": {
       "listening": "Listening Part {n}",
-      "reading": "Reading Passage {n}"
+      "reading": "Reading Passage {n}",
+      "writing": "Writing Task {n}"
     },
     "types": {
       "gap": "Completion",
@@ -1307,7 +1308,13 @@
       "nextSkillConfirm": "Finish this skill and move on? You cannot come back.",
       "submitConfirm": "Submit? {left} questions are unanswered.",
       "nextSkill": "Next skill",
-      "submit": "Submit"
+      "submit": "Submit",
+      "partTime": {
+        "listening": "Part {part} · audio plays once · 2 minutes to check",
+        "reading": "Passage {part} · {min} minutes",
+        "writing": "Task {part} · {min} minutes"
+      },
+      "noMarks": "This part has no start/end marks in the test's single audio file, so the whole file will play. Set the marks on the review screen to hear only this part."
     },
     "import": {
       "heading": "Upload an IELTS test book",
@@ -1427,6 +1434,9 @@
       "empty": "Nothing yet.",
       "group": "short lesson"
     },
-    "practiceList": "Practice by part and short lessons"
+    "practiceList": "Each part: practise freely or take it timed",
+    "practicePart": "Practise",
+    "mockPart": "Timed test",
+    "shortLessons": "Short lessons:"
   }
 }

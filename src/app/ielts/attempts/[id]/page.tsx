@@ -55,7 +55,7 @@ export default async function AttemptPage({ params }: { params: Promise<{ id: st
                   {scores[k].score}/{scores[k].total}
                 </span>
               </p>
-              {a.mode === "practice" && <p className="mt-1 text-xs text-muted">{t("estimate")}</p>}
+              {(a.mode === "practice" || a.sectionId) && <p className="mt-1 text-xs text-muted">{t("estimate")}</p>}
             </div>
           ))}
         {all != null && (

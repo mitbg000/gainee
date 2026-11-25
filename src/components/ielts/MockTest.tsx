@@ -45,11 +45,14 @@ const FrozenPassage = memo(function FrozenPassage({ text, intro }: { text: strin
   return <Passage text={text} intro={intro} />;
 });
 
-export default function MockTest({ data, skill }: { data: MockData; skill: Skill | "full" }) {
+/** One part on its own (?part=<section id>): the time the real test gives that part. */
+const PART_TIME = (s: MockSection) => (s.skill === "reading" ? 20 * 60 : s.skill === "writing" ? (s.part === 1 ? 20 : 40) * 60 : 10 * 60);
+
+export default function MockTest({ data, skill, sectionId, wholeFile = false }: { data: MockData; skill: Skill | "full"; sectionId?: number; wholeFile?: boolean }) {
   const t = useTranslations("ielts.mock");
   const router = useRouter();
   const skills: Skill[] = (skill === "full" ? (["listening", "reading", "writing"] as Skill[]) : [skill]).filter((s) => data.sections.some((x) => x.skill === s));
-  const store = `ielts_mock_${data.testId}_${skill}`;
+  const store = `ielts_mock_${data.testId}_${skill}${sectionId ? `_${sectionId}` : ""}`;
 
   const [si, setSi] = useState(0); // which skill
   const [stage, setStage] = useState<Stage>("intro");
@@ -106,7 +109,7 @@ export default function MockTest({ data, skill }: { data: MockData; skill: Skill
     const r = await fetch("/api/ielts/attempts", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ testId: data.testId, mode: "mock", skill, answers, flags, seconds: Math.round((Date.now() - started) / 1000) }),
+      body: JSON.stringify({ testId: data.testId, sectionId, mode: "mock", skill, answers, flags, seconds: Math.round((Date.now() - started) / 1000) }),
     }).catch(() => null);
     if (!r?.ok) {
       setError(t("sendFailed"));
@@ -117,7 +120,7 @@ export default function MockTest({ data, skill }: { data: MockData; skill: Skill
       localStorage.removeItem(store);
     } catch {}
     router.push(`/ielts/attempts/${(await r.json()).id}`);
-  }, [answers, flags, data.testId, router, skill, started, store, t]);
+  }, [answers, flags, data.testId, sectionId, router, skill, started, store, t]);
 
   const finishSkill = useCallback(() => {
     audio.current?.pause();
@@ -193,9 +196,9 @@ export default function MockTest({ data, skill }: { data: MockData; skill: Skill
     if (cur === "listening") {
       setStage("run");
       if (playlist.length) playTrack(0);
-      else setDeadline(Date.now() + SKILL_TIME.listening * 1000);
+      else setDeadline(Date.now() + (sectionId ? PART_TIME(parts[0]) : SKILL_TIME.listening) * 1000);
     } else {
-      setDeadline(Date.now() + SKILL_TIME[cur] * 1000);
+      setDeadline(Date.now() + (sectionId ? PART_TIME(parts[0]) : SKILL_TIME[cur]) * 1000);
       setStage("run");
     }
   }
@@ -258,12 +261,13 @@ export default function MockTest({ data, skill }: { data: MockData; skill: Skill
             {data.book} · {data.title}
           </p>
           <h1 className="mt-2 text-2xl font-bold">IELTS {cur[0].toUpperCase() + cur.slice(1)}</h1>
-          <p className="mt-1 text-muted">{t(`time.${cur}`)}</p>
+          <p className="mt-1 text-muted">{sectionId ? t(`partTime.${cur}`, { part: parts[0]?.part ?? 1, min: Math.round(PART_TIME(parts[0]) / 60) }) : t(`time.${cur}`)}</p>
           <ul className="mt-4 list-disc space-y-1 pl-5 text-[0.95em]">
             {t.raw(`rules.${cur}`).map((r: string, i: number) => (
               <li key={i}>{r}</li>
             ))}
           </ul>
+          {wholeFile && <p className="mt-3 rounded bg-amber-100 p-2 text-sm text-amber-900">{t("noMarks")}</p>}
           {cur === "listening" && !playlist.length && <p className="mt-3 rounded bg-amber-100 p-2 text-sm text-amber-900">{t("noAudio")}</p>}
           {cur === "listening" && playlist.length > 0 && (
             <div className="mt-4 flex items-center gap-3 rounded border border-line p-3 text-sm">

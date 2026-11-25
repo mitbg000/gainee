@@ -1237,7 +1237,8 @@
     },
     "part": {
       "listening": "Listening Part {n}",
-      "reading": "Reading Passage {n}"
+      "reading": "Reading Passage {n}",
+      "writing": "Writing Task {n}"
     },
     "types": {
       "gap": "Điền từ",
@@ -1307,7 +1308,13 @@
       "nextSkillConfirm": "Kết thúc phần này và sang kỹ năng tiếp theo? Bạn không quay lại được.",
       "submitConfirm": "Nộp bài? Còn {left} câu chưa làm.",
       "nextSkill": "Phần tiếp",
-      "submit": "Nộp bài"
+      "submit": "Nộp bài",
+      "partTime": {
+        "listening": "Part {part} · audio phát một lần · 2 phút kiểm tra cuối",
+        "reading": "Passage {part} · {min} phút",
+        "writing": "Task {part} · {min} phút"
+      },
+      "noMarks": "Phần này chưa đặt mốc bắt đầu/kết thúc trong file audio của cả đề, nên sẽ phát cả file. Đặt mốc ở trang duyệt đề để chỉ nghe phần này."
     },
     "import": {
       "heading": "Tải bộ đề IELTS",
@@ -1427,6 +1434,9 @@
       "empty": "Chưa có lần làm nào.",
       "group": "bài ngắn"
     },
-    "practiceList": "Luyện từng phần và bài ngắn"
+    "practiceList": "Từng phần: luyện thoải mái hoặc thi có giờ",
+    "practicePart": "Luyện",
+    "mockPart": "Thi phần này",
+    "shortLessons": "Bài ngắn:"
   }
 }
