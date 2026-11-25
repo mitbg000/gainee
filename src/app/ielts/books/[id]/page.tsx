@@ -8,7 +8,7 @@ import FindMarks from "@/components/ielts/FindMarks";
 import AudioTest from "@/components/ielts/AudioTest";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
-import { expectedRange, gaps, missing, spans } from "@/lib/ielts/coverage";
+import { duplicates, expectedRange, gaps, missing, spans } from "@/lib/ielts/coverage";
 import { scriptLooksBroken } from "@/lib/ielts/import";
 import { audioFiles, audioTests, listBooks } from "@/lib/ielts/queries";
 import { getSetting } from "@/lib/settings";
@@ -65,7 +65,15 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             </h2>
             {["listening", "reading"].map((sk) => {
               const ns = of(test, sk).length ? missing(of(test, sk)) : [];
-              return ns.length > 0 && <p key={sk} className="mt-1 text-xs text-red-600 dark:text-red-400">{t("missing", { skill: sk[0].toUpperCase() + sk.slice(1), nums: spans(ns) })}</p>;
+              const dup = duplicates(of(test, sk));
+              const skill = sk[0].toUpperCase() + sk.slice(1);
+              return (
+                (ns.length > 0 || dup.length > 0) && (
+                  <p key={sk} className="mt-1 text-xs text-red-600 dark:text-red-400">
+                    {ns.length > 0 && t("missing", { skill, nums: spans(ns) })} {dup.length > 0 && t("duplicate", { skill, nums: spans(dup) })}
+                  </p>
+                )
+              );
             })}
             <ul className="mt-2 divide-y divide-line">
               {test.sections.map((s) => (

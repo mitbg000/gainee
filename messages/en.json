@@ -1388,7 +1388,8 @@
       "missing": "{skill}: questions {nums} missing",
       "thin": "passage cut short",
       "check": "Re-read {n} parts with missing questions",
-      "checkSent": "Sent to AI, reload the page in a few minutes"
+      "checkSent": "Sent to AI, reload the page in a few minutes",
+      "duplicate": "{skill}: questions {nums} appear twice (a part took its neighbour’s questions)"
     },
     "edit": {
       "back": "Back to the book",

@@ -15,7 +15,7 @@ import { chat, parseJsonReply } from "@/lib/ai/client";
 import { setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
-import { expectedRange, gaps, numsOf, thinPassage } from "./coverage";
+import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
 import { GROUP_TYPES, type Group, type SectionContent, type Skill } from "./types";
 
 const { ieltsBooks, ieltsPages, ieltsTests, ieltsSections, ieltsAudio } = schema;
@@ -100,9 +100,20 @@ Rules: copy the book's wording exactly; every question number from..to appears o
 
 type RawSection = SectionContent & { figure?: boolean; groups: (Group & { figure?: boolean })[] };
 
-async function parseSection(skill: Skill, part: number, text: string, expect?: [number, number]): Promise<RawSection> {
-  const what = skill === "listening" ? `Listening Part ${part}` : skill === "reading" ? `Reading Passage ${part}` : `Writing Task ${part}`;
-  const hint = expect ? ` It should hold questions ${expect[0]}-${expect[1]}; they may go on over the next page.` : "";
+/** Where a part sits: the parts printed before and after it (often on the same pages) and its question numbers. */
+type Place = { prev?: string; next?: string; first?: number; expect?: [number, number] };
+
+async function parseSection(skill: Skill, part: number, text: string, place: Place = {}): Promise<RawSection> {
+  const what = nameOf({ skill, part });
+  const hint = [
+    place.prev && `The first page may end ${place.prev}: leave that out, but ${what}'s title, passage or first questions can start on that same page.`,
+    place.next && `The last pages may start ${place.next}: leave that out, but ${what}'s last questions can run onto that page – take them all.`,
+    place.first && `Its first question is ${place.first}.`,
+    place.expect && `It should hold questions ${place.expect[0]}-${place.expect[1]}.`,
+  ]
+    .filter(Boolean)
+    .map((h) => ` ${h}`)
+    .join("");
   const { text: reply } = await chat({
     task: "ielts_import",
     json: true,
@@ -263,8 +274,9 @@ async function completeTest(job: Job, testId: number, pages: Page[], pageImg: Ma
   let key: Promise<Key> | undefined;
   const last = Math.max(...pages.map((p) => p.page));
   let improved = 0;
+  const all = await db.select().from(ieltsSections).where(eq(ieltsSections.testId, testId));
   for (const skill of ["listening", "reading"] as const) {
-    const secs = await db.select().from(ieltsSections).where(and(eq(ieltsSections.testId, testId), eq(ieltsSections.skill, skill))).orderBy(asc(ieltsSections.part));
+    const secs = all.filter((s) => s.skill === skill).sort((a, b) => a.part - b.part);
     const parts = secs.map((s) => ({ part: s.part, groups: (s.content as unknown as SectionContent).groups }));
     for (const [i, s] of secs.entries()) {
       const old = s.content as unknown as SectionContent;
@@ -277,9 +289,9 @@ async function completeTest(job: Job, testId: number, pages: Page[], pageImg: Ma
       await setProgress(job.id, `check ${skill} ${s.part}`);
       for (const w of [1, 2]) {
         const range: [number, number] = [Math.max(1, s.pages[0] - w), Math.min(last, s.pages[1] + w)];
-        const c = await parseSection(skill, s.part, textOf(pages, range), want).catch(() => null);
+        const c = await parseSection(skill, s.part, textOf(pages, range), { ...neighbours(all, s), first: want[0], expect: want }).catch(() => null);
         if (!c) continue;
-        c.groups = c.groups.filter((g) => g.to >= want[0] && g.from <= want[1]); // never take a neighbour part's questions
+        c.groups = c.groups.filter((g) => g.to >= want[0] && g.from <= 40); // never the previous part's questions again
         const m = gaps(c.groups, want).length;
         const longer = (c.passage?.length ?? 0) > ((best ?? old).passage?.length ?? 0);
         if (m < miss || (m === miss && thin(best ?? old) && longer)) {
@@ -299,6 +311,13 @@ async function completeTest(job: Job, testId: number, pages: Page[], pageImg: Ma
     }
   }
   return improved;
+}
+
+/** Names of the parts printed before and after a part. */
+function neighbours(all: { skill: string; part: number }[], s: { skill: string; part: number }): Place {
+  const list = inBookOrder(all);
+  const i = list.findIndex((x) => x.skill === s.skill && x.part === s.part);
+  return { prev: list[i - 1] && nameOf(list[i - 1]), next: list[i + 1] && nameOf(list[i + 1]) };
 }
 
 /** Worker job: re-read the parts of every test of a book that miss question numbers (payload: { bookId }). */
@@ -354,8 +373,9 @@ export async function importBook(job: Job) {
     }
     if (!resume) await db.delete(ieltsTests).where(eq(ieltsTests.bookId, bookId));
     const oldTests = await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId));
-    const oldSections = oldTests.length ? await db.select({ testId: ieltsSections.testId, skill: ieltsSections.skill, part: ieltsSections.part }).from(ieltsSections).where(inArray(ieltsSections.testId, oldTests.map((x) => x.id))) : [];
+    const oldSections = oldTests.length ? await db.select({ testId: ieltsSections.testId, skill: ieltsSections.skill, part: ieltsSections.part, content: ieltsSections.content }).from(ieltsSections).where(inArray(ieltsSections.testId, oldTests.map((x) => x.id))) : [];
     const pageImg = new Map(pages.map((p) => [p.page, p.imagePath ? `/api/${p.imagePath}` : undefined]));
+    const lastPage = Math.max(...pages.map((p) => p.page));
     const audio = await db.select().from(ieltsAudio).where(eq(ieltsAudio.bookId, bookId));
 
     // names without a test number ("ielts11.mp3", "ielts12.mp3"…): one file per test, in name order, when the counts match
@@ -375,34 +395,42 @@ export async function importBook(job: Job) {
       const scripts = splitScript(textOfList(pages, t.scriptPages));
       const files = audio.map((a) => ({ a, to: audioTarget(a.name) ?? byOrder.get(a.id) ?? null })).filter((x) => x.to?.test === t.number);
 
-      for (const skill of ["listening", "reading", "writing"] as const) {
-        for (const r of t[skill] ?? []) {
-          ++done;
-          if (made(skill, r.part)) continue; // done before the restart
-          await setProgress(job.id, `test ${t.number} ${skill} ${r.part} (${done}/${total})`);
-          const range: [number, number] = [Number(r.pages[0]), Number(r.pages[1] ?? r.pages[0])];
-          let c: RawSection;
-          try {
-            c = await parseSection(skill, r.part, textOf(pages, range));
-          } catch (e) {
-            c = { groups: [], warnings: [`AI could not read this part: ${e instanceof Error ? e.message : e}`] };
-          }
-          const warnings = withPictures(skill, r.part, c, pageImg.get(range[0]));
-          const answers = answersFor(skill, c, key, warnings);
-          const file = skill === "listening" ? (files.find((f) => f.to?.part === r.part) ?? files.find((f) => !f.to?.part)) : undefined;
-          await db.insert(ieltsSections).values({
-            testId,
-            skill,
-            part: r.part,
-            title: skill === "reading" ? (c.passage?.match(/^#\s*(.+)$/m)?.[1]?.slice(0, 250) ?? null) : null,
-            content: { ...c, warnings } as unknown as Record<string, unknown>,
-            answers,
-            transcript: skill === "listening" ? await repaired(scripts[r.part]) : null,
-            // a whole-test file with part marks (found in the browser) gets this part's stretch
-            audio: file ? (!file.to?.part && file.a.marks?.[r.part] !== undefined ? { fileId: file.a.id, start: file.a.marks[r.part], end: file.a.marks[r.part + 1] ?? null } : { fileId: file.a.id }) : null,
-            pages: [range[0], range[1]],
-          });
+      const list = sharedPages(inBookOrder((["listening", "reading", "writing"] as const).flatMap((skill) => (t[skill] ?? []).map((r) => ({ skill, part: Number(r.part), pages: [Number(r.pages[0]), Number(r.pages[1] ?? r.pages[0])] as [number, number] })))), lastPage);
+      const lastQ: Record<string, number> = {}; // last question number of the parts read so far, per skill
+      for (const [i, r] of list.entries()) {
+        const { skill, pages: range } = r;
+        ++done;
+        const had = oldSections.find((s) => s.testId === testId && s.skill === skill && s.part === r.part);
+        if (had) {
+          lastQ[skill] = Math.max(lastQ[skill] ?? 0, ...numsOf((had.content as unknown as SectionContent).groups));
+          continue; // done before the restart
         }
+        await setProgress(job.id, `test ${t.number} ${skill} ${r.part} (${done}/${total})`);
+        const first = skill === "writing" ? undefined : (lastQ[skill] ?? 0) + 1;
+        let c: RawSection;
+        try {
+          c = await parseSection(skill, r.part, textOf(pages, range), { prev: list[i - 1] && nameOf(list[i - 1]), next: list[i + 1] && nameOf(list[i + 1]), first });
+        } catch (e) {
+          c = { groups: [], warnings: [`AI could not read this part: ${e instanceof Error ? e.message : e}`] };
+        }
+        // the page shared with the previous part also shows its last questions: they are not this part's
+        if (first) c.groups = c.groups.filter((g) => g.to >= first);
+        if (first) lastQ[skill] = Math.max(first - 1, ...numsOf(c.groups));
+        const warnings = withPictures(skill, r.part, c, pageImg.get(range[0]));
+        const answers = answersFor(skill, c, key, warnings);
+        const file = skill === "listening" ? (files.find((f) => f.to?.part === r.part) ?? files.find((f) => !f.to?.part)) : undefined;
+        await db.insert(ieltsSections).values({
+          testId,
+          skill,
+          part: r.part,
+          title: skill === "reading" ? (c.passage?.match(/^#\s*(.+)$/m)?.[1]?.slice(0, 250) ?? null) : null,
+          content: { ...c, warnings } as unknown as Record<string, unknown>,
+          answers,
+          transcript: skill === "listening" ? await repaired(scripts[r.part]) : null,
+          // a whole-test file with part marks (found in the browser) gets this part's stretch
+          audio: file ? (!file.to?.part && file.a.marks?.[r.part] !== undefined ? { fileId: file.a.id, start: file.a.marks[r.part], end: file.a.marks[r.part + 1] ?? null } : { fileId: file.a.id }) : null,
+          pages: [range[0], range[1]],
+        });
       }
       // parts with question numbers missing (too few pages taken) are read again with more pages
       await completeTest(job, testId, pages, pageImg, async () => key);
@@ -428,7 +456,11 @@ export async function reparseSection(sectionId: number) {
     .from(ieltsPages)
     .where(and(eq(ieltsPages.bookId, t.bookId), inArray(ieltsPages.page, Array.from({ length: Math.max(0, b - a) + 1 }, (_, k) => a + k))))
     .orderBy(asc(ieltsPages.page));
-  const c = await parseSection(s.skill, s.part, textOf(pages, [a, b]));
+  const all = await db.select({ skill: ieltsSections.skill, part: ieltsSections.part, content: ieltsSections.content }).from(ieltsSections).where(eq(ieltsSections.testId, s.testId));
+  const before = all.filter((x) => x.skill === s.skill && x.part < s.part).flatMap((x) => numsOf((x.content as unknown as SectionContent).groups));
+  const first = s.skill === "writing" ? undefined : (before.length ? Math.max(...before) : 0) + 1;
+  const c = await parseSection(s.skill, s.part, textOf(pages, [a, b]), { ...neighbours(all, s), first });
+  if (first) c.groups = c.groups.filter((g) => g.to >= first);
   const old = s.content as unknown as SectionContent;
   for (const g of c.groups) {
     g.image = old.groups.find((o) => o.from === g.from && o.to === g.to)?.image;

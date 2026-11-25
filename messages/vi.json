@@ -1388,7 +1388,8 @@
       "missing": "{skill}: thiếu câu {nums}",
       "thin": "đoạn văn bị thiếu",
       "check": "Đọc lại {n} phần thiếu câu",
-      "checkSent": "Đã gửi AI đọc lại, tải lại trang sau vài phút"
+      "checkSent": "Đã gửi AI đọc lại, tải lại trang sau vài phút",
+      "duplicate": "{skill}: trùng câu {nums} (một phần lấy cả câu của phần bên cạnh)"
     },
     "edit": {
       "back": "Quay lại bộ đề",
