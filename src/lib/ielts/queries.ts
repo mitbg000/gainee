@@ -61,9 +61,22 @@ export const renameTest = (id: number, title: string) => getDb().update(tests).s
 export const renameBook = (id: number, title: string) => getDb().update(books).set({ title }).where(eq(books.id, id));
 
 /** resume: keep the tests and parts already made and do only the rest (after a stop or failure). */
+export const BOOK_JOBS = ["ielts_import", "ielts_check", "ielts_fix_scripts"] as const;
+
+/** The book's jobs still waiting or running. */
+export async function bookJobs(bookId: number) {
+  const rows = await getDb().select({ id: jobs.id, type: jobs.type, status: jobs.status, progress: jobs.progress, payload: jobs.payload }).from(jobs).where(and(inArray(jobs.type, [...BOOK_JOBS]), inArray(jobs.status, ["queued", "running"]))).orderBy(asc(jobs.id));
+  return rows.filter((j) => Number(j.payload.bookId) === bookId).map((j) => ({ id: j.id, type: j.type, status: j.status, progress: j.progress }));
+}
+
+/** Queue a book job once: pressing again (or after a reload) while it waits or runs gives the same job. */
+export async function queueForBook(type: (typeof BOOK_JOBS)[number], bookId: number, payload: Record<string, unknown> = {}, maxAttempts = 2) {
+  return (await bookJobs(bookId)).find((j) => j.type === type)?.id ?? enqueue(type, { bookId, ...payload }, { maxAttempts });
+}
+
 export async function startImport(bookId: number, resume = false) {
-  await getDb().update(books).set({ status: "parsing", error: null }).where(eq(books.id, bookId));
-  return enqueue("ielts_import", { bookId, resume }, { maxAttempts: 3 });
+  if (!(await bookJobs(bookId)).some((j) => j.type === "ielts_import")) await getDb().update(books).set({ status: "parsing", error: null }).where(eq(books.id, bookId));
+  return queueForBook("ielts_import", bookId, { resume }, 3);
 }
 
 export async function deleteBook(id: number) {
@@ -129,6 +142,16 @@ export async function assignAudio(audioId: number, testId: number | null) {
     } else if (s.audio?.fileId === audioId) await db.update(sections).set({ audio: null }).where(eq(sections.id, s.id));
   }
   return n;
+}
+
+/** Delete a recording: Listening parts that played it are left without audio. Returns the stored file to remove. */
+export async function deleteAudio(id: number) {
+  const db = getDb();
+  const a = await getAudio(id);
+  if (!a) return null;
+  await assignAudio(id, null);
+  await db.delete(audio).where(eq(audio.id, id));
+  return a.path;
 }
 
 /** Test number → its id in a book. */

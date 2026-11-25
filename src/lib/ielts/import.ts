@@ -12,7 +12,7 @@ import path from "node:path";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { chat, parseJsonReply } from "@/lib/ai/client";
-import { setProgress, type Job } from "@/lib/jobs";
+import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
 import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
@@ -438,6 +438,11 @@ export async function importBook(job: Job) {
     await db.update(ieltsBooks).set({ status: "review" }).where(eq(ieltsBooks.id, bookId));
     return { tests: plan.tests.length };
   } catch (e) {
+    // cancelled by the user: the book shows "stopped" with the Continue button
+    if (e instanceof Error && e.message === CANCELLED) {
+      await db.update(ieltsBooks).set({ status: "parsing", error: null }).where(eq(ieltsBooks.id, bookId));
+      throw e;
+    }
     // the worker retries; the last failure is shown on the book
     await db.update(ieltsBooks).set({ status: job.attempts >= job.maxAttempts ? "failed" : "parsing", error: e instanceof Error ? e.message.slice(0, 1000) : String(e) }).where(eq(ieltsBooks.id, bookId));
     throw e;

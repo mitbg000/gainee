@@ -5,12 +5,12 @@ import Shell from "@/components/Shell";
 import BookActions from "@/components/ielts/BookActions";
 import BookTitle, { InlineRename } from "@/components/ielts/BookTitle";
 import FindMarks from "@/components/ielts/FindMarks";
-import AudioTest from "@/components/ielts/AudioTest";
+import AudioTest, { DeleteAudio } from "@/components/ielts/AudioTest";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { duplicates, expectedRange, gaps, missing, spans } from "@/lib/ielts/coverage";
 import { scriptLooksBroken } from "@/lib/ielts/import";
-import { audioFiles, audioTests, listBooks } from "@/lib/ielts/queries";
+import { audioFiles, audioTests, bookJobs, listBooks } from "@/lib/ielts/queries";
 import { getSetting } from "@/lib/settings";
 import * as I from "@/components/icons";
 
@@ -22,10 +22,10 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const t = await getTranslations("ielts.book");
   const book = (await listBooks()).find((b) => b.id === id);
   if (!book) notFound();
-  const [files, usedBy, beat] = await Promise.all([audioFiles(id), audioTests(id), getSetting<number>("worker.heartbeat")]);
-  const jobActive = book.job?.status === "queued" || book.job?.status === "running";
+  const [files, usedBy, beat, jobs] = await Promise.all([audioFiles(id), audioTests(id), getSetting<number>("worker.heartbeat"), bookJobs(id)]);
+  const jobActive = jobs.some((j) => j.type === "ielts_import");
   // the worker writes a heartbeat every 30 s; none for 2 minutes means it is not running (AI steps then never start)
-  const workerDown = jobActive && (!beat || Date.now() - beat > 120_000);
+  const workerDown = jobs.length > 0 && (!beat || Date.now() - beat > 120_000);
   const testIds = book.tests.map((x) => x.id);
   const scripts = testIds.length
     ? await getDb().select({ t: schema.ieltsSections.transcript }).from(schema.ieltsSections).where(and(inArray(schema.ieltsSections.testId, testIds), eq(schema.ieltsSections.skill, "listening")))
@@ -45,7 +45,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       <BookTitle id={id} title={book.title} />
       <p className="mt-1 text-sm text-muted">{t("summary", { pages: book.pageCount, tests: book.tests.length, reviewed, total: all.length })}</p>
       <div className="mt-3">
-        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} toCheck={toCheck} jobActive={jobActive} />
+        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} toCheck={toCheck} jobs={jobs} />
       </div>
       {workerDown && (
         <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
@@ -114,6 +114,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
                 <span className="text-muted">{f.received < f.size ? t("incomplete") : `${(f.size / 1048576).toFixed(1)} MB`}</span>
                 {f.received >= f.size && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <FindMarks id={f.id} size={f.size} marks={f.marks} />}
                 {f.received >= f.size && book.tests.length > 0 && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <AudioTest id={f.id} value={usedBy[f.id] ?? null} tests={book.tests.map((x) => ({ id: x.id, title: x.title }))} />}
+                <DeleteAudio id={f.id} name={f.name} />
               </li>
             ))}
           </ul>

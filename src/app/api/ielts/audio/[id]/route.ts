@@ -4,8 +4,8 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { NextResponse } from "next/server";
 import { bad, idParam } from "@/lib/api";
-import { getAudio, setReceived } from "@/lib/ielts/queries";
-import { UPLOAD_DIR } from "@/lib/storage";
+import { deleteAudio, getAudio, setReceived } from "@/lib/ielts/queries";
+import { removeUpload, UPLOAD_DIR } from "@/lib/storage";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -53,4 +53,13 @@ export async function GET(req: Request, { params }: Ctx) {
     status: 206,
     headers: { ...base, "content-length": String(end - start + 1), "content-range": `bytes ${start}-${end}/${size}` },
   });
+}
+
+/** Delete the recording and its file; parts that played it lose their audio. */
+export async function DELETE(_req: Request, { params }: Ctx) {
+  const id = idParam((await params).id);
+  const rel = id ? await deleteAudio(id) : null;
+  if (!rel) return bad("not_found", 404);
+  await removeUpload(rel);
+  return NextResponse.json({ ok: true });
 }

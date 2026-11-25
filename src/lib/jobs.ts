@@ -1,5 +1,5 @@
 /** Background job queue stored in MySQL – no Redis needed. */
-import { and, asc, eq, lte, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 
 const { jobs } = schema;
@@ -47,16 +47,26 @@ export async function claimNext(): Promise<Job | undefined> {
   return undefined;
 }
 
+export const CANCELLED = "cancelled";
+
+/** Also the stop point of a cancelled job: it throws once the job is no longer running. */
 export async function setProgress(id: number, progress: string) {
-  await getDb().update(jobs).set({ progress }).where(eq(jobs.id, id));
+  const res = (await getDb().update(jobs).set({ progress }).where(and(eq(jobs.id, id), eq(jobs.status, "running")))) as unknown as Affected;
+  if (res[0].affectedRows === 0) throw new Error(CANCELLED);
 }
 
 export async function complete(id: number, result: unknown = null) {
-  await getDb().update(jobs).set({ status: "done", result, finishedAt: new Date(), error: null }).where(eq(jobs.id, id));
+  await getDb().update(jobs).set({ status: "done", result, finishedAt: new Date(), error: null }).where(and(eq(jobs.id, id), eq(jobs.status, "running")));
+}
+
+/** Stop a waiting job, or a running one at its next step (the AI call in progress still finishes). */
+export async function cancelJob(id: number) {
+  await getDb().update(jobs).set({ status: "failed", error: CANCELLED, finishedAt: new Date() }).where(and(eq(jobs.id, id), inArray(jobs.status, ["queued", "running"])));
 }
 
 export async function fail(job: Job, err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
+  if (msg === CANCELLED) return; // already marked by cancelJob
   const retry = job.attempts < job.maxAttempts;
   await getDb()
     .update(jobs)

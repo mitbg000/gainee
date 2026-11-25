@@ -6,26 +6,28 @@ import { useEffect, useState } from "react";
 import { uploadAudio } from "./ImportBook";
 import * as I from "@/components/icons";
 
-/** Book page tools: live progress while the worker reads the book, read again, add audio, delete. */
-export default function BookActions({ id, status, hasTests, brokenScripts = 0, toCheck = 0, jobActive = false }: { id: number; status: string; hasTests: boolean; brokenScripts?: number; toCheck?: number; jobActive?: boolean }) {
+type BookJob = { id: number; type: string; status: string; progress: string | null };
+
+/** Book page tools: the book's jobs (waiting/running, with cancel), read again, add audio, delete. */
+export default function BookActions({ id, status, hasTests, brokenScripts = 0, toCheck = 0, jobs = [] }: { id: number; status: string; hasTests: boolean; brokenScripts?: number; toCheck?: number; jobs?: BookJob[] }) {
   const t = useTranslations("ielts.book");
   const router = useRouter();
-  const [progress, setProgress] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
-  const [fixSent, setFixSent] = useState(false);
-  const [checkSent, setCheckSent] = useState(false);
+  const jobActive = jobs.some((j) => j.type === "ielts_import");
+  const has = (type: string) => jobs.some((j) => j.type === type);
 
+  // while jobs wait or run, the page reloads its data: progress, and the results once they are done
   useEffect(() => {
-    if (status !== "parsing") return;
-    const tick = setInterval(async () => {
-      const r = await fetch(`/api/ielts/books/${id}`, { cache: "no-store" }).catch(() => null);
-      if (!r?.ok) return;
-      const d = await r.json();
-      setProgress(d.progress);
-      if (d.status !== "parsing") router.refresh();
-    }, 3000);
+    if (!jobs.length) return;
+    const tick = setInterval(() => router.refresh(), 4000);
     return () => clearInterval(tick);
-  }, [id, status, router]);
+  }, [jobs.length, router]);
+
+  async function cancel(j: BookJob) {
+    if (!confirm(t("cancelConfirm"))) return;
+    await fetch(`/api/jobs/${j.id}`, { method: "DELETE" });
+    router.refresh();
+  }
 
   async function reimport() {
     if (hasTests && !confirm(t("reimportConfirm"))) return;
@@ -39,12 +41,12 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
   }
   const stuck = !jobActive && (status === "parsing" || status === "failed");
   async function fixScripts() {
-    const r = await fetch(`/api/ielts/books/${id}/fix-scripts`, { method: "POST" });
-    if (r.ok) setFixSent(true);
+    await fetch(`/api/ielts/books/${id}/fix-scripts`, { method: "POST" });
+    router.refresh();
   }
   async function check() {
-    const r = await fetch(`/api/ielts/books/${id}/check`, { method: "POST" });
-    if (r.ok) setCheckSent(true);
+    await fetch(`/api/ielts/books/${id}/check`, { method: "POST" });
+    router.refresh();
   }
   async function remove() {
     if (!confirm(t("deleteConfirm"))) return;
@@ -63,23 +65,27 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {status === "parsing" && jobActive && (
-        <span className="flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-sm text-accent">
-          <span className="size-2 animate-pulse rounded-full bg-accent" /> {t("parsing")} {progress && `· ${progress}`}
+      {jobs.map((j) => (
+        <span key={j.id} className="flex items-center gap-2 rounded-full bg-accent/10 py-1 pl-3 pr-1 text-sm text-accent">
+          <span className={`size-2 rounded-full bg-accent ${j.status === "running" ? "animate-pulse" : "opacity-40"}`} />
+          {t(`job.${j.type}`)} · {j.status === "queued" ? t("jobQueued") : (j.progress ?? "…")}
+          <button onClick={() => cancel(j)} className="rounded-full px-2 py-0.5 text-xs hover:bg-accent/15">
+            {t("cancel")}
+          </button>
         </span>
-      )}
+      ))}
       <label className="btn btn-sm btn-secondary cursor-pointer">
         <I.IconHeadphones /> {upload ?? t("addAudio")}
         <input type="file" accept="audio/*,.mp3,.m4a" multiple className="sr-only" onChange={(e) => addAudio(e.target.files)} disabled={!!upload} />
       </label>
-      {brokenScripts > 0 && (
-        <button onClick={fixScripts} disabled={fixSent} className="btn btn-sm btn-primary">
-          <I.IconSpark /> {fixSent ? t("fixScriptsSent") : t("fixScripts", { n: brokenScripts })}
+      {brokenScripts > 0 && !has("ielts_fix_scripts") && (
+        <button onClick={fixScripts} className="btn btn-sm btn-primary">
+          <I.IconSpark /> {t("fixScripts", { n: brokenScripts })}
         </button>
       )}
-      {toCheck > 0 && !jobActive && (
-        <button onClick={check} disabled={checkSent} className="btn btn-sm btn-primary">
-          <I.IconSpark /> {checkSent ? t("checkSent") : t("check", { n: toCheck })}
+      {toCheck > 0 && !jobActive && !has("ielts_check") && (
+        <button onClick={check} className="btn btn-sm btn-primary">
+          <I.IconSpark /> {t("check", { n: toCheck })}
         </button>
       )}
       {stuck && (

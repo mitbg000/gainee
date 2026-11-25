@@ -1356,7 +1356,6 @@
       "audioSkipped": "Không tải lên được: {names}. Đề vẫn được tách; hãy thêm lại file này ở trang bộ đề (nút Thêm audio)."
     },
     "book": {
-      "parsing": "AI đang đọc sách",
       "reimportConfirm": "Đọc lại sẽ thay toàn bộ đề nháp hiện tại (kể cả phần đã sửa). Tiếp tục?",
       "deleteConfirm": "Xoá bộ đề này cùng ảnh trang, audio và lịch sử làm bài?",
       "addAudio": "Thêm audio",
@@ -1374,7 +1373,6 @@
       "incomplete": "chưa tải xong",
       "marksHint": "File chứa cả đề: bấm “AI tìm mốc Part” để tự đặt chỗ bắt đầu và kết thúc của từng Part (chạy trên máy này).",
       "fixScripts": "Sửa {n} transcript bị tách tên người nói",
-      "fixScriptsSent": "Đã gửi AI sửa, tải lại trang sau vài phút",
       "noMarks": "chưa có mốc",
       "rename": "Đổi tên",
       "save": "Lưu",
@@ -1388,8 +1386,16 @@
       "missing": "{skill}: thiếu câu {nums}",
       "thin": "đoạn văn bị thiếu",
       "check": "Đọc lại {n} phần thiếu câu",
-      "checkSent": "Đã gửi AI đọc lại, tải lại trang sau vài phút",
-      "duplicate": "{skill}: trùng câu {nums} (một phần lấy cả câu của phần bên cạnh)"
+      "duplicate": "{skill}: trùng câu {nums} (một phần lấy cả câu của phần bên cạnh)",
+      "job": {
+        "ielts_import": "AI đang đọc sách",
+        "ielts_check": "Đọc lại phần thiếu câu",
+        "ielts_fix_scripts": "Sửa transcript"
+      },
+      "jobQueued": "đang chờ",
+      "cancelConfirm": "Huỷ việc này? Phần đã làm xong vẫn được giữ.",
+      "deleteAudio": "Xoá file",
+      "deleteAudioConfirm": "Xoá file audio “{name}”? Các phần Listening đang dùng file này sẽ không còn audio."
     },
     "edit": {
       "back": "Quay lại bộ đề",

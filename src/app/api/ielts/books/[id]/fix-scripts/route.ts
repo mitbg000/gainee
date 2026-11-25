@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { bad, idParam } from "@/lib/api";
-import { enqueue } from "@/lib/jobs";
-import { getBook } from "@/lib/ielts/queries";
+import { getBook, queueForBook } from "@/lib/ielts/queries";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -10,5 +9,5 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function POST(_req: Request, { params }: Ctx) {
   const id = idParam((await params).id);
   if (!id || !(await getBook(id))) return bad("not_found", 404);
-  return NextResponse.json({ jobId: await enqueue("ielts_fix_scripts", { bookId: id }, { maxAttempts: 2 }) });
+  return NextResponse.json({ jobId: await queueForBook("ielts_fix_scripts", id) });
 }
