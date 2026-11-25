@@ -550,6 +550,8 @@ export const ieltsAudio = mysqlTable("ielts_audio", {
   path: varchar("path", { length: 255 }).notNull(),
   size: int("size").notNull(),
   received: int("received").notNull().default(0),
+  /** whole-test recording: second where each part is announced, found by Whisper in the browser ({"1":22,"2":431,…}) */
+  marks: jsonText<Record<string, number> | null>("marks"),
   createdAt: createdAt(),
 });
 

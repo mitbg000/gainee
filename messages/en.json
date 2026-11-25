@@ -1314,7 +1314,7 @@
         "reading": "Passage {part} · {min} minutes",
         "writing": "Task {part} · {min} minutes"
       },
-      "noMarks": "This part has no start/end marks in the test's single audio file, so the whole file will play. Set the marks on the review screen to hear only this part."
+      "noMarks": "This part has no start/end marks in the test's single audio file, so the whole file will play. On the book page press “Find part marks with AI” next to the audio file."
     },
     "import": {
       "heading": "Upload an IELTS test book",
@@ -1331,7 +1331,8 @@
       "localOcr": "Read scanned pages on this computer",
       "localOcrHint": "Free and no server load, but slower (a few seconds per page). Pages it cannot read are read by AI from the picture (needs a vision model).",
       "start": "Upload and split",
-      "keepOpen": "Keep this page open until the upload finishes. The AI step runs on the server; you can leave then."
+      "keepOpen": "Keep this page open until the upload finishes. The AI step runs on the server; you can leave then.",
+      "marks": "Finding part marks in {name}: {step}"
     },
     "book": {
       "parsing": "AI is reading the book",
@@ -1349,7 +1350,8 @@
       "noAudio": "No audio",
       "edit": "Check",
       "audioFiles": "Audio files",
-      "incomplete": "incomplete"
+      "incomplete": "incomplete",
+      "marksHint": "Whole-test files: press “Find part marks with AI” to set where each part starts and ends (runs on this computer)."
     },
     "edit": {
       "back": "Back to the book",
@@ -1437,6 +1439,19 @@
     "practiceList": "Each part: practise freely or take it timed",
     "practicePart": "Practise",
     "mockPart": "Timed test",
-    "shortLessons": "Short lessons:"
+    "shortLessons": "Short lessons:",
+    "marks": {
+      "find": "Find part marks with AI",
+      "again": "Find marks again",
+      "done": "Found {found} parts, set on {parts} sections",
+      "none": "No part announcements heard – set the marks by hand on the review screen.",
+      "step": {
+        "model": "Loading the listening AI (~40 MB, first time)…",
+        "decode": "Decoding audio…",
+        "listen": "AI listening {pct}%"
+      },
+      "auto": "Find where each part starts with AI (on this computer)",
+      "autoHint": "For a recording of a whole test, Whisper runs in the browser and listens for “Part 1”, “Now turn to Part 2”… to set the marks. Free; about 1–3 minutes per file."
+    }
   }
 }

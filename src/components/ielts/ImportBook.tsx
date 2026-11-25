@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import * as I from "@/components/icons";
+import { saveMarks } from "./FindMarks";
 
 const CHUNK = 8 * 1024 * 1024;
 const PAGE_WIDTH = 1400; // px: sharp enough to crop a map or chart, ~150 KB per page as WebP
@@ -36,11 +37,13 @@ type Ocr = { recognize: (c: HTMLCanvasElement) => Promise<{ data: { text: string
  */
 export default function ImportBook() {
   const t = useTranslations("ielts.import");
+  const tm = useTranslations("ielts.marks");
   const router = useRouter();
   const [pdf, setPdf] = useState<File | null>(null);
   const [audio, setAudio] = useState<File[]>([]);
   const [title, setTitle] = useState("");
   const [localOcr, setLocalOcr] = useState(true);
+  const [autoMarks, setAutoMarks] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [pct, setPct] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +111,13 @@ export default function ImportBook() {
 
       for (const [i, f] of audio.entries()) {
         setStatus(t("audio", { i: i + 1, n: audio.length, name: f.name }));
-        await uploadAudio(id, f, setPct);
+        const audioId = await uploadAudio(id, f, setPct);
+        // one file for a whole test: let Whisper (in this browser) find where each part starts
+        if (autoMarks && !/(section|part)[\s_-]*[1-4]/i.test(f.name))
+          await saveMarks(audioId, f, (step, pct) => {
+            setStatus(t("marks", { name: f.name, step: tm(`step.${step}`, { pct: Math.round(pct * 100) }) }));
+            setPct(pct);
+          }).catch((e) => console.warn("part marks:", e));
       }
       setStatus(t("queue"));
       const q = await fetch(`/api/ielts/books/${id}/import`, { method: "POST" });
@@ -151,6 +160,13 @@ export default function ImportBook() {
         <span>
           <b>{t("localOcr")}</b>
           <span className="block text-muted">{t("localOcrHint")}</span>
+        </span>
+      </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" checked={autoMarks} onChange={(e) => setAutoMarks(e.target.checked)} disabled={busy} className="mt-0.5 size-4" />
+        <span>
+          <b>{tm("auto")}</b>
+          <span className="block text-muted">{tm("autoHint")}</span>
         </span>
       </label>
       {status && (

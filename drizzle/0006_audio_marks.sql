@@ -1,0 +1,1 @@
+ALTER TABLE `ielts_audio` ADD `marks` json;

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import BookActions from "@/components/ielts/BookActions";
+import FindMarks from "@/components/ielts/FindMarks";
 import { audioFiles, listBooks } from "@/lib/ielts/queries";
 import * as I from "@/components/icons";
 
@@ -60,12 +61,14 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       {files.length > 0 && (
         <div className="mt-6 rounded-2xl border border-line bg-card p-4">
           <h2 className="font-bold">{t("audioFiles")}</h2>
+          <p className="mt-1 text-xs text-muted">{t("marksHint")}</p>
           <ul className="mt-2 space-y-1 text-sm">
             {files.map((f) => (
-              <li key={f.id} className="flex gap-2">
+              <li key={f.id} className="flex flex-wrap items-center gap-2">
                 <I.IconHeadphones className="h-4 w-4 text-muted" />
-                <span className="flex-1">{f.name}</span>
+                <span className="min-w-0 flex-1 truncate">{f.name}</span>
                 <span className="text-muted">{f.received < f.size ? t("incomplete") : `${(f.size / 1048576).toFixed(1)} MB`}</span>
+                {f.received >= f.size && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <FindMarks id={f.id} marks={f.marks} />}
               </li>
             ))}
           </ul>

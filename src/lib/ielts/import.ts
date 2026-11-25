@@ -250,7 +250,8 @@ export async function importBook(job: Job) {
             content: { ...c, warnings } as unknown as Record<string, unknown>,
             answers,
             transcript: skill === "listening" ? (scripts[r.part] ?? null) : null,
-            audio: file ? { fileId: file.a.id } : null,
+            // a whole-test file with part marks (found in the browser) gets this part's stretch
+            audio: file ? (!file.to?.part && file.a.marks?.[r.part] !== undefined ? { fileId: file.a.id, start: file.a.marks[r.part], end: file.a.marks[r.part + 1] ?? null } : { fileId: file.a.id }) : null,
             pages: [range[0], range[1]],
           });
         }

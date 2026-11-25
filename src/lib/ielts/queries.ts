@@ -85,6 +85,23 @@ export async function createAudio(bookId: number, name: string, size: number, pa
   const [{ id }] = await getDb().insert(audio).values({ bookId, name, size, path }).$returningId();
   return id;
 }
+/** Store part marks of a recording and set start/end of every Listening part of the book that plays this file. */
+export async function applyMarks(audioId: number, marks: Record<string, number>) {
+  const db = getDb();
+  const a = await getAudio(audioId);
+  if (!a) return 0;
+  await db.update(audio).set({ marks }).where(eq(audio.id, audioId));
+  const ts = await db.select({ id: tests.id }).from(tests).where(eq(tests.bookId, a.bookId));
+  if (!ts.length) return 0;
+  const ss = await db.select({ id: sections.id, part: sections.part, audio: sections.audio }).from(sections).where(and(inArray(sections.testId, ts.map((t) => t.id)), eq(sections.skill, "listening")));
+  let n = 0;
+  for (const s of ss) {
+    if (s.audio?.fileId !== audioId || marks[s.part] === undefined) continue;
+    await db.update(sections).set({ audio: { fileId: audioId, start: marks[s.part], end: marks[s.part + 1] ?? null } }).where(eq(sections.id, s.id));
+    n++;
+  }
+  return n;
+}
 export const setReceived = (id: number, received: number) => getDb().update(audio).set({ received }).where(eq(audio.id, id));
 
 /* ---------- tests & sections ---------- */
