@@ -16,7 +16,7 @@ import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
 import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
-import { GROUP_TYPES, type Group, type Item, type SectionContent, type Skill } from "./types";
+import { GROUP_TYPES, splitBlanks, type Group, type Item, type SectionContent, type Skill } from "./types";
 
 const { ieltsBooks, ieltsPages, ieltsTests, ieltsSections, ieltsAudio } = schema;
 type Page = typeof ieltsPages.$inferSelect;
@@ -471,32 +471,45 @@ export async function importBook(job: Job) {
 }
 
 /** Questions printed as a picture (notes in handwriting style, a form on a scan): AI writes them as gap text with [[n]] blanks. */
-export async function readPicture(url: string, from: number, to: number, instructions: string): Promise<string> {
+export async function readPicture(url: string, from: number, to: number, instructions: string, answers: Record<string, string> = {}): Promise<{ text: string; wrong: number[] }> {
   const dir = path.join(UPLOAD_DIR, "images");
   const abs = path.join(UPLOAD_DIR, url.replace(/^\/api\//, ""));
   if (!url.startsWith("/api/images/") || !abs.startsWith(dir + path.sep)) throw new Error("bad_image");
   const bytes = await fs.readFile(abs);
   const type = path.extname(abs).slice(1).toLowerCase() === "png" ? "png" : "webp";
-  const { text } = await chat({
-    task: "ielts_import",
-    temperature: 0,
-    maxTokens: 3000,
-    messages: [
-      { role: "system", content: "You copy IELTS completion questions from a picture into text exactly. Reply with the text only." },
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `This picture holds IELTS questions ${from}-${to} ("${instructions}"). Copy every word in reading order, and write each numbered answer blank (a number followed by dots or a line) as [[n]], e.g. "rent [[4]] £ … a month" → "rent £[[4]] a month".
-Lines: "# heading" for a heading, "- " for a bullet, "Label: text" for form fields, table rows as "| a | b |". Leave out the Example line.`,
-          },
-          { type: "image_url", image_url: { url: `data:image/${type};base64,${bytes.toString("base64")}` } },
-        ],
-      },
-    ],
-  });
-  return text.replace(/^```\w*\n?|```$/g, "").trim();
+  const want = Array.from({ length: Math.max(0, to - from + 1) }, (_, k) => from + k);
+  // the answer key tells the AI which words each printed number stands for: "from 2 £… to £…" is ONE blank (250 to 500)
+  const key = want.filter((n) => answers[n]).map((n) => `${n}: ${answers[n]}`).join("\n");
+  const ask = async (again: string) => {
+    const { text } = await chat({
+      task: "ielts_import",
+      temperature: 0,
+      maxTokens: 3000,
+      messages: [
+        { role: "system", content: "You copy IELTS completion questions from a picture into text exactly. Reply with the text only." },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `This picture holds IELTS questions ${from}-${to} ("${instructions}"). Copy every word in reading order. Each PRINTED question number ${from}-${to} becomes exactly one blank [[n]] that replaces the number and its dotted line(s) – so there are exactly ${want.length} blanks, numbered as printed. A dotted line without a printed number is part of the blank before it (e.g. "from 2 £…… to £…… a month" with answer "250 to 500" → "from [[2]] a month").
+Lines: "# heading" for a heading, "- " for a bullet, "Label: text" for form fields, table rows as "| a | b |". Leave out the Example line.${key ? `\nAnswer key (only to place the blanks – do not write the answers):\n${key}` : ""}${again}`,
+            },
+            { type: "image_url", image_url: { url: `data:image/${type};base64,${bytes.toString("base64")}` } },
+          ],
+        },
+      ],
+    });
+    const out = text.replace(/^```\w*\n?|```$/g, "").trim();
+    const got = splitBlanks(out).filter((x): x is number => typeof x === "number");
+    // numbers missing, repeated or outside the group
+    const wrong = [...new Set([...want.filter((n) => got.filter((g) => g === n).length !== 1), ...got.filter((g) => !want.includes(g))])].sort((a, b) => a - b);
+    return { text: out, wrong, got };
+  };
+  const first = await ask("");
+  if (!first.wrong.length) return { text: first.text, wrong: [] };
+  const second = await ask(`\nYour last copy had the blanks ${first.got.join(", ") || "none"}; it must have ${from}-${to}, each once, in printed order.`);
+  return second.wrong.length <= first.wrong.length ? { text: second.text, wrong: second.wrong } : { text: first.text, wrong: first.wrong };
 }
 
 /** Re-read one section with AI (review screen button), keeping its answers when the new reply has none. */

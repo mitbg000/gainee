@@ -1457,7 +1457,8 @@
       "question": "Question {n}",
       "readPicture": "Copy text from picture with AI",
       "readingPicture": "AI is copying…",
-      "readPictureFailed": "AI could not read the picture."
+      "readPictureFailed": "AI could not read the picture.",
+      "readPictureCheck": "Copied, but blanks {nums} are not numbered right – fix them in the text."
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",

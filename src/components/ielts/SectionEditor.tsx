@@ -149,10 +149,12 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     const g = groups[i];
     setBusy(`picture${i}`);
     setMsg(null);
-    const r = await fetch("/api/ielts/read-picture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ image: g.image, from: Number(g.from), to: Number(g.to), instructions: g.instructions }) }).catch(() => null);
+    const r = await fetch("/api/ielts/read-picture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ image: g.image, from: Number(g.from), to: Number(g.to), instructions: g.instructions, answers: parseAnswers(answers) }) }).catch(() => null);
     setBusy(null);
     if (!r?.ok) return setMsg(r?.status === 409 ? t("noAi") : t("readPictureFailed"));
-    setG(i, { text: (await r.json()).text });
+    const d = (await r.json()) as { text: string; wrong: number[] };
+    setG(i, { text: d.text });
+    if (d.wrong.length) setMsg(t("readPictureCheck", { nums: d.wrong.join(", ") }));
   }
   async function fixScript() {
     setBusy("script");

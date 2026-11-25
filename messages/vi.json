@@ -1457,7 +1457,8 @@
       "question": "Câu {n}",
       "readPicture": "AI chép chữ từ hình",
       "readingPicture": "AI đang chép…",
-      "readPictureFailed": "AI không đọc được hình."
+      "readPictureFailed": "AI không đọc được hình.",
+      "readPictureCheck": "AI chép xong nhưng ô trống {nums} chưa đúng số – sửa lại trong ô chữ."
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",
