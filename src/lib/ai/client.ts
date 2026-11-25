@@ -180,7 +180,8 @@ export function parseJsonReply<T = unknown>(text: string): T {
 
 /**
  * Fix the slips models make in long JSON (a passage copied into a string): raw line breaks and tabs inside strings,
- * quotes inside a string that are not escaped (a quote is taken as the string's end only when , } ] or : follows),
+ * quotes inside a string that are not escaped (a quote ends the string only when JSON follows it: } ] : or a comma
+ * before the next value – not `"primitive", the …`),
  * and commas before } or ].
  */
 export function looseJson(s: string): string {
@@ -196,7 +197,7 @@ export function looseJson(s: string): string {
       out += c + (s[i + 1] ?? "");
       i++;
     } else if (c === '"') {
-      if (/^\s*([,}\]:]|$)/.test(s.slice(i + 1, i + 40))) {
+      if (/^\s*([}\]:]|$|,\s*(["{[]|-?\d|true\b|false\b|null\b|$))/.test(s.slice(i + 1, i + 40))) {
         inStr = false;
         out += c;
       } else out += '\\"';

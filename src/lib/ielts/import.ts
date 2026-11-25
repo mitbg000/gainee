@@ -230,11 +230,16 @@ export function audioTarget(name: string): { test: number; part?: number } | nul
 /** Transcript as stored: repaired by AI when the names came apart from the lines (kept as is if AI fails). */
 const repaired = async (t: string | undefined) => (!t ? null : scriptLooksBroken(t) ? await fixTranscript(t).catch(() => t) : t);
 
+/** "strikingly backward" → “strikingly backward”: straight quotes copied into a JSON string are the usual reason a reply breaks. */
+export const curlyQuotes = (t: string) => t.replace(/"([^"]{1,400})"/g, "“$1”").replace(/"/g, "”");
+
 const textOf = (pages: Page[], [a, b]: [number, number]) =>
-  pages
-    .filter((p) => p.page >= a && p.page <= b)
-    .map((p) => `===== page ${p.page} =====\n${p.text ?? ""}`)
-    .join("\n");
+  curlyQuotes(
+    pages
+      .filter((p) => p.page >= a && p.page <= b)
+      .map((p) => `===== page ${p.page} =====\n${p.text ?? ""}`)
+      .join("\n"),
+  );
 
 /** Pages listed or ranged → the same "===== page n =====" text. */
 const textOfList = (pages: Page[], list: number[] = []) => (list.length ? textOf(pages, [Math.min(...list), Math.max(...list)]) : "");
