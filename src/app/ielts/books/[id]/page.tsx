@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import BookActions from "@/components/ielts/BookActions";
+import BookTitle, { InlineRename } from "@/components/ielts/BookTitle";
 import FindMarks from "@/components/ielts/FindMarks";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
@@ -32,7 +33,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       <Link href="/ielts" className="text-sm text-muted hover:underline">
         ← {t("back")}
       </Link>
-      <h1 className="mt-1 font-serif text-3xl font-bold">{book.title}</h1>
+      <BookTitle id={id} title={book.title} />
       <p className="mt-1 text-sm text-muted">{t("summary", { pages: book.pageCount, tests: book.tests.length, reviewed, total: all.length })}</p>
       <div className="mt-3">
         <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} />
@@ -44,15 +45,19 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         {book.tests.map((test) => (
           <div key={test.id} className="rounded-2xl border border-line bg-card p-4">
-            <h2 className="font-bold">{test.title}</h2>
+            <h2 className="font-bold">
+              <InlineRename url={`/api/ielts/tests/${test.id}`} title={test.title} />
+            </h2>
             <ul className="mt-2 divide-y divide-line">
               {test.sections.map((s) => (
                 <li key={s.id} className="flex items-center gap-2 py-2 text-sm">
                   {s.reviewed ? <I.IconCheckCircle className="h-4 w-4 flex-none text-green-600" /> : <span className="size-4 flex-none rounded-full border-2 border-line" />}
-                  <span className="min-w-0 flex-1 truncate">
-                    <b className="capitalize">{s.skill}</b> {s.part}
-                    {s.title && <span className="text-muted"> · {s.title}</span>}
-                    <span className="text-muted"> · {s.skill === "writing" ? "" : t("questions", { n: s.groups.reduce((a, g) => a + g.to - g.from + 1, 0) })}</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-1">
+                    <b className="flex-none capitalize">
+                      {s.skill} {s.part}
+                    </b>
+                    <InlineRename url={`/api/ielts/sections/${s.id}`} method="PUT" title={s.title ?? ""} placeholder={t("namePart")} allowEmpty className="min-w-0 text-muted" />
+                    {s.skill !== "writing" && <span className="flex-none text-muted">· {t("questions", { n: s.groups.reduce((a, g) => a + g.to - g.from + 1, 0) })}</span>}
                   </span>
                   {s.warnings > 0 && <span className="rounded-full bg-amber-100 px-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">{t("warnings", { n: s.warnings })}</span>}
                   {s.skill === "listening" && !s.hasAudio && <I.IconVolumeOff className="h-4 w-4 text-muted" aria-label={t("noAudio")} />}

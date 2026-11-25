@@ -1374,7 +1374,11 @@
       "marksHint": "Whole-test files: press “Find part marks with AI” to set where each part starts and ends (runs on this computer).",
       "fixScripts": "Repair {n} transcripts with split speaker names",
       "fixScriptsSent": "Sent to AI – reload in a few minutes",
-      "noMarks": "no marks"
+      "noMarks": "no marks",
+      "rename": "Rename",
+      "save": "Save",
+      "cancel": "Cancel",
+      "namePart": "add a name…"
     },
     "edit": {
       "back": "Back to the book",

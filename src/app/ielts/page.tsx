@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import AttemptList from "@/components/ielts/AttemptList";
+import { InlineRename } from "@/components/ielts/BookTitle";
 import { listBooks, mistakes, recentAttempts } from "@/lib/ielts/queries";
 import * as I from "@/components/icons";
 
@@ -65,10 +66,12 @@ export default async function IeltsPage() {
               </Link>
             </div>
             <div className="mt-3 grid gap-4 lg:grid-cols-2">
-              {b.tests.map((test, ti) => (
+              {b.tests.map((test) => (
                 <div key={test.id} className="rounded-2xl border border-line bg-card p-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="flex-1 text-lg font-bold">{test.title}</h3>
+                    <h3 className="flex min-w-0 flex-1 text-lg font-bold">
+                      <InlineRename url={`/api/ielts/tests/${test.id}`} title={test.title} />
+                    </h3>
                     <Link href={`/ielts/mock/${test.id}`} className="btn btn-sm btn-primary">
                       <I.IconClock /> {t("mockFull")}
                     </Link>
@@ -83,7 +86,7 @@ export default async function IeltsPage() {
                         </Link>
                       ))}
                   </div>
-                  <details className="mt-3 group" open={ti === 0}>
+                  <details className="mt-3 group">
                     <summary className="cursor-pointer text-sm font-semibold text-muted">{t("practiceList")}</summary>
                     <ul className="mt-2 space-y-2">
                       {test.sections.map((s) => (

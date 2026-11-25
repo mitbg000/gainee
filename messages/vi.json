@@ -1374,7 +1374,11 @@
       "marksHint": "File chứa cả đề: bấm “AI tìm mốc Part” để tự đặt chỗ bắt đầu và kết thúc của từng Part (chạy trên máy này).",
       "fixScripts": "Sửa {n} transcript bị tách tên người nói",
       "fixScriptsSent": "Đã gửi AI sửa, tải lại trang sau vài phút",
-      "noMarks": "chưa có mốc"
+      "noMarks": "chưa có mốc",
+      "rename": "Đổi tên",
+      "save": "Lưu",
+      "cancel": "Huỷ",
+      "namePart": "đặt tên…"
     },
     "edit": {
       "back": "Quay lại bộ đề",

@@ -56,6 +56,9 @@ export async function savePage(bookId: number, page: number, text: string, image
     .onDuplicateKeyUpdate({ set: { text, imagePath, ocr: false } });
 }
 
+export const renameTest = (id: number, title: string) => getDb().update(tests).set({ title }).where(eq(tests.id, id));
+export const renameBook = (id: number, title: string) => getDb().update(books).set({ title }).where(eq(books.id, id));
+
 export async function startImport(bookId: number) {
   await getDb().update(books).set({ status: "parsing", error: null }).where(eq(books.id, bookId));
   return enqueue("ielts_import", { bookId }, { maxAttempts: 2 });
