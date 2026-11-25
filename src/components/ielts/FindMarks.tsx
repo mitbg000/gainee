@@ -11,9 +11,10 @@ const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).
 
 /** Run Whisper in the browser on one stored recording, then save the part marks (applied to the Listening parts). */
 export async function saveMarks(audioId: number, src: Blob | string, onProgress: (msg: string, pct: number) => void) {
-  const marks = await findPartMarks(src, onProgress);
+  const { marks, test } = await findPartMarks(src, onProgress);
   if (!Object.keys(marks).length) return { marks, parts: 0 };
-  const r = await fetch(`/api/ielts/audio/${audioId}/marks`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ marks }) });
+  // "test": the test number the recording announces; the server uses it when the file is not attached to a test yet
+  const r = await fetch(`/api/ielts/audio/${audioId}/marks`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ marks, test }) });
   if (!r.ok) throw new Error(`save_failed (HTTP ${r.status})`); // never show marks that were not stored
   return { marks, parts: (await r.json()).parts as number };
 }

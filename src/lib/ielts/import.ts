@@ -249,6 +249,11 @@ export async function importBook(job: Job) {
     const pageImg = new Map(pages.map((p) => [p.page, p.imagePath ? `/api/${p.imagePath}` : undefined]));
     const audio = await db.select().from(ieltsAudio).where(eq(ieltsAudio.bookId, bookId));
 
+    // names without a test number ("ielts11.mp3", "ielts12.mp3"…): one file per test, in name order, when the counts match
+    const unnamed = audio.filter((a) => !audioTarget(a.name)).sort((x, y) => x.name.localeCompare(y.name, undefined, { numeric: true }));
+    const order = [...plan.tests].sort((x, y) => x.number - y.number);
+    const byOrder = new Map<number, { test: number; part?: number }>(unnamed.length === order.length ? unnamed.map((a, i) => [a.id, { test: order[i].number }]) : []);
+
     const total = plan.tests.reduce((a, t) => a + (t.listening?.length ?? 0) + (t.reading?.length ?? 0) + (t.writing?.length ?? 0) + 1, 0);
     let done = 0;
     for (const t of plan.tests) {
@@ -257,7 +262,7 @@ export async function importBook(job: Job) {
       await setProgress(job.id, `answers ${t.number} (${++done}/${total})`);
       const key = t.answerPages?.length ? await answerKey(t.number, textOfList(pages, t.answerPages)).catch(() => ({ listening: {}, reading: {} })) : { listening: {}, reading: {} };
       const scripts = splitScript(textOfList(pages, t.scriptPages));
-      const files = audio.map((a) => ({ a, to: audioTarget(a.name) })).filter((x) => x.to?.test === t.number);
+      const files = audio.map((a) => ({ a, to: audioTarget(a.name) ?? byOrder.get(a.id) ?? null })).filter((x) => x.to?.test === t.number);
 
       for (const skill of ["listening", "reading", "writing"] as const) {
         for (const r of t[skill] ?? []) {

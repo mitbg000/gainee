@@ -5,10 +5,11 @@ import Shell from "@/components/Shell";
 import BookActions from "@/components/ielts/BookActions";
 import BookTitle, { InlineRename } from "@/components/ielts/BookTitle";
 import FindMarks from "@/components/ielts/FindMarks";
+import AudioTest from "@/components/ielts/AudioTest";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { scriptLooksBroken } from "@/lib/ielts/import";
-import { audioFiles, listBooks } from "@/lib/ielts/queries";
+import { audioFiles, audioTests, listBooks } from "@/lib/ielts/queries";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const t = await getTranslations("ielts.book");
   const book = (await listBooks()).find((b) => b.id === id);
   if (!book) notFound();
-  const files = await audioFiles(id);
+  const [files, usedBy] = await Promise.all([audioFiles(id), audioTests(id)]);
   const testIds = book.tests.map((x) => x.id);
   const scripts = testIds.length
     ? await getDb().select({ t: schema.ieltsSections.transcript }).from(schema.ieltsSections).where(and(inArray(schema.ieltsSections.testId, testIds), eq(schema.ieltsSections.skill, "listening")))
@@ -82,9 +83,10 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             {files.map((f) => (
               <li key={f.id} className="flex flex-wrap items-center gap-2">
                 <I.IconHeadphones className="h-4 w-4 text-muted" />
-                <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                <span className="min-w-0 flex-1 basis-40 truncate font-semibold">{f.name}</span>
                 <span className="text-muted">{f.received < f.size ? t("incomplete") : `${(f.size / 1048576).toFixed(1)} MB`}</span>
                 {f.received >= f.size && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <FindMarks id={f.id} marks={f.marks} />}
+                {f.received >= f.size && book.tests.length > 0 && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <AudioTest id={f.id} value={usedBy[f.id] ?? null} tests={book.tests.map((x) => ({ id: x.id, title: x.title }))} />}
               </li>
             ))}
           </ul>

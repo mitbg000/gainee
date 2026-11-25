@@ -106,6 +106,41 @@ export async function applyMarks(audioId: number, marks: Partial<Record<string, 
   }
   return n;
 }
+/**
+ * Use a whole-test recording for one test of its book (or none): its Listening parts get the file with the part marks,
+ * and parts of other tests that pointed at this file lose it.
+ */
+export async function assignAudio(audioId: number, testId: number | null) {
+  const db = getDb();
+  const a = await getAudio(audioId);
+  if (!a) return 0;
+  const ts = await db.select({ id: tests.id }).from(tests).where(eq(tests.bookId, a.bookId));
+  if (testId && !ts.some((t) => t.id === testId)) return 0;
+  if (!ts.length) return 0;
+  const ss = await db.select({ id: sections.id, testId: sections.testId, part: sections.part, audio: sections.audio }).from(sections).where(and(inArray(sections.testId, ts.map((t) => t.id)), eq(sections.skill, "listening")));
+  const marks = a.marks ?? {};
+  let n = 0;
+  for (const s of ss) {
+    if (s.testId === testId) {
+      await db.update(sections).set({ audio: { fileId: audioId, start: marks[s.part] ?? null, end: marks[s.part + 1] ?? null } }).where(eq(sections.id, s.id));
+      n++;
+    } else if (s.audio?.fileId === audioId) await db.update(sections).set({ audio: null }).where(eq(sections.id, s.id));
+  }
+  return n;
+}
+
+/** Test number → its id in a book. */
+export const testOfBook = async (bookId: number, number: number) => (await getDb().select({ id: tests.id }).from(tests).where(and(eq(tests.bookId, bookId), eq(tests.number, number))))[0]?.id ?? null;
+
+/** audio id → id of the test whose Listening parts use it (book page select). */
+export async function audioTests(bookId: number) {
+  const db = getDb();
+  const ts = await db.select({ id: tests.id }).from(tests).where(eq(tests.bookId, bookId));
+  const out: Record<number, number> = {};
+  if (!ts.length) return out;
+  for (const s of await db.select({ testId: sections.testId, audio: sections.audio }).from(sections).where(and(inArray(sections.testId, ts.map((t) => t.id)), eq(sections.skill, "listening")))) if (s.audio?.fileId) out[s.audio.fileId] = s.testId;
+  return out;
+}
 export const setReceived = (id: number, received: number) => getDb().update(audio).set({ received }).where(eq(audio.id, id));
 
 /* ---------- tests & sections ---------- */

@@ -1378,7 +1378,9 @@
       "rename": "Rename",
       "save": "Save",
       "cancel": "Cancel",
-      "namePart": "add a name…"
+      "namePart": "add a name…",
+      "audioFor": "This file is for test",
+      "audioNone": "Not attached"
     },
     "edit": {
       "back": "Back to the book",

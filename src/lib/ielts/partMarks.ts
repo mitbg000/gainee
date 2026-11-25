@@ -11,6 +11,17 @@ export const MODEL = "onnx-community/moonshine-tiny-ONNX";
 const RATE = 16000;
 
 const NUM: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, "1": 1, "2": 2, "3": 3, "4": 4 };
+const TEST_NUM: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+
+/** "Practice Test One. Section 1…" heard before the first part → 1 (which test a whole-test file belongs to). */
+export function testNumber(clips: { start: number; text: string }[], firstPart?: number): number | null {
+  for (const c of [...clips].sort((a, b) => a.start - b.start)) {
+    if (firstPart !== undefined && c.start > firstPart + 30) break;
+    const m = c.text.match(/\btest\s+(one|two|three|four|five|six|seven|eight|nine|ten|\d{1,2})\b/i);
+    if (m) return TEST_NUM[m[1].toLowerCase()] ?? Number(m[1]);
+  }
+  return null;
+}
 
 /** Announcements in a piece of text: "Part 2" starts part 2, "That is the end of Part 1" ends part 1. */
 export function announcements(text: string): { part: number; end: boolean }[] {
@@ -81,7 +92,7 @@ function stalled<T>(p: Promise<T>, lastActivity: () => number, ms: number, code:
 
 const CLIP = 7; // seconds heard after each pause: "Part 2. You will hear a…" fits easily
 
-export async function findPartMarks(src: Blob | string, onProgress: (msg: string, pct: number) => void): Promise<PartMarks> {
+export async function findPartMarks(src: Blob | string, onProgress: (msg: string, pct: number) => void): Promise<{ marks: PartMarks; test: number | null }> {
   onProgress("lib", 0);
   const lib = await withTimeout(import(/* webpackIgnore: true */ LIB), 90_000, "lib_timeout");
   // model files come through our own server (it downloads them from huggingface.co once and keeps them)
@@ -120,5 +131,6 @@ export async function findPartMarks(src: Blob | string, onProgress: (msg: string
   }
   onProgress("listen", 1);
   console.debug("[part marks] heard after pauses:", heard.map((h) => `${Math.round(h.start)}s ${h.text}`));
-  return marksFrom(heard);
+  const marks = marksFrom(heard);
+  return { marks, test: testNumber(heard, marks[1]) };
 }
