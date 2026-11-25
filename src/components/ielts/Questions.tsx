@@ -39,10 +39,12 @@ function Mark({ n, p }: { n: number; p: QProps }) {
 
 const ring = (p: QProps, n: number) => (!p.marks || !(n in p.marks) ? "" : p.marks[n] ? "!border-green-500" : "!border-red-500");
 
-function Blank({ n, p }: { n: number; p: QProps }) {
+/** One answer box; `numbered` prints "(7)" before it so the number stays visible once something is typed. */
+function Blank({ n, p, numbered = true }: { n: number; p: QProps; numbered?: boolean }) {
   const k = `${p.sid}:${n}`;
   return (
     <span id={`q-${p.sid}-${n}`} className="mx-0.5 inline-flex items-center whitespace-nowrap">
+      {numbered && <b className="mr-1 text-sm">({n})</b>}
       <input
         value={p.values[k] ?? ""}
         style={{ width: `${Math.min(40, Math.max(9, (p.values[k] ?? "").length + 2))}ch` }}
@@ -131,17 +133,20 @@ function GapText({ text, p }: { text: string; p: QProps }) {
   return <div>{out}</div>;
 }
 
-/** Numbers whose blank is not written in the text (they are only on the picture, e.g. notes kept as an image): one box each. */
+/**
+ * Answer lines "9. [ ]" under the picture: every number when the group keeps its picture (the questions are read on it),
+ * otherwise only numbers whose blank is missing from the text.
+ */
 function PictureBlanks({ g, p }: { g: Group; p: QProps }) {
-  const inText = new Set(splitBlanks(g.text ?? "").filter((x) => typeof x === "number"));
+  const inText = new Set(g.image ? [] : splitBlanks(g.text ?? "").filter((x) => typeof x === "number"));
   const rest = numbersOfGroup(g).filter((n) => !inText.has(n));
   if (!rest.length) return null;
   return (
     <div className="mt-3 grid gap-2 sm:grid-cols-2">
       {rest.map((n) => (
         <div key={n} className="flex items-center gap-2">
-          <b className="w-6 text-right">{n}</b>
-          <Blank n={n} p={p} />
+          <b className="w-8 text-right">{n}.</b>
+          <Blank n={n} p={p} numbered={false} />
         </div>
       ))}
     </div>
@@ -266,7 +271,7 @@ export function GroupView({ g, p }: { g: Group; p: QProps }) {
         <img src={g.image} alt="" className="my-3 max-h-[28rem] max-w-full rounded border border-ink/10 bg-white object-contain" />
       )}
       <div className="mt-3">
-        {g.type === "gap" && <GapText text={g.text ?? ""} p={p} />}
+        {g.type === "gap" && !g.image && <GapText text={g.text ?? ""} p={p} />}
         {g.type === "gap" && <PictureBlanks g={g} p={p} />}
         {(g.type === "mcq" || g.type === "multi") && (g.items ?? []).map((it) => <Choice key={it.n[0]} item={it} p={p} multi={it.n.length > 1} />)}
         {(g.type === "tfng" || g.type === "ynng") && (g.items ?? []).map((it) => <Statement key={it.n[0]} item={it} p={p} labels={TF[g.type as "tfng"]} />)}

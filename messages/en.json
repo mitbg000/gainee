@@ -1458,7 +1458,8 @@
       "readPicture": "Copy text from picture with AI",
       "readingPicture": "AI is copying…",
       "readPictureFailed": "AI could not read the picture.",
-      "readPictureCheck": "Copied, but blanks {nums} are not numbered right – fix them in the text."
+      "readPictureCheck": "Copied, but blanks {nums} are not numbered right – fix them in the text.",
+      "pictureMode": "Picture kept: the test shows the picture with answer lines “1. … 2. …”. Remove the picture (✕) to use the text with blanks above."
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",

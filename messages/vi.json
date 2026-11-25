@@ -1458,7 +1458,8 @@
       "readPicture": "AI chép chữ từ hình",
       "readingPicture": "AI đang chép…",
       "readPictureFailed": "AI không đọc được hình.",
-      "readPictureCheck": "AI chép xong nhưng ô trống {nums} chưa đúng số – sửa lại trong ô chữ."
+      "readPictureCheck": "AI chép xong nhưng ô trống {nums} chưa đúng số – sửa lại trong ô chữ.",
+      "pictureMode": "Đang giữ hình: khi làm bài chỉ hiện hình và các ô trả lời “1. … 2. …”. Bỏ hình (✕) để dùng chữ đục lỗ ở trên."
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",

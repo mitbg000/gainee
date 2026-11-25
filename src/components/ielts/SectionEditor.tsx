@@ -298,6 +298,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                         )}
                       </p>
                       <textarea value={g.text} onChange={(e) => setG(i, { text: e.target.value })} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
+                      {g.image && <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{t("pictureMode")}</p>}
                     </>
                   ) : (
                     <>
