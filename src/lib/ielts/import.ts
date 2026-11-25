@@ -91,7 +91,7 @@ GROUP = {"type":"gap|mcq|multi|tfng|ynng|match","from":1,"to":6,"instructions":"
 - mcq (choose ONE letter): "items":[{"n":[11],"q":"question","options":[{"key":"A","text":"…"}]}]
 - multi (choose TWO/THREE letters): "items":[{"n":[21,22],"q":"Which TWO …?","options":[…]}]
 - tfng (TRUE/FALSE/NOT GIVEN) and ynng (YES/NO/NOT GIVEN): "items":[{"n":[8],"q":"statement"}]
-- match (matching features/information/headings/sentence endings, map or plan letters): "optionsTitle":"List of Headings", "options":[{"key":"i","text":"…"}], "items":[{"n":[14],"q":"Paragraph A"}]. For a map/plan set "figure":true.
+- match (matching features/information/headings/sentence endings, map or plan letters): "optionsTitle":"List of Headings", "options":[{"key":"i","text":"…"}], "items":[{"n":[14],"q":"Paragraph A"}]. Keys as printed, also codes like "AT" (Artefact Types); copy the list into "options" even when it is printed in a box. For a map/plan set "figure":true.
 - Picture inside ONE question (its question or options are a chart, drawings or a map, e.g. "Which column of the bar chart…? A B C"): set "figure":true on that item and give each option its letter with a short text ("column A", "picture B").
 - Table with one row per question and columns A/B/C to choose from (e.g. "Strongly recommended | Recommended in certain circumstances | Not recommended"): match, "options" = the column headings with their letters, "items" = the row labels.
 Rules: copy the book's wording exactly; every question number from..to appears once; never invent answers. Leave out "Example" questions and rows (they have no number).

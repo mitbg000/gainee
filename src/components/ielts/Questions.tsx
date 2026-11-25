@@ -238,15 +238,22 @@ function Match({ g, p }: { g: Group; p: QProps }) {
               {it.q}
               <ItemImage src={it.image} />
             </span>
-            <select value={p.values[k] ?? ""} onChange={(e) => p.onChange?.(k, e.target.value)} disabled={!p.onChange} aria-label={`Question ${n}`} className={`h-9 rounded border-2 border-ink/30 bg-card px-2 font-semibold ${ring(p, n)}`}>
-              <option value="" />
-              {(g.options ?? []).map((o) => (
-                <option key={o.key} value={o.key}>
-                  {o.key}
-                </option>
-              ))}
-            </select>
-            <Mark n={n} p={p} />
+            {g.options?.length ? (
+              <>
+                <select value={p.values[k] ?? ""} onChange={(e) => p.onChange?.(k, e.target.value)} disabled={!p.onChange} aria-label={`Question ${n}`} className={`h-9 rounded border-2 border-ink/30 bg-card px-2 font-semibold ${ring(p, n)}`}>
+                  <option value="" />
+                  {g.options.map((o) => (
+                    <option key={o.key} value={o.key}>
+                      {o.key}
+                    </option>
+                  ))}
+                </select>
+                <Mark n={n} p={p} />
+              </>
+            ) : (
+              // the list is only on the cropped picture: the letters are typed
+              <Blank n={n} p={p} numbered={false} />
+            )}
           </div>
         );
       })}

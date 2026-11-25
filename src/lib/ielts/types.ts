@@ -56,7 +56,7 @@ export function withoutPagePictures(c: SectionContent): SectionContent {
 export function fitAnswer(g: Group, n: number, a: string): string {
   // "B // are strongly linked to cigarette smoking": the key's letter, then the option's words – also when the group
   // has no option list (options kept in the instructions or text)
-  const lettered = a.match(/^\s*([A-Z]|[ivxlc]{1,6})\s*\/\/\s*\S/);
+  const lettered = a.match(/^\s*([A-Z]{1,3}|[ivxlc]{1,6})\s*\/\/\s*\S/);
   if (lettered) return lettered[1];
   if (g.type === "gap") return a.replace(/\s*\/\/\s*/g, "/");
   if (g.type === "tfng" || g.type === "ynng") {
@@ -91,13 +91,14 @@ export function numbersOfGroup(g: Pick<Group, "from" | "to">): number[] {
 /* ---------- plain-text formats used by the review editor (they read like the book) ---------- */
 
 /** "A travel expenses" / "A. travel" / "A) travel" → option; other lines are null. */
-function optionLine(line: string): Option | null {
-  const m = line.match(/^\s*([A-Z]|[ivxlc]+)[.)]?\s+(.+)$/);
+/** `codes`: a matching list may use short codes ("AT Artefact Types"); under a question only one letter is an option. */
+function optionLine(line: string, codes = false): Option | null {
+  const m = line.match(codes ? /^\s*([A-Z]{1,3}|[ivxlc]+)[.)]?\s+(.+)$/ : /^\s*([A-Z]|[ivxlc]+)[.)]?\s+(.+)$/);
   return m ? { key: m[1], text: m[2].trim() } : null;
 }
 
 /** Options list: one "A text" per line. */
-export const parseOptions = (s: string): Option[] => s.split("\n").map(optionLine).filter((o): o is Option => !!o);
+export const parseOptions = (s: string): Option[] => s.split("\n").map((l) => optionLine(l, true)).filter((o): o is Option => !!o);
 export const formatOptions = (os: Option[] = []) => os.map((o) => `${o.key} ${o.text}`).join("\n");
 
 /**
