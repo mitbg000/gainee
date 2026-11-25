@@ -54,6 +54,10 @@ export function withoutPagePictures(c: SectionContent): SectionContent {
  * completion: the key's "//" (= or) → "/".
  */
 export function fitAnswer(g: Group, n: number, a: string): string {
+  // "B // are strongly linked to cigarette smoking": the key's letter, then the option's words – also when the group
+  // has no option list (options kept in the instructions or text)
+  const lettered = a.match(/^\s*([A-Z]|[ivxlc]{1,6})\s*\/\/\s*\S/);
+  if (lettered) return lettered[1];
   if (g.type === "gap") return a.replace(/\s*\/\/\s*/g, "/");
   if (g.type === "tfng" || g.type === "ynng") {
     const v = a.trim().toUpperCase().replace(/\s+/g, " ");
