@@ -56,6 +56,9 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
                   </span>
                   {s.warnings > 0 && <span className="rounded-full bg-amber-100 px-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">{t("warnings", { n: s.warnings })}</span>}
                   {s.skill === "listening" && !s.hasAudio && <I.IconVolumeOff className="h-4 w-4 text-muted" aria-label={t("noAudio")} />}
+                  {s.skill === "listening" && s.hasAudio && !s.marked && test.sections.some((o) => o.id !== s.id && o.audio?.fileId === s.audio?.fileId) && (
+                    <span className="rounded-full bg-amber-100 px-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">{t("noMarks")}</span>
+                  )}
                   <Link href={`/ielts/sections/${s.id}/edit`} className="btn btn-sm btn-ghost">
                     <I.IconEdit /> {t("edit")}
                   </Link>

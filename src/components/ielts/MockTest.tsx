@@ -150,11 +150,13 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
     return out;
   }, [parts]);
   const track = useRef(0);
+  const seekTries = useRef(0);
   const playTrack = useCallback(
     (i: number) => {
       const a = audio.current;
       const tr = playlist[i];
       track.current = i;
+      seekTries.current = 0;
       if (!a) return;
       if (!tr) {
         setStage("check");
@@ -162,12 +164,13 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
         return;
       }
       if (a.src !== new URL(tr.url, location.href).href) a.src = tr.url;
-      const go = () => {
-        a.currentTime = tr.start;
-        a.play().catch(() => setError(t("audioBlocked")));
+      // play() right away, inside the click that started the test (Safari/iOS block it later); seek once the length is known
+      const seek = () => {
+        if (Math.abs(a.currentTime - tr.start) > 1) a.currentTime = tr.start;
       };
-      if (a.readyState >= 1) go();
-      else a.addEventListener("loadedmetadata", go, { once: true });
+      if (a.readyState >= 1) seek();
+      else a.addEventListener("loadedmetadata", seek, { once: true });
+      a.play().catch(() => setError(t("audioBlocked")));
       const idx = parts.findIndex((p) => p.part === tr.part);
       if (idx >= 0) setPart(idx);
     },
@@ -183,7 +186,14 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
   function onTime() {
     const a = audio.current;
     const tr = playlist[track.current];
-    if (a && tr?.end && a.currentTime >= tr.end) playTrack(track.current + 1);
+    if (!a || !tr) return;
+    // the part must start at its mark: seek again if the browser started from the beginning of the file
+    if (a.currentTime < tr.start - 2) {
+      if (++seekTries.current > 3) setError(t("seekFailed"));
+      else a.currentTime = tr.start;
+      return;
+    }
+    if (tr.end && a.currentTime >= tr.end) playTrack(track.current + 1);
   }
   useEffect(() => {
     if (audio.current) audio.current.volume = volume;

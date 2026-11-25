@@ -32,7 +32,7 @@ export async function listBooks() {
           .filter((s) => s.testId === t.id)
           .map(({ content, ...s }) => {
             const c = content as unknown as SectionContent;
-            return { ...s, groups: c.groups.map((g) => ({ type: g.type, from: g.from, to: g.to })), warnings: c.warnings?.length ?? 0, hasAudio: !!s.audio };
+            return { ...s, groups: c.groups.map((g) => ({ type: g.type, from: g.from, to: g.to })), warnings: c.warnings?.length ?? 0, hasAudio: !!s.audio, marked: s.audio?.start != null || s.audio?.end != null };
           }),
       })),
   }));

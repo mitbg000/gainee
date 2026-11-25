@@ -1245,7 +1245,10 @@
       "pickHintListening": "Mở transcript rồi bôi đen một câu hay đoạn hội thoại để AI giải thích, dịch hoặc phân tích ngữ pháp.",
       "summary": "Tóm tắt nội dung",
       "translateAll": "Dịch cả bài",
-      "scriptSpoiler": "Xem trước khi kiểm tra sẽ lộ đáp án"
+      "scriptSpoiler": "Xem trước khi kiểm tra sẽ lộ đáp án",
+      "play": "Phát",
+      "pause": "Tạm dừng",
+      "position": "Vị trí trong phần nghe"
     },
     "part": {
       "listening": "Listening Part {n}",
@@ -1326,7 +1329,8 @@
         "reading": "Passage {part} · {min} phút",
         "writing": "Task {part} · {min} phút"
       },
-      "noMarks": "Phần này chưa có mốc bắt đầu/kết thúc trong file audio của cả đề, nên sẽ phát cả file. Vào trang bộ đề, bấm “AI tìm mốc Part” cạnh file audio để tự đặt mốc."
+      "noMarks": "Phần này chưa có mốc bắt đầu/kết thúc trong file audio của cả đề, nên sẽ phát cả file. Vào trang bộ đề, bấm “AI tìm mốc Part” cạnh file audio để tự đặt mốc.",
+      "seekFailed": "Trình duyệt không tua được tới đúng mốc của phần này (server có thể không hỗ trợ tua audio). Hãy báo lỗi này cho tôi."
     },
     "import": {
       "heading": "Tải bộ đề IELTS",
@@ -1365,7 +1369,8 @@
       "incomplete": "chưa tải xong",
       "marksHint": "File chứa cả đề: bấm “AI tìm mốc Part” để tự đặt chỗ bắt đầu và kết thúc của từng Part (chạy trên máy này).",
       "fixScripts": "Sửa {n} transcript bị tách tên người nói",
-      "fixScriptsSent": "Đã gửi AI sửa, tải lại trang sau vài phút"
+      "fixScriptsSent": "Đã gửi AI sửa, tải lại trang sau vài phút",
+      "noMarks": "chưa có mốc"
     },
     "edit": {
       "back": "Quay lại bộ đề",

@@ -9,6 +9,7 @@ import ReaderLookup from "@/components/reader/ReaderLookup";
 import Markdown from "@/components/lesson/Markdown";
 import { useAiAsk } from "@/components/lesson/useAiAsk";
 import { sfx } from "@/lib/sound";
+import PartPlayer from "./PartPlayer";
 import Questions, { Passage } from "./Questions";
 import * as I from "@/components/icons";
 
@@ -24,7 +25,6 @@ export type PracticeData = {
   audio: { url: string; start: number | null; end: number | null } | null;
 };
 
-const SPEEDS = [0.75, 1, 1.25];
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s);
 
 /**
@@ -36,7 +36,6 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
   const [values, setValues] = useState<Record<string, string>>({});
   const [marks, setMarks] = useState<Record<number, boolean> | null>(null);
   const [showScript, setShowScript] = useState(false);
-  const [speed, setSpeed] = useState(1);
   const [started, setStarted] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now());
   const [asked, setAsked] = useState<string | null>(null);
@@ -45,7 +44,6 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
   const [picked, setPicked] = useState("");
   const pending = useRef<{ n: number | null; question: string } | null>(null);
   const ai = useAiAsk();
-  const audio = useRef<HTMLAudioElement>(null);
   const aiBox = useRef<HTMLDivElement>(null);
   const c = data.content;
   const source = data.skill === "reading" ? (c.passage ?? "") : (data.transcript ?? "");
@@ -55,9 +53,6 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [marks]);
-  useEffect(() => {
-    if (audio.current) audio.current.playbackRate = speed;
-  }, [speed]);
   // a finished AI answer is kept in this try's history
   // (asked before checking: kept until the try is saved, then stored with it)
   const queue = useRef<{ n: number | null; question: string; answer: string }[]>([]);
@@ -238,56 +233,7 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
       {data.skill === "listening" && (
         <div className="sticky top-16 z-10 mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-card p-3 shadow-sm">
           {data.audio ? (
-            <>
-              <audio
-                ref={audio}
-                src={data.audio.url}
-                controls
-                preload="metadata"
-                className="h-10 min-w-0 flex-1"
-                onLoadedMetadata={(e) => {
-                  if (data.audio?.start) e.currentTarget.currentTime = data.audio.start;
-                  e.currentTarget.playbackRate = speed;
-                }}
-                onTimeUpdate={(e) => {
-                  const a = e.currentTarget;
-                  if (data.audio?.end && a.currentTime >= data.audio.end) a.pause();
-                  if (data.audio?.start && a.currentTime < data.audio.start - 1) a.currentTime = data.audio.start;
-                }}
-              />
-              <div className="flex gap-1">
-                <button
-                  onClick={() => {
-                    const a = audio.current;
-                    if (!a) return;
-                    a.currentTime = data.audio?.start ?? 0;
-                    a.play().catch(() => {});
-                  }}
-                  className="chip"
-                  title={t("replayAll")}
-                >
-                  <I.IconRefresh className="h-3.5 w-3.5" /> {t("replayAll")}
-                </button>
-                <button
-                  onClick={() => {
-                    const a = audio.current;
-                    if (!a) return;
-                    a.currentTime = Math.max(data.audio?.start ?? 0, a.currentTime - 5);
-                    a.play().catch(() => {});
-                  }}
-                  className="chip"
-                >
-                  −5s
-                </button>
-              </div>
-              <div className="flex gap-1">
-                {SPEEDS.map((s) => (
-                  <button key={s} onClick={() => setSpeed(s)} className={`chip ${speed === s ? "chip-on" : ""}`}>
-                    {s}×
-                  </button>
-                ))}
-              </div>
-            </>
+            <PartPlayer url={data.audio.url} start={data.audio.start} end={data.audio.end} />
           ) : (
             <p className="text-sm text-muted">{t("noAudio")}</p>
           )}

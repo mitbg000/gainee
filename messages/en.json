@@ -1245,7 +1245,10 @@
       "pickHintListening": "Open the transcript and select a line of the conversation to have AI explain, translate or analyse it.",
       "summary": "Summarise",
       "translateAll": "Translate all",
-      "scriptSpoiler": "Showing it before checking gives the answers away"
+      "scriptSpoiler": "Showing it before checking gives the answers away",
+      "play": "Play",
+      "pause": "Pause",
+      "position": "Position in this part"
     },
     "part": {
       "listening": "Listening Part {n}",
@@ -1326,7 +1329,8 @@
         "reading": "Passage {part} · {min} minutes",
         "writing": "Task {part} · {min} minutes"
       },
-      "noMarks": "This part has no start/end marks in the test's single audio file, so the whole file will play. On the book page press “Find part marks with AI” next to the audio file."
+      "noMarks": "This part has no start/end marks in the test's single audio file, so the whole file will play. On the book page press “Find part marks with AI” next to the audio file.",
+      "seekFailed": "The browser could not jump to this part's mark (the server may not support seeking in audio)."
     },
     "import": {
       "heading": "Upload an IELTS test book",
@@ -1365,7 +1369,8 @@
       "incomplete": "incomplete",
       "marksHint": "Whole-test files: press “Find part marks with AI” to set where each part starts and ends (runs on this computer).",
       "fixScripts": "Repair {n} transcripts with split speaker names",
-      "fixScriptsSent": "Sent to AI – reload in a few minutes"
+      "fixScriptsSent": "Sent to AI – reload in a few minutes",
+      "noMarks": "no marks"
     },
     "edit": {
       "back": "Back to the book",

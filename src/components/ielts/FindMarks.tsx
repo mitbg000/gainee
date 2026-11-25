@@ -13,7 +13,8 @@ export async function saveMarks(audioId: number, src: Blob | string, onProgress:
   const marks = await findPartMarks(src, onProgress);
   if (!Object.keys(marks).length) return { marks, parts: 0 };
   const r = await fetch(`/api/ielts/audio/${audioId}/marks`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ marks }) });
-  return { marks, parts: r.ok ? ((await r.json()).parts as number) : 0 };
+  if (!r.ok) throw new Error(`save_failed (HTTP ${r.status})`); // never show marks that were not stored
+  return { marks, parts: (await r.json()).parts as number };
 }
 
 export default function FindMarks({ id, marks: initial }: { id: number; marks: PartMarks | null }) {
