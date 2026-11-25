@@ -112,7 +112,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
                 <I.IconHeadphones className="h-4 w-4 text-muted" />
                 <span className="min-w-0 flex-1 basis-40 truncate font-semibold">{f.name}</span>
                 <span className="text-muted">{f.received < f.size ? t("incomplete") : `${(f.size / 1048576).toFixed(1)} MB`}</span>
-                {f.received >= f.size && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <FindMarks id={f.id} marks={f.marks} />}
+                {f.received >= f.size && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <FindMarks id={f.id} size={f.size} marks={f.marks} />}
                 {f.received >= f.size && book.tests.length > 0 && !/(section|part)[\s_-]*[1-4]/i.test(f.name) && <AudioTest id={f.id} value={usedBy[f.id] ?? null} tests={book.tests.map((x) => ({ id: x.id, title: x.title }))} />}
               </li>
             ))}

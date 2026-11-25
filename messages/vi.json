@@ -1499,7 +1499,8 @@
       "errors": {
         "lib_timeout": "Không tải được thư viện AI từ cdn.jsdelivr.net (mạng chặn hoặc quá chậm). Thử lại sau hoặc đặt mốc tay.",
         "model_timeout": "Tải model AI bị đứng hơn 90 giây. Bấm “Tìm lại mốc” để thử lại; phần đã tải được giữ lại.",
-        "failed": "Tìm mốc lỗi: {error}"
+        "failed": "Tìm mốc lỗi: {error}",
+        "download_stalled": "Tải file audio bị đứng hơn 1 phút (mạng hoặc server). Bấm lại để thử tiếp."
       }
     }
   }

@@ -1499,7 +1499,8 @@
       "errors": {
         "lib_timeout": "Could not load the AI library from cdn.jsdelivr.net (blocked or too slow). Try later or set marks by hand.",
         "model_timeout": "The AI model download stalled for over 90 seconds. Press “Find marks again”; what was downloaded is kept.",
-        "failed": "Finding marks failed: {error}"
+        "failed": "Finding marks failed: {error}",
+        "download_stalled": "The audio download stalled for over a minute (network or server). Press again to retry."
       }
     }
   }

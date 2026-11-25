@@ -19,7 +19,7 @@ export async function saveMarks(audioId: number, src: Blob | string, onProgress:
   return { marks, parts: (await r.json()).parts as number };
 }
 
-export default function FindMarks({ id, marks: initial }: { id: number; marks: PartMarks | null }) {
+export default function FindMarks({ id, size, marks: initial }: { id: number; size: number; marks: PartMarks | null }) {
   const t = useTranslations("ielts.marks");
   const router = useRouter();
   const [marks, setMarks] = useState(initial);
@@ -30,15 +30,16 @@ export default function FindMarks({ id, marks: initial }: { id: number; marks: P
     setMsg(null);
     try {
       const progress = (step: string, pct: number) => setBusy(t(`step.${step}`, { pct: Math.round(pct * 100) }));
+      progress("download", 0); // at once: the download of a 40 MB file can take a while before the first number
       // the same local copy the players use: downloaded once, then the practice pages open it at once
-      const src = await localAudio(`/api/ielts/audio/${id}`, (p) => progress("download", p));
+      const src = await localAudio(`/api/ielts/audio/${id}`, (p) => progress("download", p), size);
       const r = await saveMarks(id, src, progress);
       setMarks(r.marks);
       setMsg(Object.keys(r.marks).length ? t("done", { found: Object.keys(r.marks).length, parts: r.parts }) : t("none"));
       router.refresh();
     } catch (e) {
       const code = e instanceof Error ? e.message : String(e);
-      setMsg(code === "lib_timeout" || code === "model_timeout" ? t(`errors.${code}`) : t("errors.failed", { error: code }));
+      setMsg(["lib_timeout", "model_timeout", "download_stalled"].includes(code) ? t(`errors.${code}`) : t("errors.failed", { error: code }));
     } finally {
       setBusy(null);
     }
