@@ -1,6 +1,7 @@
 import type { Job } from "@/lib/jobs";
 import { setProgress } from "@/lib/jobs";
 import { processDocument } from "@/lib/documents/process";
+import { importBook } from "@/lib/ielts/import";
 
 export type Handler = (job: Job) => Promise<unknown>;
 
@@ -12,6 +13,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const handlers: Record<string, Handler> = {
   /** Build lessons for an imported document (payload: { documentId, lessonIds? }). */
   generate_document: processDocument,
+  /** Read an uploaded IELTS book into tests and questions (payload: { bookId }). */
+  ielts_import: importBook,
 
   async ping(job) {
     for (let i = 1; i <= 3; i++) {

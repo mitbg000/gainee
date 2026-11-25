@@ -34,7 +34,8 @@
     "tree": "Bài đọc",
     "practice": "Luyện từ đã lưu",
     "writing": "Luyện Writing",
-    "quick": "Học nhanh 5 phút"
+    "quick": "Học nhanh 5 phút",
+    "ielts": "Luyện thi IELTS"
   },
   "login": {
     "username": "Tên đăng nhập",
@@ -247,6 +248,10 @@
         "chat": {
           "title": "Trò chuyện về bài đọc",
           "hint": "Hỏi đáp tự do với trợ lý."
+        },
+        "ielts_import": {
+          "title": "Tách đề IELTS từ sách",
+          "hint": "Đọc PDF bộ đề đã upload, tách câu hỏi và đáp án. Sách scan cần model đọc được ảnh (GPT-4o, Gemini, Grok). Nên dùng model mạnh, trả JSON tốt."
         }
       },
       "typeModel": "Nhà cung cấp không có danh sách model – gõ tên model",
@@ -1188,5 +1193,240 @@
     "test": "Nghe thử",
     "mute": "Tắt âm thanh",
     "unmute": "Bật âm thanh"
+  },
+  "ielts": {
+    "title": "Luyện thi IELTS",
+    "intro": "Thi thử giống thi trên máy, luyện từng phần hoặc từng dạng câu hỏi từ bộ đề bạn upload.",
+    "mistakes": "Ôn câu sai ({n})",
+    "upload": "Tải bộ đề lên",
+    "emptyTitle": "Chưa có bộ đề nào",
+    "emptyHint": "Upload file PDF bộ đề (ví dụ Cambridge IELTS) cùng file audio. AI sẽ tách thành từng đề, từng phần và đáp án để bạn duyệt.",
+    "status": {
+      "uploading": "Đang tải lên",
+      "parsing": "AI đang đọc sách…",
+      "review": "Chờ duyệt",
+      "failed": "Lỗi khi đọc"
+    },
+    "reviewed": "Đã duyệt {n}/{total} phần",
+    "manage": "Duyệt và sửa đề",
+    "mockFull": "Thi thử full",
+    "mockSkill": "Thi {skill}",
+    "skill": {
+      "listening": "Listening",
+      "reading": "Reading",
+      "writing": "Writing",
+      "full": "Full test"
+    },
+    "practice": {
+      "explainOf": "Vì sao câu {n} có đáp án này?",
+      "askAi": "Hỏi AI về bài này",
+      "noAi": "Chưa cấu hình AI. Thêm nhà cung cấp trong Cài đặt.",
+      "askPlaceholder": "Ví dụ: câu 9 sao lại NOT GIVEN?",
+      "send": "Hỏi",
+      "back": "Quay lại",
+      "groupOnly": "Bài ngắn: câu {from}–{to}",
+      "whole": "{n} câu",
+      "retryWrong": "Làm lại câu sai",
+      "check": "Kiểm tra ({filled}/{n})",
+      "noAudio": "Phần này chưa gắn audio, thêm ở trang duyệt đề.",
+      "why": "Giải thích",
+      "hideScript": "Ẩn transcript",
+      "showScript": "Xem transcript",
+      "lookupTip": "Bấm vào một từ hoặc bôi đen cụm từ để tra từ điển. Sau khi kiểm tra, bấm “Giải thích” cạnh câu sai để AI chỉ ra câu trong bài chứa đáp án.",
+      "replayAll": "Nghe lại từ đầu"
+    },
+    "part": {
+      "listening": "Listening Part {n}",
+      "reading": "Reading Passage {n}"
+    },
+    "types": {
+      "gap": "Điền từ",
+      "mcq": "Trắc nghiệm",
+      "multi": "Chọn nhiều đáp án",
+      "tfng": "True/False/Not Given",
+      "ynng": "Yes/No/Not Given",
+      "match": "Nối thông tin",
+      "gap_l": "Điền từ (Listening)",
+      "gap_r": "Điền từ (Reading)"
+    },
+    "history": "Lịch sử làm bài",
+    "mode": {
+      "mock": "Thi thử",
+      "practice": "Luyện tập"
+    },
+    "review": {
+      "title": "Ôn câu sai",
+      "intro": "Những câu lần làm gần nhất còn sai. Làm lại đúng thì câu tự rời danh sách. Biểu đồ cho thấy dạng câu hỏi nào bạn yếu nhất.",
+      "byType": "Độ chính xác theo dạng câu hỏi",
+      "none": "Không còn câu sai nào. Làm thêm đề để có dữ liệu.",
+      "redo": "Làm lại nhóm câu"
+    },
+    "mock": {
+      "sendFailed": "Không nộp được bài, kiểm tra mạng rồi bấm nộp lại. Bài làm vẫn được giữ trên máy.",
+      "audioBlocked": "Trình duyệt chặn phát audio, bấm vào trang rồi thử lại.",
+      "empty": "Đề này chưa có phần nào.",
+      "exit": "Thoát",
+      "time": {
+        "listening": "Khoảng 30 phút · audio phát một lần · 2 phút kiểm tra cuối",
+        "reading": "60 phút · 3 bài đọc · 40 câu",
+        "writing": "60 phút · Task 1 (150 từ) và Task 2 (250 từ)"
+      },
+      "rules": {
+        "listening": [
+          "Audio chỉ phát một lần, không tạm dừng hay tua lại được.",
+          "Gõ câu trả lời trực tiếp, chuyển phần bằng thanh câu hỏi ở dưới.",
+          "Hết audio bạn có 2 phút để kiểm tra rồi bài tự nộp."
+        ],
+        "reading": [
+          "Kéo vạch giữa để đổi độ rộng hai bên.",
+          "Bôi đen chữ trong bài đọc để tô sáng, bấm vào chỗ tô để bỏ.",
+          "Đánh dấu Review cho câu muốn xem lại. Hết giờ bài tự nộp."
+        ],
+        "writing": [
+          "Task 2 tính điểm gấp đôi Task 1.",
+          "Số từ hiện ở dưới khung viết. Không có kiểm tra chính tả.",
+          "Sau khi nộp, AI chấm band theo 4 tiêu chí."
+        ]
+      },
+      "noAudio": "Đề này chưa có audio. Bạn vẫn làm được với đồng hồ 30 phút, hoặc thêm audio ở trang duyệt đề.",
+      "soundCheck": "Kiểm tra tai nghe và chỉnh âm lượng trước khi bắt đầu.",
+      "sending": "Đang nộp bài…",
+      "start": "Bắt đầu",
+      "checkTime": "Kiểm tra bài:",
+      "minutesLeft": "phút còn lại",
+      "audioPlaying": "Đang phát audio",
+      "options": "Tuỳ chọn",
+      "textSize": "Cỡ chữ",
+      "contrast": "Màu hiển thị",
+      "contrastName": {
+        "standard": "Đen trên nền trắng",
+        "dark": "Trắng trên nền đen",
+        "yellow": "Vàng trên nền đen"
+      },
+      "exitConfirm": "Thoát bài thi? Câu trả lời vẫn được lưu trên máy này để làm tiếp.",
+      "nextSkillConfirm": "Kết thúc phần này và sang kỹ năng tiếp theo? Bạn không quay lại được.",
+      "submitConfirm": "Nộp bài? Còn {left} câu chưa làm.",
+      "nextSkill": "Phần tiếp",
+      "submit": "Nộp bài"
+    },
+    "import": {
+      "heading": "Tải bộ đề IELTS",
+      "intro": "PDF được đọc ngay trên trình duyệt của bạn: lấy chữ, chụp từng trang, đọc chữ trang scan. Server chỉ nhận ảnh trang đã thu nhỏ, sau đó AI tách đề, câu hỏi và đáp án.",
+      "opening": "Đang mở PDF…",
+      "page": "Đang xử lý trang {p}/{n}",
+      "ocr": "Đang đọc chữ trang scan {p}/{n} (trên máy này)",
+      "audio": "Đang tải audio {i}/{n}: {name}",
+      "queue": "Đã tải xong, đang gửi cho AI đọc…",
+      "pdf": "File PDF bộ đề",
+      "title": "Tên bộ đề",
+      "audioFiles": "File audio (có thể chọn nhiều)",
+      "audioHint": "Đặt tên kiểu “Test 1.mp3” hoặc “Test 1 Section 2.mp3” để tự gắn vào đúng đề. File khác gắn tay ở trang duyệt.",
+      "localOcr": "Đọc chữ trang scan ngay trên máy này",
+      "localOcrHint": "Miễn phí và không tốn tài nguyên server, nhưng chậm hơn (vài giây mỗi trang). Trang máy bạn đọc không ra sẽ được AI đọc từ ảnh (cần model đọc được ảnh).",
+      "start": "Tải lên và tách đề",
+      "keepOpen": "Giữ trang này mở cho tới khi tải xong. Bước AI chạy ở server, bạn có thể đóng trang lúc đó."
+    },
+    "book": {
+      "parsing": "AI đang đọc sách",
+      "reimportConfirm": "Đọc lại sẽ thay toàn bộ đề nháp hiện tại (kể cả phần đã sửa). Tiếp tục?",
+      "deleteConfirm": "Xoá bộ đề này cùng ảnh trang, audio và lịch sử làm bài?",
+      "addAudio": "Thêm audio",
+      "reimport": "Đọc lại bằng AI",
+      "delete": "Xoá",
+      "back": "Luyện thi IELTS",
+      "summary": "{pages} trang · {tests} đề · đã duyệt {reviewed}/{total} phần",
+      "uploading": "Bộ đề chưa tải lên xong. Hãy tải lại từ trang Tải bộ đề.",
+      "howTo": "Mở từng phần để so với trang sách gốc: sửa câu hỏi, cắt hình bản đồ hoặc biểu đồ, kiểm tra đáp án, gắn audio. Phần chưa duyệt vẫn làm được.",
+      "questions": "{n} câu",
+      "warnings": "{n} lưu ý",
+      "noAudio": "Chưa có audio",
+      "edit": "Duyệt",
+      "audioFiles": "File audio",
+      "incomplete": "chưa tải xong"
+    },
+    "edit": {
+      "back": "Quay lại bộ đề",
+      "saveFailed": "Lưu lỗi: {error}",
+      "saved": "Đã lưu",
+      "reparseConfirm": "AI đọc lại các trang của phần này? Câu hỏi sẽ bị thay, đáp án và hình được giữ.",
+      "noAi": "Chưa cấu hình AI.",
+      "reparseFailed": "AI đọc lại bị lỗi.",
+      "reparsing": "Đang đọc lại…",
+      "reparse": "AI đọc lại",
+      "save": "Lưu",
+      "approveNext": "Duyệt và sang phần sau",
+      "approve": "Duyệt",
+      "title": "Tiêu đề",
+      "pages": "Trang sách",
+      "prompt": "Đề bài",
+      "recrop": "Cắt lại hình",
+      "crop": "Cắt hình từ trang",
+      "removeImage": "Bỏ hình",
+      "intro": "Dòng hướng dẫn",
+      "passage": "Bài đọc",
+      "passageHint": "Dòng đầu “# Tiêu đề”, các đoạn cách nhau một dòng trống, chữ cái đoạn viết “**A** …”.",
+      "types": {
+        "gap": "Điền từ",
+        "mcq": "Trắc nghiệm",
+        "multi": "Chọn nhiều đáp án",
+        "tfng": "True/False/Not Given",
+        "ynng": "Yes/No/Not Given",
+        "match": "Nối thông tin"
+      },
+      "removeGroup": "Xoá nhóm câu này?",
+      "instructions": "Yêu cầu, ví dụ: Write ONE WORD ONLY for each answer.",
+      "gapHint": "Chỗ trống viết [[7]]. Dòng “# ” là tiêu đề, “- ” là gạch đầu dòng, “| a | b |” là hàng của bảng.",
+      "optionsTitle": "Tên danh sách (vd. List of Headings)",
+      "optionsHint": "Mỗi dòng một lựa chọn: A nội dung",
+      "itemsHintChoice": "Mỗi câu bắt đầu bằng số (chọn hai đáp án: “21-22 …”), các dòng sau là lựa chọn “A …”.",
+      "itemsHint": "Mỗi dòng một câu, bắt đầu bằng số câu.",
+      "addGroup": "Thêm nhóm câu",
+      "answers": "Đáp án",
+      "answersHint": "Mỗi dòng “số đáp án”. Nhiều cách viết đúng thì ngăn bằng “/”, phần tuỳ chọn để trong ngoặc: metal(s).",
+      "audio": "Audio",
+      "noAudio": "Chưa gắn audio",
+      "audioHint": "Nếu cả đề là một file, đặt thời điểm bắt đầu và kết thúc của phần này để luyện riêng. Thi thử luôn phát liền cả file.",
+      "start": "Bắt đầu",
+      "end": "Kết thúc",
+      "now": "Lấy lúc đang phát",
+      "transcript": "Transcript (audioscript)",
+      "preview": "Xem trước",
+      "bookPages": "Trang sách gốc",
+      "cropping": "Đang cắt…",
+      "cropHint": "Kéo chuột khoanh vùng hình trên trang.",
+      "cancel": "Huỷ",
+      "noPages": "Không có ảnh trang trong khoảng này."
+    },
+    "result": {
+      "noAi": "Chưa cấu hình AI để chấm Writing.",
+      "gradeFailed": "Chấm Writing bị lỗi, mở lại trang để thử lại.",
+      "noWriting": "Không có bài viết nào được nộp.",
+      "words": "từ",
+      "grading": "AI đang chấm…",
+      "openWriting": "Mở trong trang Luyện Writing",
+      "back": "Luyện thi IELTS",
+      "title": {
+        "mock": "Kết quả thi thử",
+        "practice": "Kết quả luyện tập"
+      },
+      "meta": "{mins} phút · {date}",
+      "estimate": "Band ước tính (quy về 40 câu)",
+      "overall": "Overall",
+      "overallHint": "Trung bình 3 kỹ năng (chưa có Speaking)",
+      "practiceAgain": "Luyện lại phần này",
+      "flagged": "Câu đánh dấu Review:",
+      "aiNotes": "Giải thích và hỏi đáp với AI"
+    },
+    "historyPage": {
+      "title": "Lịch sử làm bài",
+      "intro": "Mọi lần thi thử và luyện tập, kèm câu trả lời, điểm, band và nhận xét của AI.",
+      "all": "Xem tất cả",
+      "filterAll": "Tất cả",
+      "aiNotes": "{n} AI",
+      "writing": "Writing {n} bài",
+      "empty": "Chưa có lần làm nào.",
+      "group": "bài ngắn"
+    },
+    "practiceList": "Luyện từng phần và bài ngắn"
   }
 }

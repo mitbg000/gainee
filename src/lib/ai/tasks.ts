@@ -8,6 +8,7 @@ export const AI_TASKS = [
   "reader_quick", // quick questions in the reader side panel (word, sentence, grammar, translate)
   "writing_grade", // IELTS writing feedback
   "chat", // free conversation about a text
+  "ielts_import", // read uploaded IELTS books: OCR of scanned pages (needs a vision model) and question extraction
 ] as const;
 export type AiTask = (typeof AI_TASKS)[number];
 

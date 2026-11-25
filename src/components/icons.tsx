@@ -88,3 +88,6 @@ export function BigIcon({ icon: Icon, tone = "accent" }: { icon: (p: P) => React
 }
 export const IconVolumeOff = base(<path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6" />);
 export const IconVolume = base(<path d="M4 9h4l5-4v14l-5-4H4zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />);
+export const IconHeadphones = base(<path d="M4 15v-3a8 8 0 0 1 16 0v3M4 15a2 2 0 0 1 2-2h1v7H6a2 2 0 0 1-2-2zM20 15a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z" />);
+export const IconUpload = base(<path d="M12 16V4M7 9l5-5 5 5M4 20h16" />);
+export const IconClipboard = base(<path d="M9 3h6v3H9zM9 4.5H6a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V5.5a1 1 0 0 0-1-1h-3M9 11h6M9 15h4" />);

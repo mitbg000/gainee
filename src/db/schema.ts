@@ -514,3 +514,91 @@ export const wordSetItems = mysqlTable(
   },
   (t) => [primaryKey({ columns: [t.setId, t.wordId] }), index("word_set_items_word").on(t.wordId)],
 );
+
+/* =====================================================================
+ * IELTS test books (uploaded Cambridge-style PDFs + audio)
+ *   book → pages (image + text, OCR'd by AI when the PDF is a scan) → tests → sections (one Listening part,
+ *   Reading passage or Writing task each). Question content and answer keys are JSON, edited on the review screen.
+ * ===================================================================== */
+export const ieltsBooks = mysqlTable("ielts_books", {
+  id: pk(),
+  title: varchar("title", { length: 191 }).notNull(),
+  status: mysqlEnum("status", ["uploading", "parsing", "review", "failed"]).notNull().default("uploading"),
+  pageCount: int("page_count").notNull().default(0),
+  error: text("error"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const ieltsPages = mysqlTable(
+  "ielts_pages",
+  {
+    id: pk(),
+    bookId: int("book_id").notNull().references(() => ieltsBooks.id, { onDelete: "cascade" }),
+    page: int("page").notNull(),
+    text: longtext("text"),
+    imagePath: varchar("image_path", { length: 255 }),
+    ocr: boolean("ocr").notNull().default(false),
+  },
+  (t) => [uniqueIndex("ielts_pages_book_page").on(t.bookId, t.page)],
+);
+
+export const ieltsAudio = mysqlTable("ielts_audio", {
+  id: pk(),
+  bookId: int("book_id").notNull().references(() => ieltsBooks.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  path: varchar("path", { length: 255 }).notNull(),
+  size: int("size").notNull(),
+  received: int("received").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+export const ieltsTests = mysqlTable(
+  "ielts_tests",
+  {
+    id: pk(),
+    bookId: int("book_id").notNull().references(() => ieltsBooks.id, { onDelete: "cascade" }),
+    number: int("number").notNull(),
+    title: varchar("title", { length: 191 }).notNull(),
+  },
+  (t) => [index("ielts_tests_book").on(t.bookId, t.number)],
+);
+
+export const ieltsSections = mysqlTable(
+  "ielts_sections",
+  {
+    id: pk(),
+    testId: int("test_id").notNull().references(() => ieltsTests.id, { onDelete: "cascade" }),
+    skill: mysqlEnum("skill", ["listening", "reading", "writing"]).notNull(),
+    part: int("part").notNull(),
+    title: varchar("title", { length: 255 }),
+    content: jsonText<Record<string, unknown>>("content").notNull(),
+    answers: jsonText<Record<string, string>>("answers").notNull(),
+    transcript: longtext("transcript"),
+    audio: jsonText<{ fileId: number; start?: number | null; end?: number | null } | null>("audio"),
+    pages: jsonText<number[]>("pages").notNull(),
+    reviewed: boolean("reviewed").notNull().default(false),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ielts_sections_test").on(t.testId, t.skill, t.part)],
+);
+
+/** One try: a mock test (whole test or one skill, timed like the computer exam) or practice of one section / question group. */
+export const ieltsAttempts = mysqlTable(
+  "ielts_attempts",
+  {
+    id: pk(),
+    testId: int("test_id").notNull().references(() => ieltsTests.id, { onDelete: "cascade" }),
+    sectionId: int("section_id").references(() => ieltsSections.id, { onDelete: "cascade" }),
+    mode: mysqlEnum("mode", ["mock", "practice"]).notNull(),
+    skill: mysqlEnum("skill", ["listening", "reading", "writing", "full"]).notNull(),
+    answers: jsonText<Record<string, unknown>>("answers").notNull(),
+    detail: jsonText<Record<string, unknown>>("detail").notNull(),
+    score: int("score"),
+    total: int("total"),
+    band: double("band"),
+    seconds: int("seconds").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ielts_attempts_created").on(t.createdAt), index("ielts_attempts_section").on(t.sectionId)],
+);

@@ -34,7 +34,8 @@
     "tree": "Texts",
     "practice": "Practise saved words",
     "writing": "Writing practice",
-    "quick": "Quick study"
+    "quick": "Quick study",
+    "ielts": "IELTS practice"
   },
   "login": {
     "username": "Username",
@@ -247,6 +248,10 @@
         "chat": {
           "title": "Chat about a text",
           "hint": "Free conversation with the assistant."
+        },
+        "ielts_import": {
+          "title": "Read IELTS books",
+          "hint": "Reads uploaded test-book PDFs into questions and answer keys. Scanned books need a vision model (GPT-4o, Gemini, Grok). Use a strong model that returns good JSON."
         }
       },
       "typeModel": "This provider has no model list – type the model name",
@@ -1188,5 +1193,240 @@
     "test": "Test",
     "mute": "Mute",
     "unmute": "Unmute"
+  },
+  "ielts": {
+    "title": "IELTS practice",
+    "intro": "Computer-style mock tests, and practice by part or question type, from the test books you upload.",
+    "mistakes": "Mistakes ({n})",
+    "upload": "Upload a test book",
+    "emptyTitle": "No test books yet",
+    "emptyHint": "Upload a test book PDF (e.g. Cambridge IELTS) with its audio. AI splits it into tests, parts and answer keys for you to check.",
+    "status": {
+      "uploading": "Uploading",
+      "parsing": "AI is reading the book…",
+      "review": "Ready to check",
+      "failed": "Reading failed"
+    },
+    "reviewed": "{n}/{total} parts checked",
+    "manage": "Check & edit",
+    "mockFull": "Full mock test",
+    "mockSkill": "{skill} test",
+    "skill": {
+      "listening": "Listening",
+      "reading": "Reading",
+      "writing": "Writing",
+      "full": "Full test"
+    },
+    "practice": {
+      "explainOf": "Why is question {n} answered this way?",
+      "askAi": "Ask AI about this",
+      "noAi": "AI is not set up. Add a provider in Settings.",
+      "askPlaceholder": "e.g. why is 9 NOT GIVEN?",
+      "send": "Ask",
+      "back": "Back",
+      "groupOnly": "Short lesson: questions {from}–{to}",
+      "whole": "{n} questions",
+      "retryWrong": "Redo wrong ones",
+      "check": "Check ({filled}/{n})",
+      "noAudio": "No audio for this part – add it on the book page.",
+      "why": "Explain",
+      "hideScript": "Hide transcript",
+      "showScript": "Show transcript",
+      "lookupTip": "Click a word or select a phrase to look it up. After checking, press “Explain” next to a wrong answer and AI points to the sentence with the answer.",
+      "replayAll": "Replay from start"
+    },
+    "part": {
+      "listening": "Listening Part {n}",
+      "reading": "Reading Passage {n}"
+    },
+    "types": {
+      "gap": "Completion",
+      "mcq": "Multiple choice",
+      "multi": "Choose several",
+      "tfng": "True/False/Not Given",
+      "ynng": "Yes/No/Not Given",
+      "match": "Matching",
+      "gap_l": "Completion (Listening)",
+      "gap_r": "Completion (Reading)"
+    },
+    "history": "History",
+    "mode": {
+      "mock": "Mock",
+      "practice": "Practice"
+    },
+    "review": {
+      "title": "Mistakes",
+      "intro": "Questions you got wrong on your latest try. Get one right and it leaves the list. The chart shows your weakest question types.",
+      "byType": "Accuracy by question type",
+      "none": "No mistakes left. Do more tests for more data.",
+      "redo": "Redo this group"
+    },
+    "mock": {
+      "sendFailed": "Could not submit – check your connection and submit again. Your answers are kept on this device.",
+      "audioBlocked": "The browser blocked audio – click the page and try again.",
+      "empty": "This test has no parts yet.",
+      "exit": "Exit",
+      "time": {
+        "listening": "About 30 minutes · audio plays once · 2 minutes to check",
+        "reading": "60 minutes · 3 passages · 40 questions",
+        "writing": "60 minutes · Task 1 (150 words) and Task 2 (250 words)"
+      },
+      "rules": {
+        "listening": [
+          "The recording plays once; you cannot pause or rewind.",
+          "Type answers directly; move between parts with the bar at the bottom.",
+          "When the audio ends you have 2 minutes to check, then the test is submitted."
+        ],
+        "reading": [
+          "Drag the middle bar to resize the panes.",
+          "Select text in the passage to highlight it; click a highlight to remove it.",
+          "Tick Review for questions to come back to. The test is submitted when time is up."
+        ],
+        "writing": [
+          "Task 2 counts twice as much as Task 1.",
+          "The word count is under the box. There is no spell check.",
+          "After submitting, AI gives a band for the 4 criteria."
+        ]
+      },
+      "noAudio": "This test has no audio yet. You can still do it with a 30-minute timer, or add audio on the book page.",
+      "soundCheck": "Check your headphones and set the volume before you start.",
+      "sending": "Submitting…",
+      "start": "Start",
+      "checkTime": "Check answers:",
+      "minutesLeft": "minutes left",
+      "audioPlaying": "Audio playing",
+      "options": "Options",
+      "textSize": "Text size",
+      "contrast": "Colours",
+      "contrastName": {
+        "standard": "Black on white",
+        "dark": "White on black",
+        "yellow": "Yellow on black"
+      },
+      "exitConfirm": "Leave the test? Your answers stay on this device so you can continue.",
+      "nextSkillConfirm": "Finish this skill and move on? You cannot come back.",
+      "submitConfirm": "Submit? {left} questions are unanswered.",
+      "nextSkill": "Next skill",
+      "submit": "Submit"
+    },
+    "import": {
+      "heading": "Upload an IELTS test book",
+      "intro": "The PDF is read in your browser: text, a picture of each page, and OCR of scanned pages. The server only receives small page images; then AI splits it into tests, questions and answers.",
+      "opening": "Opening the PDF…",
+      "page": "Processing page {p}/{n}",
+      "ocr": "Reading scanned page {p}/{n} (on this computer)",
+      "audio": "Uploading audio {i}/{n}: {name}",
+      "queue": "Uploaded – sending to AI…",
+      "pdf": "Test book PDF",
+      "title": "Book title",
+      "audioFiles": "Audio files (several allowed)",
+      "audioHint": "Names like “Test 1.mp3” or “Test 1 Section 2.mp3” are attached to the right test automatically; others you attach on the review screen.",
+      "localOcr": "Read scanned pages on this computer",
+      "localOcrHint": "Free and no server load, but slower (a few seconds per page). Pages it cannot read are read by AI from the picture (needs a vision model).",
+      "start": "Upload and split",
+      "keepOpen": "Keep this page open until the upload finishes. The AI step runs on the server; you can leave then."
+    },
+    "book": {
+      "parsing": "AI is reading the book",
+      "reimportConfirm": "Reading again replaces all draft tests (including your edits). Continue?",
+      "deleteConfirm": "Delete this book with its page images, audio and history?",
+      "addAudio": "Add audio",
+      "reimport": "Read again with AI",
+      "delete": "Delete",
+      "back": "IELTS practice",
+      "summary": "{pages} pages · {tests} tests · {reviewed}/{total} parts checked",
+      "uploading": "The upload did not finish. Upload the book again.",
+      "howTo": "Open each part to compare with the book page: fix questions, crop maps or charts, check answers, attach audio. Unchecked parts can still be used.",
+      "questions": "{n} questions",
+      "warnings": "{n} notes",
+      "noAudio": "No audio",
+      "edit": "Check",
+      "audioFiles": "Audio files",
+      "incomplete": "incomplete"
+    },
+    "edit": {
+      "back": "Back to the book",
+      "saveFailed": "Could not save: {error}",
+      "saved": "Saved",
+      "reparseConfirm": "Let AI read this part's pages again? Questions are replaced; answers and pictures are kept.",
+      "noAi": "AI is not set up.",
+      "reparseFailed": "AI reading failed.",
+      "reparsing": "Reading…",
+      "reparse": "Read again with AI",
+      "save": "Save",
+      "approveNext": "Approve & next",
+      "approve": "Approve",
+      "title": "Title",
+      "pages": "Book pages",
+      "prompt": "Task",
+      "recrop": "Crop again",
+      "crop": "Crop picture from page",
+      "removeImage": "Remove picture",
+      "intro": "Instruction line",
+      "passage": "Passage",
+      "passageHint": "First line “# Title”, paragraphs separated by a blank line, paragraph letters as “**A** …”.",
+      "types": {
+        "gap": "Completion",
+        "mcq": "Multiple choice",
+        "multi": "Choose several",
+        "tfng": "True/False/Not Given",
+        "ynng": "Yes/No/Not Given",
+        "match": "Matching"
+      },
+      "removeGroup": "Delete this question group?",
+      "instructions": "Instructions, e.g. Write ONE WORD ONLY for each answer.",
+      "gapHint": "Blanks are [[7]]. “# ” is a heading, “- ” a bullet, “| a | b |” a table row.",
+      "optionsTitle": "List title (e.g. List of Headings)",
+      "optionsHint": "One option per line: A text",
+      "itemsHintChoice": "Each question starts with its number (choose two: “21-22 …”); the following lines are options “A …”.",
+      "itemsHint": "One question per line, starting with its number.",
+      "addGroup": "Add question group",
+      "answers": "Answer key",
+      "answersHint": "One “number answer” per line. Separate accepted variants with “/”; optional parts in brackets: metal(s).",
+      "audio": "Audio",
+      "noAudio": "No audio",
+      "audioHint": "If the whole test is one file, set where this part starts and ends to practise it alone. Mock tests always play the whole file.",
+      "start": "Start",
+      "end": "End",
+      "now": "Use current time",
+      "transcript": "Transcript (audioscript)",
+      "preview": "Preview",
+      "bookPages": "Book pages",
+      "cropping": "Cropping…",
+      "cropHint": "Drag a box around the picture on the page.",
+      "cancel": "Cancel",
+      "noPages": "No page images in this range."
+    },
+    "result": {
+      "noAi": "AI is not set up to grade Writing.",
+      "gradeFailed": "Writing grading failed – reload to try again.",
+      "noWriting": "No writing was submitted.",
+      "words": "words",
+      "grading": "AI is grading…",
+      "openWriting": "Open in Writing practice",
+      "back": "IELTS practice",
+      "title": {
+        "mock": "Mock test result",
+        "practice": "Practice result"
+      },
+      "meta": "{mins} min · {date}",
+      "estimate": "Estimated band (scaled to 40 questions)",
+      "overall": "Overall",
+      "overallHint": "Average of 3 skills (no Speaking)",
+      "practiceAgain": "Practise this part again",
+      "flagged": "Ticked for review:",
+      "aiNotes": "AI explanations and questions"
+    },
+    "historyPage": {
+      "title": "History",
+      "intro": "Every mock test and practice round with answers, scores, bands and AI feedback.",
+      "all": "See all",
+      "filterAll": "All",
+      "aiNotes": "{n} AI",
+      "writing": "Writing {n} task",
+      "empty": "Nothing yet.",
+      "group": "short lesson"
+    },
+    "practiceList": "Practice by part and short lessons"
   }
 }

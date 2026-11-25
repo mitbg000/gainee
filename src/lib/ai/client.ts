@@ -10,7 +10,9 @@ import { getSetting } from "@/lib/settings";
 import { getProvider, listProviders } from "./providers";
 import type { AiRoute, AiRouting, AiTask } from "./tasks";
 
-export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
+/** Text, or text + pictures (OpenAI-style parts; needs a vision model, e.g. GPT-4o, Gemini, Grok). */
+export type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+export type ChatMessage = { role: "system" | "user" | "assistant"; content: string | ContentPart[] };
 export type ChatOptions = {
   task: AiTask;
   messages: ChatMessage[];
