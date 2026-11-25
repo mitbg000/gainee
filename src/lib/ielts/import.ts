@@ -11,7 +11,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
-import { chat, parseJsonReply } from "@/lib/ai/client";
+import { AiError, chat, parseJsonReply } from "@/lib/ai/client";
 import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
@@ -114,18 +114,23 @@ async function parseSection(skill: Skill, part: number, text: string, place: Pla
     .filter(Boolean)
     .map((h) => ` ${h}`)
     .join("");
-  const { text: reply } = await chat({
-    task: "ielts_import",
-    json: true,
-    temperature: 0,
-    maxTokens: 12000,
-    timeoutMs: 300_000,
-    messages: [
-      { role: "system", content: "You convert IELTS practice book pages into structured JSON for a computer-based test. Reply with one JSON object only." },
-      { role: "user", content: `Extract ONLY ${what} from these pages (ignore other parts that share the pages).${hint}\n\n${FORMAT}\n\nPAGES:\n"""\n${text}\n"""` },
-    ],
+  const ask = (again: string) =>
+    chat({
+      task: "ielts_import",
+      json: true,
+      temperature: 0,
+      maxTokens: 12000,
+      timeoutMs: 300_000,
+      messages: [
+        { role: "system", content: "You convert IELTS practice book pages into structured JSON for a computer-based test. Reply with one JSON object only." },
+        { role: "user", content: `Extract ONLY ${what} from these pages (ignore other parts that share the pages).${hint}${again}\n\n${FORMAT}\n\nPAGES:\n"""\n${text}\n"""` },
+      ],
+    }).then((r) => parseJsonReply<RawSection>(r.text));
+  // a long passage sometimes comes back as broken JSON (a stray quote, cut off): ask once more, saying so
+  const raw = await ask("").catch((e) => {
+    if (!(e instanceof AiError && e.code === "bad_response")) throw e;
+    return ask(" Your previous reply was not valid JSON: escape every \" and line break inside strings, and finish the whole object.");
   });
-  const raw = parseJsonReply<RawSection>(reply);
   raw.groups = (Array.isArray(raw.groups) ? raw.groups : []).filter((g) => GROUP_TYPES.includes(g.type) && Number(g.from) > 0);
   for (const g of raw.groups) {
     g.from = Number(g.from);

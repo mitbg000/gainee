@@ -166,11 +166,43 @@ export function parseJsonReply<T = unknown>(text: string): T {
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");
   if (start < 0 || end <= start) throw new AiError("AI reply did not contain JSON", "bad_response");
+  const body = raw.slice(start, end + 1);
   try {
-    return JSON.parse(raw.slice(start, end + 1)) as T;
+    return JSON.parse(body) as T;
   } catch {
-    throw new AiError("AI reply contained invalid JSON", "bad_response");
+    try {
+      return JSON.parse(looseJson(body)) as T;
+    } catch {
+      throw new AiError("AI reply contained invalid JSON", "bad_response");
+    }
   }
+}
+
+/**
+ * Fix the slips models make in long JSON (a passage copied into a string): raw line breaks and tabs inside strings,
+ * quotes inside a string that are not escaped (a quote is taken as the string's end only when , } ] or : follows),
+ * and commas before } or ].
+ */
+export function looseJson(s: string): string {
+  let out = "";
+  let inStr = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (!inStr) {
+      if (c === '"') inStr = true;
+      else if (c === "," && /^\s*[}\]]/.test(s.slice(i + 1, i + 40))) continue;
+      out += c;
+    } else if (c === "\\") {
+      out += c + (s[i + 1] ?? "");
+      i++;
+    } else if (c === '"') {
+      if (/^\s*([,}\]:]|$)/.test(s.slice(i + 1, i + 40))) {
+        inStr = false;
+        out += c;
+      } else out += '\\"';
+    } else out += c === "\n" ? "\\n" : c === "\r" ? "\\r" : c === "\t" ? "\\t" : c;
+  }
+  return out;
 }
 
 /** Model ids offered at an OpenAI-compatible endpoint (also used before a provider is saved). */
