@@ -1454,7 +1454,10 @@
       "fixScriptFailed": "AI could not repair the transcript.",
       "fixScriptDone": "Transcript repaired – check it, then Save.",
       "cropItem": "Crop a picture for one question…",
-      "question": "Question {n}"
+      "question": "Question {n}",
+      "readPicture": "Copy text from picture with AI",
+      "readingPicture": "AI is copying…",
+      "readPictureFailed": "AI could not read the picture."
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",

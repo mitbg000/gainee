@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import { splitBlanks, type Group, type Item, type SectionContent } from "@/lib/ielts/types";
+import { numbersOfGroup, splitBlanks, type Group, type Item, type SectionContent } from "@/lib/ielts/types";
 import * as I from "@/components/icons";
 
 export type QProps = {
@@ -102,6 +102,23 @@ function GapText({ text, p }: { text: string; p: QProps }) {
     else out.push(<p key={i} className="leading-10">{inline(line)}</p>);
   }
   return <div>{out}</div>;
+}
+
+/** Numbers whose blank is not written in the text (they are only on the picture, e.g. notes kept as an image): one box each. */
+function PictureBlanks({ g, p }: { g: Group; p: QProps }) {
+  const inText = new Set(splitBlanks(g.text ?? "").filter((x) => typeof x === "number"));
+  const rest = numbersOfGroup(g).filter((n) => !inText.has(n));
+  if (!rest.length) return null;
+  return (
+    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      {rest.map((n) => (
+        <div key={n} className="flex items-center gap-2">
+          <b className="w-6 text-right">{n}</b>
+          <Blank n={n} p={p} />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function Choice({ item, p, multi }: { item: Item; p: QProps; multi: boolean }) {
@@ -223,6 +240,7 @@ export function GroupView({ g, p }: { g: Group; p: QProps }) {
       )}
       <div className="mt-3">
         {g.type === "gap" && <GapText text={g.text ?? ""} p={p} />}
+        {g.type === "gap" && <PictureBlanks g={g} p={p} />}
         {(g.type === "mcq" || g.type === "multi") && (g.items ?? []).map((it) => <Choice key={it.n[0]} item={it} p={p} multi={it.n.length > 1} />)}
         {(g.type === "tfng" || g.type === "ynng") && (g.items ?? []).map((it) => <Statement key={it.n[0]} item={it} p={p} labels={TF[g.type as "tfng"]} />)}
         {g.type === "match" && <Match g={g} p={p} />}

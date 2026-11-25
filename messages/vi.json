@@ -1454,7 +1454,10 @@
       "fixScriptFailed": "AI sửa transcript bị lỗi.",
       "fixScriptDone": "Đã sửa transcript, xem lại rồi bấm Lưu.",
       "cropItem": "Cắt hình cho một câu…",
-      "question": "Câu {n}"
+      "question": "Câu {n}",
+      "readPicture": "AI chép chữ từ hình",
+      "readingPicture": "AI đang chép…",
+      "readPictureFailed": "AI không đọc được hình."
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",

@@ -144,6 +144,16 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     setIntro(c.intro ?? "");
     setPrompt(c.prompt ?? "");
   }
+  /** AI copies a group's cropped picture into its text, blanks as [[n]]. */
+  async function readPicture(i: number) {
+    const g = groups[i];
+    setBusy(`picture${i}`);
+    setMsg(null);
+    const r = await fetch("/api/ielts/read-picture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ image: g.image, from: Number(g.from), to: Number(g.to), instructions: g.instructions }) }).catch(() => null);
+    setBusy(null);
+    if (!r?.ok) return setMsg(r?.status === 409 ? t("noAi") : t("readPictureFailed"));
+    setG(i, { text: (await r.json()).text });
+  }
   async function fixScript() {
     setBusy("script");
     setMsg(null);
@@ -277,7 +287,14 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                   <textarea value={g.instructions} onChange={(e) => setG(i, { instructions: e.target.value })} rows={2} placeholder={t("instructions")} className="field mt-2 w-full py-2 text-sm" />
                   {g.type === "gap" ? (
                     <>
-                      <p className="mt-2 text-xs text-muted">{t("gapHint")}</p>
+                      <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+                        <span className="flex-1">{t("gapHint")}</span>
+                        {g.image && (
+                          <button onClick={() => readPicture(i)} disabled={!!busy} className="btn btn-sm btn-ghost">
+                            <I.IconSpark /> {busy === `picture${i}` ? t("readingPicture") : t("readPicture")}
+                          </button>
+                        )}
+                      </p>
                       <textarea value={g.text} onChange={(e) => setG(i, { text: e.target.value })} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
                     </>
                   ) : (

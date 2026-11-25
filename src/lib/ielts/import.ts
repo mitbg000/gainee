@@ -470,6 +470,35 @@ export async function importBook(job: Job) {
   }
 }
 
+/** Questions printed as a picture (notes in handwriting style, a form on a scan): AI writes them as gap text with [[n]] blanks. */
+export async function readPicture(url: string, from: number, to: number, instructions: string): Promise<string> {
+  const dir = path.join(UPLOAD_DIR, "images");
+  const abs = path.join(UPLOAD_DIR, url.replace(/^\/api\//, ""));
+  if (!url.startsWith("/api/images/") || !abs.startsWith(dir + path.sep)) throw new Error("bad_image");
+  const bytes = await fs.readFile(abs);
+  const type = path.extname(abs).slice(1).toLowerCase() === "png" ? "png" : "webp";
+  const { text } = await chat({
+    task: "ielts_import",
+    temperature: 0,
+    maxTokens: 3000,
+    messages: [
+      { role: "system", content: "You copy IELTS completion questions from a picture into text exactly. Reply with the text only." },
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `This picture holds IELTS questions ${from}-${to} ("${instructions}"). Copy every word in reading order, and write each numbered answer blank (a number followed by dots or a line) as [[n]], e.g. "rent [[4]] £ … a month" → "rent £[[4]] a month".
+Lines: "# heading" for a heading, "- " for a bullet, "Label: text" for form fields, table rows as "| a | b |". Leave out the Example line.`,
+          },
+          { type: "image_url", image_url: { url: `data:image/${type};base64,${bytes.toString("base64")}` } },
+        ],
+      },
+    ],
+  });
+  return text.replace(/^```\w*\n?|```$/g, "").trim();
+}
+
 /** Re-read one section with AI (review screen button), keeping its answers when the new reply has none. */
 export async function reparseSection(sectionId: number) {
   const db = getDb();
