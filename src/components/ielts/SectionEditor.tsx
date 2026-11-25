@@ -108,7 +108,8 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
   const [audio, setAudio] = useState(data.audio);
   const [pages, setPages] = useState<[number, number]>(data.pages);
   // what the next crop is for: Writing chart, a question group, or one question of a group
-  const [cropFor, setCropFor] = useState<number | "writing" | { g: number; n: number } | null>(null);
+  const [cropFor, setCropFor] = useState<number | "writing" | { g: number; n: number } | { at: number } | null>(null);
+  const passageBox = useRef<HTMLTextAreaElement>(null);
   const [tab, setTab] = useState<"preview" | "pages">("preview");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -172,6 +173,8 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
       const url = await cropAndUpload(img, box);
       if (cropFor === "writing") setImage(url);
       else if (typeof cropFor === "number") setG(cropFor, { image: url });
+      // a picture of the reading passage goes in at the cursor, as its own paragraph
+      else if ("at" in cropFor) setPassage((p) => `${p.slice(0, cropFor.at).trimEnd()}\n\n![](${url})\n\n${p.slice(cropFor.at).trimStart()}`.trim());
       else setG(cropFor.g, { itemImages: { ...groups[cropFor.g].itemImages, [cropFor.n]: url } });
       setCropFor(null);
       setTab("preview");
@@ -181,7 +184,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
       setBusy(null);
     }
   }
-  const startCrop = (target: number | "writing" | { g: number; n: number }) => {
+  const startCrop = (target: number | "writing" | { g: number; n: number } | { at: number }) => {
     setCropFor(target);
     setTab("pages");
   };
@@ -256,9 +259,14 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                 <div className="rounded-2xl border border-line bg-card p-4">
                   <label className="block text-sm font-semibold">{t("intro")}</label>
                   <input value={intro} onChange={(e) => setIntro(e.target.value)} className="field field-sm mt-1 w-full" />
-                  <label className="mt-3 block text-sm font-semibold">{t("passage")}</label>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <label className="flex-1 text-sm font-semibold">{t("passage")}</label>
+                    <button onClick={() => startCrop({ at: passageBox.current?.selectionStart ?? passage.length })} className="btn btn-sm btn-ghost">
+                      <I.IconImage /> {t("cropPassage")}
+                    </button>
+                  </div>
                   <p className="text-xs text-muted">{t("passageHint")}</p>
-                  <textarea value={passage} onChange={(e) => setPassage(e.target.value)} rows={14} className="field mt-1 w-full py-2 font-serif" />
+                  <textarea ref={passageBox} value={passage} onChange={(e) => setPassage(e.target.value)} rows={14} className="field mt-1 w-full py-2 font-serif" />
                 </div>
               )}
               {groups.map((g, i) => (

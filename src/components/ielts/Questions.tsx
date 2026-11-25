@@ -290,6 +290,9 @@ export default function Questions(p: QProps) {
 }
 
 /** Reading passage: "# Title", paragraphs split by blank lines, "**A**" paragraph letters. */
+/** A picture cropped from the book, on its own line in the passage: "![](/api/images/…)". */
+const PICTURE = /^!\[[^\]]*\]\((\/api\/images\/[^)\s]+)\)$/;
+
 export function Passage({ text, intro }: { text: string; intro?: string }) {
   const blocks = text.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
   return (
@@ -297,6 +300,9 @@ export function Passage({ text, intro }: { text: string; intro?: string }) {
       {intro && <p className="mb-3 text-[0.95em] italic">{intro}</p>}
       {blocks.map((b, i) => {
         if (b.startsWith("#")) return <h2 key={i} className="mb-3 text-[1.35em] font-bold">{b.replace(/^#+\s*/, "")}</h2>;
+        const pic = b.match(PICTURE);
+        // eslint-disable-next-line @next/next/no-img-element
+        if (pic) return <img key={i} src={pic[1]} alt="" className="mx-auto mb-4 block max-h-[32rem] max-w-full rounded border border-ink/10 bg-white object-contain" />;
         const m = b.match(/^\*\*([A-Z])\*\*\s*/);
         return (
           <p key={i} className="mb-4 leading-relaxed">

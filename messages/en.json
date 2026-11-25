@@ -1417,7 +1417,7 @@
       "removeImage": "Remove picture",
       "intro": "Instruction line",
       "passage": "Passage",
-      "passageHint": "First line “# Title”, paragraphs separated by a blank line, paragraph letters as “**A** …”.",
+      "passageHint": "First line “# Title”, paragraphs separated by a blank line, paragraph letters as “**A** …”. Pictures: put the cursor where it goes and press “Add a picture to the passage” (it becomes a line ![](…); delete that line to remove it).",
       "types": {
         "gap": "Completion",
         "mcq": "Multiple choice",
@@ -1459,7 +1459,8 @@
       "readingPicture": "AI is copying…",
       "readPictureFailed": "AI could not read the picture.",
       "readPictureCheck": "Copied, but blanks {nums} are not numbered right – fix them in the text.",
-      "pictureMode": "Picture kept: the test shows the picture with answer lines “1. … 2. …”. Remove the picture (✕) to use the text with blanks above."
+      "pictureMode": "Picture kept: the test shows the picture with answer lines “1. … 2. …”. Remove the picture (✕) to use the text with blanks above.",
+      "cropPassage": "Add a picture to the passage"
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",

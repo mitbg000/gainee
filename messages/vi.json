@@ -1417,7 +1417,7 @@
       "removeImage": "Bỏ hình",
       "intro": "Dòng hướng dẫn",
       "passage": "Bài đọc",
-      "passageHint": "Dòng đầu “# Tiêu đề”, các đoạn cách nhau một dòng trống, chữ cái đoạn viết “**A** …”.",
+      "passageHint": "Dòng đầu “# Tiêu đề”, các đoạn cách nhau một dòng trống, chữ cái đoạn viết “**A** …”. Hình: đặt con trỏ vào chỗ muốn chèn rồi bấm “Thêm hình vào đoạn văn” (thành dòng ![](…), xoá dòng đó để bỏ hình).",
       "types": {
         "gap": "Điền từ",
         "mcq": "Trắc nghiệm",
@@ -1459,7 +1459,8 @@
       "readingPicture": "AI đang chép…",
       "readPictureFailed": "AI không đọc được hình.",
       "readPictureCheck": "AI chép xong nhưng ô trống {nums} chưa đúng số – sửa lại trong ô chữ.",
-      "pictureMode": "Đang giữ hình: khi làm bài chỉ hiện hình và các ô trả lời “1. … 2. …”. Bỏ hình (✕) để dùng chữ đục lỗ ở trên."
+      "pictureMode": "Đang giữ hình: khi làm bài chỉ hiện hình và các ô trả lời “1. … 2. …”. Bỏ hình (✕) để dùng chữ đục lỗ ở trên.",
+      "cropPassage": "Thêm hình vào đoạn văn"
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",
