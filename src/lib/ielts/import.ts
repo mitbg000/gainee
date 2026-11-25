@@ -86,7 +86,7 @@ const FORMAT = `Question format (JSON):
 {"passage":"…","intro":"…","groups":[GROUP…],"prompt":"…","warnings":["…"]}
 GROUP = {"type":"gap|mcq|multi|tfng|ynng|match","from":1,"to":6,"instructions":"Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer.", …}
 - gap (notes, form, table, summary, sentence/flow-chart completion, short answers, diagram labels): "text" with each blank written [[n]].
-  Lines: "# heading", "- bullet", table rows "| Name | Cost |" (first row = header). Keep the words around blanks exactly.
+  Lines: "# heading", "- bullet", table rows "| Name | Cost |" (first row = header). Notes/forms: "Label: text", and lines printed under the same label indented with two spaces. Keep the words around blanks exactly.
   If the blanks are on a picture (diagram/map labels) also set "figure":true and list the labels in "text".
 - mcq (choose ONE letter): "items":[{"n":[11],"q":"question","options":[{"key":"A","text":"…"}]}]
 - multi (choose TWO/THREE letters): "items":[{"n":[21,22],"q":"Which TWO …?","options":[…]}]
@@ -493,7 +493,7 @@ export async function readPicture(url: string, from: number, to: number, instruc
             {
               type: "text",
               text: `This picture holds IELTS questions ${from}-${to} ("${instructions}"). Copy every word in reading order. Each PRINTED question number ${from}-${to} becomes exactly one blank [[n]] that replaces the number and its dotted line(s) – so there are exactly ${want.length} blanks, numbered as printed. A dotted line without a printed number is part of the blank before it (e.g. "from 2 £…… to £…… a month" with answer "250 to 500" → "from [[2]] a month").
-Lines: "# heading" for a heading, "- " for a bullet, "Label: text" for form fields, table rows as "| a | b |". Leave out the Example line.${key ? `\nAnswer key (only to place the blanks – do not write the answers):\n${key}` : ""}${again}`,
+Keep the layout: one printed line per line; "Label: text" when a line starts with a label, and lines printed under the same label (no label of their own) indented with two spaces; "# heading" for a heading, "- " for a bullet, table rows as "| a | b |". Leave out the Example line.${key ? `\nAnswer key (only to place the blanks – do not write the answers):\n${key}` : ""}${again}`,
             },
             { type: "image_url", image_url: { url: `data:image/${type};base64,${bytes.toString("base64")}` } },
           ],

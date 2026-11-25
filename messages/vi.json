@@ -1428,7 +1428,7 @@
       },
       "removeGroup": "Xoá nhóm câu này?",
       "instructions": "Yêu cầu, ví dụ: Write ONE WORD ONLY for each answer.",
-      "gapHint": "Chỗ trống viết [[7]]. Dòng “# ” là tiêu đề, “- ” là gạch đầu dòng, “| a | b |” là hàng của bảng.",
+      "gapHint": "Chỗ trống viết [[7]]. Dòng “# ” là tiêu đề, “- ” là gạch đầu dòng, “| a | b |” là hàng của bảng, “Nhãn: chữ” là một mục ghi chú; dòng thụt vào 2 dấu cách là dòng tiếp của mục trên.",
       "optionsTitle": "Tên danh sách (vd. List of Headings)",
       "optionsHint": "Mỗi dòng một lựa chọn: A nội dung",
       "itemsHintChoice": "Mỗi câu bắt đầu bằng số (chọn hai đáp án: “21-22 …”), các dòng sau là lựa chọn “A …”.",

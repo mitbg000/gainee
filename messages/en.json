@@ -1428,7 +1428,7 @@
       },
       "removeGroup": "Delete this question group?",
       "instructions": "Instructions, e.g. Write ONE WORD ONLY for each answer.",
-      "gapHint": "Blanks are [[7]]. “# ” is a heading, “- ” a bullet, “| a | b |” a table row.",
+      "gapHint": "Blanks are [[7]]. “# ” is a heading, “- ” a bullet, “| a | b |” a table row, “Label: text” a notes entry; a line indented with 2 spaces continues the entry above.",
       "optionsTitle": "List title (e.g. List of Headings)",
       "optionsHint": "One option per line: A text",
       "itemsHintChoice": "Each question starts with its number (choose two: “21-22 …”); the following lines are options “A …”.",

@@ -45,6 +45,7 @@ function Blank({ n, p }: { n: number; p: QProps }) {
     <span id={`q-${p.sid}-${n}`} className="mx-0.5 inline-flex items-center whitespace-nowrap">
       <input
         value={p.values[k] ?? ""}
+        style={{ width: `${Math.min(40, Math.max(9, (p.values[k] ?? "").length + 2))}ch` }}
         onChange={(e) => p.onChange?.(k, e.target.value)}
         readOnly={!p.onChange}
         placeholder={String(n)}
@@ -52,12 +53,15 @@ function Blank({ n, p }: { n: number; p: QProps }) {
         autoComplete="off"
         autoCapitalize="none"
         spellCheck={false}
-        className={`h-8 w-36 rounded border-2 border-ink/30 bg-card px-2 text-center font-semibold text-ink outline-none placeholder:font-bold placeholder:text-ink/50 focus:border-accent ${ring(p, n)}`}
+        className={`h-8 max-w-full rounded border-2 border-ink/30 bg-card px-2 text-center font-semibold text-ink outline-none placeholder:font-bold placeholder:text-ink/50 focus:border-accent ${ring(p, n)}`}
       />
       <Mark n={n} p={p} />
     </span>
   );
 }
+
+/** "Rent: from [[2]] a month" – a notes or form label (no blank inside the label). */
+const LABEL = /^\s*([A-Za-z][^:[\]]{0,40}):\s*(.*)$/;
 
 /** Notes / form / table / summary with [[n]] blanks. */
 function GapText({ text, p }: { text: string; p: QProps }) {
@@ -67,7 +71,30 @@ function GapText({ text, p }: { text: string; p: QProps }) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
-    if (line.startsWith("|")) {
+    if (LABEL.test(line) && !/^\s/.test(lines[i])) {
+      // notes / form: "Label: text", lines indented under it continue the label – shown in two columns like the book
+      const rows: [string, string][] = [];
+      while (i < lines.length) {
+        const raw = lines[i];
+        const m = raw.match(LABEL);
+        if (m && !/^\s/.test(raw)) rows.push([m[1].trim(), m[2]]);
+        else if (/^\s+\S/.test(raw) && rows.length) rows.push(["", raw.trim().replace(/^[-•–]\s*/, "")]);
+        else if (raw.trim()) break;
+        i++;
+      }
+      i--;
+      out.push(
+        // phone: the label on its own line above its text
+        <div key={i} className="my-2 grid grid-cols-1 sm:grid-cols-[minmax(0,auto)_1fr] sm:gap-x-4">
+          {rows.map(([label, rest], ri) => (
+            <Fragment key={ri}>
+              <span className={`font-semibold sm:text-right sm:leading-10 ${label ? (ri ? "mt-3 sm:mt-2" : "") : "hidden sm:block"}`}>{label && `${label}:`}</span>
+              <span className={`pl-4 leading-10 sm:pl-0 ${label && ri ? "sm:mt-2" : ""}`}>{inline(rest)}</span>
+            </Fragment>
+          ))}
+        </div>,
+      );
+    } else if (line.startsWith("|")) {
       const rows: string[][] = [];
       while (i < lines.length && lines[i].trim().startsWith("|")) {
         const cells = lines[i].trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
