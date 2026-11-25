@@ -7,6 +7,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { numbersOf, SKILL_TIME, type SectionContent, type Skill } from "@/lib/ielts/types";
 import Questions, { Passage } from "./Questions";
 import * as I from "@/components/icons";
+import { localAudio } from "@/lib/ielts/audioCache";
 
 export type MockSection = { id: number; skill: Skill; part: number; content: SectionContent; audio: { url: string; start: number | null; end: number | null } | null };
 export type MockData = { testId: number; title: string; book: string; sections: MockSection[] };
@@ -149,6 +150,26 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
     }
     return out;
   }, [parts]);
+  // recordings downloaded before the listening test starts (seeking a local copy always works, and nothing buffers mid-test)
+  const [local, setLocal] = useState<Record<string, string>>({});
+  const [loadPct, setLoadPct] = useState(0);
+  const needed = useMemo(() => [...new Set(playlist.map((p) => p.url))], [playlist]);
+  const ready = needed.every((u) => local[u]);
+  useEffect(() => {
+    if (cur !== "listening" || stage !== "intro" || !needed.length) return;
+    let live = true;
+    (async () => {
+      for (const [i, u] of needed.entries()) {
+        const blob = await localAudio(u, (p) => live && setLoadPct((i + p) / needed.length)).catch(() => null);
+        if (!live) return;
+        if (!blob) return setError(t("audioFailed"));
+        setLocal((m) => ({ ...m, [u]: blob }));
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [cur, stage, needed, t]);
   const track = useRef(0);
   const seekTries = useRef(0);
   const playTrack = useCallback(
@@ -163,7 +184,8 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
         setDeadline(Date.now() + CHECK_TIME * 1000);
         return;
       }
-      if (a.src !== new URL(tr.url, location.href).href) a.src = tr.url;
+      const src = local[tr.url] ?? tr.url;
+      if (a.src !== new URL(src, location.href).href) a.src = src;
       // play() right away, inside the click that started the test (Safari/iOS block it later); seek once the length is known
       const seek = () => {
         if (Math.abs(a.currentTime - tr.start) > 1) a.currentTime = tr.start;
@@ -174,7 +196,7 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
       const idx = parts.findIndex((p) => p.part === tr.part);
       if (idx >= 0) setPart(idx);
     },
-    [playlist, parts, t],
+    [playlist, parts, t, local],
   );
   /** Time left in the recording now playing (later files of the playlist are not loaded yet). */
   function audioLeft() {
@@ -288,8 +310,8 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
           )}
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
           <div className="mt-6 flex gap-2">
-            <button onClick={begin} disabled={stage === "sending"} className="btn btn-lg btn-primary" autoFocus>
-              {stage === "sending" ? t("sending") : t("start")}
+            <button onClick={begin} disabled={stage === "sending" || (cur === "listening" && !ready)} className="btn btn-lg btn-primary" autoFocus>
+              {stage === "sending" ? t("sending") : cur === "listening" && !ready ? t("audioLoading", { pct: Math.round(loadPct * 100) }) : t("start")}
             </button>
             <Link href="/ielts" className="btn btn-lg btn-secondary">
               {t("exit")}

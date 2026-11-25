@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import * as I from "@/components/icons";
+import { localAudio } from "@/lib/ielts/audioCache";
 
 const SPEEDS = [0.75, 1, 1.25];
 const clock = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.floor(Math.max(0, s) % 60)).padStart(2, "0")}`;
@@ -18,6 +19,9 @@ export default function PartPlayer({ url, start, end }: { url: string; start: nu
   const [pos, setPos] = useState(0); // seconds from the part's start
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [src, setSrc] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(0);
+  const [failed, setFailed] = useState(false);
   const from = start ?? 0;
   const to = end ?? fileLen ?? 0;
   const len = Math.max(0, to - from);
@@ -25,6 +29,34 @@ export default function PartPlayer({ url, start, end }: { url: string; start: nu
   useEffect(() => {
     if (a.current) a.current.playbackRate = speed;
   }, [speed]);
+  // a local copy of the file: seeking to the part works whatever the server/proxy does with range requests
+  useEffect(() => {
+    let live = true;
+    setSrc(null);
+    setFailed(false);
+    localAudio(url, (p) => live && setLoaded(p))
+      .then((u) => live && setSrc(u))
+      .catch(() => live && setFailed(true));
+    return () => {
+      live = false;
+    };
+  }, [url]);
+
+  if (!src)
+    return (
+      <div className="flex min-w-0 flex-1 items-center gap-3 text-sm text-muted">
+        {failed ? (
+          <span className="text-red-600">{t("audioFailed")}</span>
+        ) : (
+          <>
+            <span className="flex-none">{t("audioLoading", { pct: Math.round(loaded * 100) })}</span>
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line/70">
+              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${Math.round(loaded * 100)}%` }} />
+            </div>
+          </>
+        )}
+      </div>
+    );
 
   const seek = (rel: number) => {
     const el = a.current;
@@ -45,7 +77,7 @@ export default function PartPlayer({ url, start, end }: { url: string; start: nu
     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
       <audio
         ref={a}
-        src={url}
+        src={src}
         preload="metadata"
         onLoadedMetadata={(e) => {
           setFileLen(e.currentTarget.duration);

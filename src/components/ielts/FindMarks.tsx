@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { findPartMarks, type PartMarks } from "@/lib/ielts/partMarks";
 import * as I from "@/components/icons";
+import { localAudio } from "@/lib/ielts/audioCache";
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
 
@@ -27,7 +28,10 @@ export default function FindMarks({ id, marks: initial }: { id: number; marks: P
   async function run() {
     setMsg(null);
     try {
-      const r = await saveMarks(id, `/api/ielts/audio/${id}`, (step, pct) => setBusy(t(`step.${step}`, { pct: Math.round(pct * 100) })));
+      const progress = (step: string, pct: number) => setBusy(t(`step.${step}`, { pct: Math.round(pct * 100) }));
+      // the same local copy the players use: downloaded once, then the practice pages open it at once
+      const src = await localAudio(`/api/ielts/audio/${id}`, (p) => progress("download", p));
+      const r = await saveMarks(id, src, progress);
       setMarks(r.marks);
       setMsg(Object.keys(r.marks).length ? t("done", { found: Object.keys(r.marks).length, parts: r.parts }) : t("none"));
       router.refresh();
