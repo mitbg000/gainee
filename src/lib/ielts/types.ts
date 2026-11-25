@@ -48,6 +48,34 @@ export function withoutPagePictures(c: SectionContent): SectionContent {
   return { ...drop(c), groups: (c.groups ?? []).map((g) => ({ ...drop(g), ...(g.items ? { items: g.items.map(drop) } : {}) })) };
 }
 
+/**
+ * An answer in the form its question takes: choice and matching → the letter or numeral only ("iv // Explaining the
+ * inductive method" → "iv", "C to explain…" → "C", "B/C" kept), TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN written out,
+ * completion: the key's "//" (= or) → "/".
+ */
+export function fitAnswer(g: Group, n: number, a: string): string {
+  if (g.type === "gap") return a.replace(/\s*\/\/\s*/g, "/");
+  if (g.type === "tfng" || g.type === "ynng") {
+    const v = a.trim().toUpperCase().replace(/\s+/g, " ");
+    const full: Record<string, string> = g.type === "tfng" ? { T: "TRUE", F: "FALSE", NG: "NOT GIVEN" } : { Y: "YES", N: "NO", NG: "NOT GIVEN" };
+    return full[v] ?? v;
+  }
+  const opts = g.type === "match" ? g.options : g.items?.find((it) => it.n.includes(n))?.options;
+  const keys = new Set((opts ?? []).map((o) => o.key));
+  if (!keys.size) return a;
+  // each "/" alternative starts with its letter; the words after it are the option's text
+  const found = [...new Set(a.split("/").map((alt) => alt.trim().split(/[\s.,;:)(]+/)[0]).filter((k) => keys.has(k)))];
+  return found.length ? found.join("/") : a;
+}
+export function fitAnswers(c: SectionContent, answers: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(answers).map(([n, a]) => {
+      const g = c.groups?.find((x) => Number(n) >= x.from && Number(n) <= x.to);
+      return [n, g ? fitAnswer(g, Number(n), String(a)) : a];
+    }),
+  );
+}
+
 /** Question numbers a section asks, in order. */
 export const numbersOf = (c: SectionContent) => c.groups.flatMap((g) => numbersOfGroup(g));
 export function numbersOfGroup(g: Pick<Group, "from" | "to">): number[] {

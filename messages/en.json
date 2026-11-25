@@ -1460,7 +1460,12 @@
       "readPictureFailed": "AI could not read the picture.",
       "readPictureCheck": "Copied, but blanks {nums} are not numbered right – fix them in the text.",
       "pictureMode": "Picture kept: the test shows the picture with answer lines “1. … 2. …”. Remove the picture (✕) to use the text with blanks above.",
-      "cropPassage": "Add a picture to the passage"
+      "cropPassage": "Add a picture to the passage",
+      "readKey": "Read answers with AI",
+      "readingKey": "AI is reading the key…",
+      "readKeyDone": "AI found {found} answers and added {added} missing ones – check, then Save.",
+      "readKeyFailed": "AI could not read the answer key.",
+      "noKeyPages": "No answer key pages found for this test in the book."
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",

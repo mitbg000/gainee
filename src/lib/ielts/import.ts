@@ -16,7 +16,7 @@ import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
 import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
-import { GROUP_TYPES, splitBlanks, withoutPagePictures, type Group, type Item, type SectionContent, type Skill } from "./types";
+import { fitAnswers, GROUP_TYPES, splitBlanks, withoutPagePictures, type Group, type Item, type SectionContent, type Skill } from "./types";
 
 const { ieltsBooks, ieltsPages, ieltsTests, ieltsSections, ieltsAudio } = schema;
 type Page = typeof ieltsPages.$inferSelect;
@@ -153,7 +153,7 @@ async function answerKey(testNo: number, text: string): Promise<{ listening: Rec
         role: "user",
         content: `From the answer key pages below take Test ${testNo} only (Listening and Reading, questions 1-40 each).
 Keep alternatives as written with "/" (e.g. "10/ten", "café/cafe", "metal(s)"). TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN in capitals.
-"21&22 IN EITHER ORDER B D" → "21":"B","22":"D".
+"21&22 IN EITHER ORDER B D" → "21":"B","22":"D". Choice and matching answers: the letter or roman numeral only ("iv", not "iv Explaining…").
 JSON: {"listening":{"1":"…",…,"40":"…"},"reading":{"1":"…",…,"40":"…"}}
 
 """
@@ -276,7 +276,7 @@ function withPictures(skill: Skill, part: number, c: RawSection, old?: SectionCo
 function answersFor(skill: Skill, c: SectionContent, key: Key, warnings: string[], had: Record<string, string> = {}) {
   const nums = numsOf(c.groups);
   const all: Record<string, string> = skill === "listening" ? key.listening : skill === "reading" ? key.reading : {};
-  const answers = Object.fromEntries(nums.flatMap((n) => (had[n] ? [[String(n), had[n]]] : all[n] ? [[String(n), String(all[n])]] : [])));
+  const answers = fitAnswers(c, Object.fromEntries(nums.flatMap((n) => (had[n] ? [[String(n), had[n]]] : all[n] ? [[String(n), String(all[n])]] : []))));
   if (skill !== "writing" && nums.length && Object.keys(answers).length < nums.length) warnings.push("Some answers are missing");
   return answers;
 }
@@ -503,6 +503,27 @@ Keep the layout: one printed line per line; "Label: text" when a line starts wit
   if (!first.wrong.length) return { text: first.text, wrong: [] };
   const second = await ask(`\nYour last copy had the blanks ${first.got.join(", ") || "none"}; it must have ${from}-${to}, each once, in printed order.`);
   return second.wrong.length <= first.wrong.length ? { text: second.text, wrong: second.wrong } : { text: first.text, wrong: first.wrong };
+}
+
+/**
+ * Review screen: AI reads this part's answers again from the book's answer key (the pages the outline found for the
+ * test; for older imports, pages that look like a key). Returns the answers it found for the part's question numbers.
+ */
+export async function readAnswers(sectionId: number): Promise<Record<string, string> | null> {
+  const db = getDb();
+  const [s] = await db.select().from(ieltsSections).where(eq(ieltsSections.id, sectionId));
+  if (!s || s.skill === "writing") return null;
+  const [t] = await db.select().from(ieltsTests).where(eq(ieltsTests.id, s.testId));
+  const pages = (await db.select().from(ieltsPages).where(eq(ieltsPages.bookId, t.bookId)).orderBy(asc(ieltsPages.page))).filter((p) => !EMPTY(p.text));
+  const planned = (await getSetting<Outline>(`ielts.plan.${t.bookId}`))?.tests?.find((x) => x.number === t.number)?.answerPages ?? [];
+  const keyPages = planned.length
+    ? pages.filter((p) => p.page >= Math.min(...planned) && p.page <= Math.max(...planned))
+    : pages.filter((p) => /answer/i.test(p.text ?? "") && (p.text?.match(/^\s*\d{1,2}[\s.)]/gm)?.length ?? 0) >= 8);
+  if (!keyPages.length) return null;
+  const key = await answerKey(t.number, curlyQuotes(keyPages.map((p) => `===== page ${p.page} =====\n${p.text ?? ""}`).join("\n")));
+  const all: Record<string, string> = s.skill === "listening" ? key.listening : key.reading;
+  const c = s.content as unknown as SectionContent;
+  return fitAnswers(c, Object.fromEntries(numsOf(c.groups).flatMap((n) => (all[n] ? [[String(n), String(all[n])]] : []))));
 }
 
 /** Re-read one section with AI (review screen button), keeping its answers when the new reply has none. */

@@ -157,6 +157,19 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     setG(i, { text: d.text });
     if (d.wrong.length) setMsg(t("readPictureCheck", { nums: d.wrong.join(", ") }));
   }
+  /** AI reads the answer key again; answers already written stay, the missing ones are filled in. */
+  async function readKey() {
+    setBusy("key");
+    setMsg(null);
+    const r = await fetch(`/api/ielts/sections/${data.id}/answers`, { method: "POST" }).catch(() => null);
+    setBusy(null);
+    if (!r?.ok) return setMsg(r?.status === 409 ? t("noAi") : r?.status === 404 ? t("noKeyPages") : t("readKeyFailed"));
+    const found = (await r.json()).answers as Record<string, string>;
+    const have = parseAnswers(answers);
+    const added = Object.keys(found).filter((n) => !have[n]).length;
+    setAnswers(formatAnswers(Object.fromEntries(Object.entries({ ...found, ...have }).sort((a, b) => Number(a[0]) - Number(b[0])))));
+    setMsg(t("readKeyDone", { found: Object.keys(found).length, added }));
+  }
   async function fixScript() {
     setBusy("script");
     setMsg(null);
@@ -359,7 +372,12 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                 <I.IconPlus /> {t("addGroup")}
               </button>
               <div className="rounded-2xl border border-line bg-card p-4">
-                <label className="block text-sm font-semibold">{t("answers")}</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex-1 text-sm font-semibold">{t("answers")}</label>
+                  <button onClick={readKey} disabled={!!busy} className="btn btn-sm btn-ghost">
+                    <I.IconSpark /> {busy === "key" ? t("readingKey") : t("readKey")}
+                  </button>
+                </div>
                 <p className="text-xs text-muted">{t("answersHint")}</p>
                 <textarea value={answers} onChange={(e) => setAnswers(e.target.value)} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
               </div>
