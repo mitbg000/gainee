@@ -2,6 +2,7 @@
 import { and, asc, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
+import { addXp, bumpActivity, XP } from "@/lib/activity";
 import { enqueue } from "@/lib/jobs";
 import { saveWriting } from "@/lib/writing";
 import { thinPassage } from "./coverage";
@@ -288,6 +289,11 @@ export async function saveAttempt(input: z.infer<typeof AttemptInput>) {
       seconds: input.seconds,
     })
     .$returningId();
+  // IELTS time counts like reading time: daily minutes (goal, streak, heat map) and XP for the time and right answers
+  const minutes = Math.min(180, Math.round(input.seconds / 60));
+  if (minutes) await bumpActivity({ minutes });
+  const right = Object.values(scores).reduce((a, s) => a + s.score, 0);
+  await addXp("ielts", Math.min(30, minutes * XP.readingMinute) + right * XP.correctAnswer, { type: "ielts_attempt", id });
   return id;
 }
 
