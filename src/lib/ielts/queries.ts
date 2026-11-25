@@ -6,12 +6,12 @@ import { enqueue } from "@/lib/jobs";
 import { saveWriting } from "@/lib/writing";
 import { thinPassage } from "./coverage";
 import { band, markSection, type Answers } from "./score";
-import { GROUP_TYPES, numbersOf, type SectionContent, type Skill } from "./types";
+import { GROUP_TYPES, numbersOf, withoutPagePictures, type SectionContent, type Skill } from "./types";
 
 const { ieltsBooks: books, ieltsPages: pages, ieltsTests: tests, ieltsSections: sections, ieltsAudio: audio, ieltsAttempts: attempts, jobs, writings } = schema;
 
 export type SectionRow = Omit<typeof sections.$inferSelect, "content"> & { content: SectionContent };
-const asSection = (s: typeof sections.$inferSelect): SectionRow => ({ ...s, content: s.content as unknown as SectionContent });
+const asSection = (s: typeof sections.$inferSelect): SectionRow => ({ ...s, content: withoutPagePictures(s.content as unknown as SectionContent) });
 
 /* ---------- books ---------- */
 export async function listBooks() {

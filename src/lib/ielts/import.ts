@@ -16,7 +16,7 @@ import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
 import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
-import { GROUP_TYPES, splitBlanks, type Group, type Item, type SectionContent, type Skill } from "./types";
+import { GROUP_TYPES, splitBlanks, withoutPagePictures, type Group, type Item, type SectionContent, type Skill } from "./types";
 
 const { ieltsBooks, ieltsPages, ieltsTests, ieltsSections, ieltsAudio } = schema;
 type Page = typeof ieltsPages.$inferSelect;
@@ -248,31 +248,26 @@ const textOfList = (pages: Page[], list: number[] = []) => (list.length ? textOf
 
 type Key = Awaited<ReturnType<typeof answerKey>>;
 
-/** Pictures: the whole page for now, the reviewer crops it. Returns the warnings with the crop notes added. */
-function withPictures(skill: Skill, part: number, c: RawSection, img: string | undefined, old?: SectionContent): string[] {
+/**
+ * Pictures are never attached automatically (whole pages or guessed crops were wrong): a note tells the reviewer what
+ * to crop, and pictures the reviewer already cropped are kept. Returns the warnings with the crop notes added.
+ */
+function withPictures(skill: Skill, part: number, c: RawSection, old?: SectionContent): string[] {
   const warnings = [...(c.warnings ?? [])];
   for (const g of c.groups) {
     const kept = old?.groups.find((o) => o.from === g.from && o.to === g.to)?.image; // already cropped by the reviewer
     if (kept) g.image = kept;
-    else if (g.figure) {
-      g.image = img;
-      warnings.push(`Questions ${g.from}-${g.to}: crop the picture`);
-    }
+    else if (g.figure) warnings.push(`Questions ${g.from}-${g.to}: crop the picture`);
     delete g.figure;
     for (const it of g.items ?? []) {
       const keptItem = old?.groups.flatMap((o) => o.items ?? []).find((o) => o.n[0] === it.n[0])?.image;
       if (keptItem) it.image = keptItem;
-      else if (it.figure) {
-        it.image = img;
-        warnings.push(`Question ${it.n[0]}: crop the picture`);
-      }
+      else if (it.figure) warnings.push(`Question ${it.n[0]}: crop the picture`);
       delete it.figure;
     }
   }
-  if (skill === "writing" && (c.figure || part === 1)) {
-    c.image = img;
-    warnings.push("Crop the chart/diagram");
-  }
+  if (skill === "writing") c.image = old?.image;
+  if (skill === "writing" && !c.image && (c.figure || part === 1)) warnings.push("Crop the chart/diagram");
   delete c.figure;
   return warnings;
 }
@@ -290,7 +285,7 @@ function answersFor(skill: Skill, c: SectionContent, key: Key, warnings: string[
  * Listening and Reading must hold questions 1-40. A part missing numbers (or a passage cut short) is read again with one,
  * then two more pages on each side; the better reading is kept. Returns how many parts were improved.
  */
-async function completeTest(job: Job, testId: number, pages: Page[], pageImg: Map<number, string | undefined>, getKey: () => Promise<Key>) {
+async function completeTest(job: Job, testId: number, pages: Page[], getKey: () => Promise<Key>) {
   const db = getDb();
   let key: Promise<Key> | undefined;
   const last = Math.max(...pages.map((p) => p.page));
@@ -300,7 +295,7 @@ async function completeTest(job: Job, testId: number, pages: Page[], pageImg: Ma
     const secs = all.filter((s) => s.skill === skill).sort((a, b) => a.part - b.part);
     const parts = secs.map((s) => ({ part: s.part, groups: (s.content as unknown as SectionContent).groups }));
     for (const [i, s] of secs.entries()) {
-      const old = s.content as unknown as SectionContent;
+      const old = withoutPagePictures(s.content as unknown as SectionContent);
       const want = expectedRange(parts, s.part); // from the current state: a part fixed before narrows this one
       const thin = (c: SectionContent) => skill === "reading" && thinPassage(c.passage);
       let best: RawSection | null = null;
@@ -323,7 +318,7 @@ async function completeTest(job: Job, testId: number, pages: Page[], pageImg: Ma
         if (!miss && !thin(best ?? old)) break;
       }
       if (!best) continue;
-      const warnings = withPictures(skill, s.part, best, pageImg.get(bestPages[0]), old);
+      const warnings = withPictures(skill, s.part, best, old);
       const answers = answersFor(skill, best, await (key ??= getKey()), warnings, s.answers);
       if (skill === "reading" && !best.passage) best.passage = old.passage;
       await db.update(ieltsSections).set({ content: { ...best, warnings } as unknown as Record<string, unknown>, answers, pages: bestPages, reviewed: false }).where(eq(ieltsSections.id, s.id));
@@ -347,7 +342,6 @@ export async function checkBook(job: Job) {
   const db = getDb();
   const pages = (await db.select().from(ieltsPages).where(eq(ieltsPages.bookId, bookId)).orderBy(asc(ieltsPages.page))).filter((p) => !EMPTY(p.text));
   if (!pages.length) return { improved: 0 };
-  const pageImg = new Map(pages.map((p) => [p.page, p.imagePath ? `/api/${p.imagePath}` : undefined]));
   const plan = await getSetting<Outline>(`ielts.plan.${bookId}`);
   const tests = await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId));
   let improved = 0;
@@ -355,7 +349,7 @@ export async function checkBook(job: Job) {
     // answers for questions found now: the answer key pages from the book's outline (none kept for older imports)
     const answerPages = plan?.tests?.find((x) => x.number === t.number)?.answerPages;
     const getKey = async () => (answerPages?.length ? await answerKey(t.number, textOfList(pages, answerPages)).catch(() => ({ listening: {}, reading: {} })) : { listening: {}, reading: {} });
-    improved += await completeTest(job, t.id, pages, pageImg, getKey);
+    improved += await completeTest(job, t.id, pages, getKey);
   }
   return { improved };
 }
@@ -395,7 +389,6 @@ export async function importBook(job: Job) {
     if (!resume) await db.delete(ieltsTests).where(eq(ieltsTests.bookId, bookId));
     const oldTests = await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId));
     const oldSections = oldTests.length ? await db.select({ testId: ieltsSections.testId, skill: ieltsSections.skill, part: ieltsSections.part, content: ieltsSections.content }).from(ieltsSections).where(inArray(ieltsSections.testId, oldTests.map((x) => x.id))) : [];
-    const pageImg = new Map(pages.map((p) => [p.page, p.imagePath ? `/api/${p.imagePath}` : undefined]));
     const lastPage = Math.max(...pages.map((p) => p.page));
     const audio = await db.select().from(ieltsAudio).where(eq(ieltsAudio.bookId, bookId));
 
@@ -437,7 +430,7 @@ export async function importBook(job: Job) {
         // the page shared with the previous part also shows its last questions: they are not this part's
         if (first) c.groups = c.groups.filter((g) => g.to >= first);
         if (first) lastQ[skill] = Math.max(first - 1, ...numsOf(c.groups));
-        const warnings = withPictures(skill, r.part, c, pageImg.get(range[0]));
+        const warnings = withPictures(skill, r.part, c);
         const answers = answersFor(skill, c, key, warnings);
         const file = skill === "listening" ? (files.find((f) => f.to?.part === r.part) ?? files.find((f) => !f.to?.part)) : undefined;
         await db.insert(ieltsSections).values({
@@ -454,7 +447,7 @@ export async function importBook(job: Job) {
         });
       }
       // parts with question numbers missing (too few pages taken) are read again with more pages
-      await completeTest(job, testId, pages, pageImg, async () => key);
+      await completeTest(job, testId, pages, async () => key);
     }
     await db.update(ieltsBooks).set({ status: "review" }).where(eq(ieltsBooks.id, bookId));
     return { tests: plan.tests.length };
@@ -529,13 +522,7 @@ export async function reparseSection(sectionId: number) {
   const first = s.skill === "writing" ? undefined : (before.length ? Math.max(...before) : 0) + 1;
   const c = await parseSection(s.skill, s.part, textOf(pages, [a, b]), { ...neighbours(all, s), first });
   if (first) c.groups = c.groups.filter((g) => g.to >= first);
-  const old = s.content as unknown as SectionContent;
-  for (const g of c.groups) {
-    g.image = old.groups.find((o) => o.from === g.from && o.to === g.to)?.image;
-    delete g.figure;
-  }
-  delete c.figure;
-  if (s.skill === "writing") c.image = old.image;
+  c.warnings = withPictures(s.skill, s.part, c, withoutPagePictures(s.content as unknown as SectionContent));
   await db.update(ieltsSections).set({ content: c as unknown as Record<string, unknown>, reviewed: false }).where(eq(ieltsSections.id, sectionId));
   return c;
 }

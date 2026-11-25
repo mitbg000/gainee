@@ -41,6 +41,13 @@ export type SectionContent = {
 export type Skill = "listening" | "reading" | "writing";
 export const SKILL_TIME: Record<Skill, number> = { listening: 30 * 60, reading: 60 * 60, writing: 60 * 60 };
 
+/** Whole book pages ("/api/images/ielts/…") that older imports attached as pictures: dropped, the reviewer crops instead. */
+const isBookPage = (url?: string) => !!url?.startsWith("/api/images/ielts/");
+export function withoutPagePictures(c: SectionContent): SectionContent {
+  const drop = <T extends { image?: string }>(x: T): T => (isBookPage(x.image) ? { ...x, image: undefined } : x);
+  return { ...drop(c), groups: (c.groups ?? []).map((g) => ({ ...drop(g), ...(g.items ? { items: g.items.map(drop) } : {}) })) };
+}
+
 /** Question numbers a section asks, in order. */
 export const numbersOf = (c: SectionContent) => c.groups.flatMap((g) => numbersOfGroup(g));
 export function numbersOfGroup(g: Pick<Group, "from" | "to">): number[] {
