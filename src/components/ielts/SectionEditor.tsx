@@ -143,6 +143,15 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     setIntro(c.intro ?? "");
     setPrompt(c.prompt ?? "");
   }
+  async function fixScript() {
+    setBusy("script");
+    setMsg(null);
+    const r = await fetch(`/api/ielts/sections/${data.id}/fix-script`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: transcript }) }).catch(() => null);
+    setBusy(null);
+    if (!r?.ok) return setMsg(r?.status === 409 ? t("noAi") : t("fixScriptFailed"));
+    setTranscript((await r.json()).text);
+    setMsg(t("fixScriptDone"));
+  }
   async function onCrop(img: HTMLImageElement, box: { x: number; y: number; w: number; h: number }) {
     if (cropFor === null) return;
     setBusy("crop");
@@ -326,7 +335,12 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                       </div>
                     </>
                   )}
-                  <label className="block text-sm font-semibold">{t("transcript")}</label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="flex-1 text-sm font-semibold">{t("transcript")}</label>
+                    <button onClick={fixScript} disabled={!!busy || transcript.trim().length < 20} className="btn btn-sm btn-ghost">
+                      <I.IconSpark /> {busy === "script" ? t("fixingScript") : t("fixScript")}
+                    </button>
+                  </div>
                   <textarea value={transcript} onChange={(e) => setTranscript(e.target.value)} rows={8} className="field w-full py-2 text-sm" />
                 </div>
               )}

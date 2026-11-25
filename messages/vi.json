@@ -1363,7 +1363,9 @@
       "edit": "Duyệt",
       "audioFiles": "File audio",
       "incomplete": "chưa tải xong",
-      "marksHint": "File chứa cả đề: bấm “AI tìm mốc Part” để tự đặt chỗ bắt đầu và kết thúc của từng Part (chạy trên máy này)."
+      "marksHint": "File chứa cả đề: bấm “AI tìm mốc Part” để tự đặt chỗ bắt đầu và kết thúc của từng Part (chạy trên máy này).",
+      "fixScripts": "Sửa {n} transcript bị tách tên người nói",
+      "fixScriptsSent": "Đã gửi AI sửa, tải lại trang sau vài phút"
     },
     "edit": {
       "back": "Quay lại bộ đề",
@@ -1416,7 +1418,11 @@
       "cropping": "Đang cắt…",
       "cropHint": "Kéo chuột khoanh vùng hình trên trang.",
       "cancel": "Huỷ",
-      "noPages": "Không có ảnh trang trong khoảng này."
+      "noPages": "Không có ảnh trang trong khoảng này.",
+      "fixScript": "Sửa transcript bằng AI",
+      "fixingScript": "AI đang sửa…",
+      "fixScriptFailed": "AI sửa transcript bị lỗi.",
+      "fixScriptDone": "Đã sửa transcript, xem lại rồi bấm Lưu."
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",

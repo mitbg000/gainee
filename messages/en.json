@@ -1363,7 +1363,9 @@
       "edit": "Check",
       "audioFiles": "Audio files",
       "incomplete": "incomplete",
-      "marksHint": "Whole-test files: press “Find part marks with AI” to set where each part starts and ends (runs on this computer)."
+      "marksHint": "Whole-test files: press “Find part marks with AI” to set where each part starts and ends (runs on this computer).",
+      "fixScripts": "Repair {n} transcripts with split speaker names",
+      "fixScriptsSent": "Sent to AI – reload in a few minutes"
     },
     "edit": {
       "back": "Back to the book",
@@ -1416,7 +1418,11 @@
       "cropping": "Cropping…",
       "cropHint": "Drag a box around the picture on the page.",
       "cancel": "Cancel",
-      "noPages": "No page images in this range."
+      "noPages": "No page images in this range.",
+      "fixScript": "Repair transcript with AI",
+      "fixingScript": "AI is repairing…",
+      "fixScriptFailed": "AI could not repair the transcript.",
+      "fixScriptDone": "Transcript repaired – check it, then Save."
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",

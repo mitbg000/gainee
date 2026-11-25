@@ -157,6 +157,49 @@ export function splitScript(text: string): Record<number, string> {
   return out;
 }
 
+/** Speaker names printed as a block apart from their lines ("WOMAN:\nMAN:\nWOMAN:…"): text taken from a two-column page. */
+export const scriptLooksBroken = (t: string | null) => !!t && /(^[A-Z][A-Z .'’-]{0,24}:\s*\n){3,}/m.test(t);
+
+/** Rebuild a transcript whose speaker names were separated from their lines, and fix encoding slips (Â£ → £). */
+export async function fixTranscript(text: string): Promise<string> {
+  const { text: out } = await chat({
+    task: "ielts_import",
+    temperature: 0,
+    maxTokens: 8000,
+    timeoutMs: 240_000,
+    messages: [
+      { role: "system", content: "You repair IELTS listening transcripts copied from PDFs. Reply with the repaired transcript only, no comments." },
+      {
+        role: "user",
+        content: `In this transcript the speaker names were printed in a column apart from their lines, so they appear as a block. Rebuild the dialogue:
+- every turn on its own line starting with its speaker name, e.g. "WOMAN: Hello, Oyster Bay Sailing Club."; use the names in the order given and the conversation to decide who says what
+- keep every spoken word exactly; join lines broken in the middle of a sentence
+- remove page numbers, running heads ("Test 1", "Audioscripts") and answer markers ("Q11", "08" in the margin)
+- fix broken characters such as "Â£" → "£", "â€™" → "’"
+- a monologue (one speaker) stays as paragraphs
+
+"""
+${text}
+"""`,
+      },
+    ],
+  });
+  return out.replace(/^```\w*\n?|```$/g, "").trim();
+}
+
+/** Worker job: repair every broken-looking Listening transcript of a book (payload: { bookId }). */
+export async function fixBookScripts(job: Job) {
+  const db = getDb();
+  const ts = await db.select({ id: ieltsTests.id }).from(ieltsTests).where(eq(ieltsTests.bookId, Number(job.payload.bookId)));
+  if (!ts.length) return { fixed: 0 };
+  const ss = (await db.select({ id: ieltsSections.id, transcript: ieltsSections.transcript }).from(ieltsSections).where(and(inArray(ieltsSections.testId, ts.map((t) => t.id)), eq(ieltsSections.skill, "listening")))).filter((s) => scriptLooksBroken(s.transcript) || s.transcript?.includes("Â"));
+  for (const [i, s] of ss.entries()) {
+    await setProgress(job.id, `transcript ${i + 1}/${ss.length}`);
+    await db.update(ieltsSections).set({ transcript: await fixTranscript(s.transcript!) }).where(eq(ieltsSections.id, s.id));
+  }
+  return { fixed: ss.length };
+}
+
 /** "Cambridge 21 - Test 1.mp3" → {test:1}; "Test 6 Section 4.mp3" / "IELTS11_Test1_Section1" → {test, part}. */
 export function audioTarget(name: string): { test: number; part?: number } | null {
   const t = name.match(/test[\s_-]*(\d{1,2})/i);
@@ -164,6 +207,9 @@ export function audioTarget(name: string): { test: number; part?: number } | nul
   const p = name.match(/(?:section|part)[\s_-]*([1-4])/i);
   return { test: Number(t[1]), part: p ? Number(p[1]) : undefined };
 }
+
+/** Transcript as stored: repaired by AI when the names came apart from the lines (kept as is if AI fails). */
+const repaired = async (t: string | undefined) => (!t ? null : scriptLooksBroken(t) ? await fixTranscript(t).catch(() => t) : t);
 
 const textOf = (pages: Page[], [a, b]: [number, number]) =>
   pages
@@ -249,7 +295,7 @@ export async function importBook(job: Job) {
             title: skill === "reading" ? (c.passage?.match(/^#\s*(.+)$/m)?.[1]?.slice(0, 250) ?? null) : null,
             content: { ...c, warnings } as unknown as Record<string, unknown>,
             answers,
-            transcript: skill === "listening" ? (scripts[r.part] ?? null) : null,
+            transcript: skill === "listening" ? await repaired(scripts[r.part]) : null,
             // a whole-test file with part marks (found in the browser) gets this part's stretch
             audio: file ? (!file.to?.part && file.a.marks?.[r.part] !== undefined ? { fileId: file.a.id, start: file.a.marks[r.part], end: file.a.marks[r.part + 1] ?? null } : { fileId: file.a.id }) : null,
             pages: [range[0], range[1]],

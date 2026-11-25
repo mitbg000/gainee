@@ -4,6 +4,9 @@ import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import BookActions from "@/components/ielts/BookActions";
 import FindMarks from "@/components/ielts/FindMarks";
+import { and, eq, inArray } from "drizzle-orm";
+import { getDb, schema } from "@/db";
+import { scriptLooksBroken } from "@/lib/ielts/import";
 import { audioFiles, listBooks } from "@/lib/ielts/queries";
 import * as I from "@/components/icons";
 
@@ -16,6 +19,11 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const book = (await listBooks()).find((b) => b.id === id);
   if (!book) notFound();
   const files = await audioFiles(id);
+  const testIds = book.tests.map((x) => x.id);
+  const scripts = testIds.length
+    ? await getDb().select({ t: schema.ieltsSections.transcript }).from(schema.ieltsSections).where(and(inArray(schema.ieltsSections.testId, testIds), eq(schema.ieltsSections.skill, "listening")))
+    : [];
+  const brokenScripts = scripts.filter((s) => scriptLooksBroken(s.t) || s.t?.includes("Â")).length;
   const all = book.tests.flatMap((x) => x.sections);
   const reviewed = all.filter((s) => s.reviewed).length;
 
@@ -27,7 +35,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       <h1 className="mt-1 font-serif text-3xl font-bold">{book.title}</h1>
       <p className="mt-1 text-sm text-muted">{t("summary", { pages: book.pageCount, tests: book.tests.length, reviewed, total: all.length })}</p>
       <div className="mt-3">
-        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} />
+        <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} />
       </div>
       {book.error && <p className="mt-3 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">{book.error}</p>}
       {book.status === "uploading" && <p className="mt-3 text-sm text-muted">{t("uploading")}</p>}

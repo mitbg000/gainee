@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import * as I from "@/components/icons";
 import { saveMarks } from "./FindMarks";
+import { pageText, shownAt } from "@/lib/ielts/pdfText";
 
 const CHUNK = 8 * 1024 * 1024;
 const PAGE_WIDTH = 1400; // px: sharp enough to crop a map or chart, ~150 KB per page as WebP
@@ -77,8 +78,9 @@ export default function ImportBook() {
         setPct(p / n);
         const page = await doc.getPage(p);
         const tc = await page.getTextContent();
-        let text = tc.items.map((it) => ("str" in it ? it.str + (it.hasEOL ? "\n" : " ") : "")).join("").replace(/[ \t]+\n/g, "\n").trim();
         const vp1 = page.getViewport({ scale: 1 });
+        // speaker names back in front of their lines (audioscripts), positions as shown even on rotated scans
+        let text = pageText(tc.items.flatMap((it) => ("str" in it ? [{ str: it.str, hasEOL: it.hasEOL, ...shownAt(vp1.transform, it.transform) }] : [])));
         const vp = page.getViewport({ scale: PAGE_WIDTH / vp1.width });
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(vp.width);

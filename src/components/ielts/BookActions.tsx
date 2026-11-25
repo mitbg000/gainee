@@ -7,11 +7,12 @@ import { uploadAudio } from "./ImportBook";
 import * as I from "@/components/icons";
 
 /** Book page tools: live progress while the worker reads the book, read again, add audio, delete. */
-export default function BookActions({ id, status, hasTests }: { id: number; status: string; hasTests: boolean }) {
+export default function BookActions({ id, status, hasTests, brokenScripts = 0 }: { id: number; status: string; hasTests: boolean; brokenScripts?: number }) {
   const t = useTranslations("ielts.book");
   const router = useRouter();
   const [progress, setProgress] = useState<string | null>(null);
   const [upload, setUpload] = useState<string | null>(null);
+  const [fixSent, setFixSent] = useState(false);
 
   useEffect(() => {
     if (status !== "parsing") return;
@@ -29,6 +30,10 @@ export default function BookActions({ id, status, hasTests }: { id: number; stat
     if (hasTests && !confirm(t("reimportConfirm"))) return;
     await fetch(`/api/ielts/books/${id}/import`, { method: "POST" });
     router.refresh();
+  }
+  async function fixScripts() {
+    const r = await fetch(`/api/ielts/books/${id}/fix-scripts`, { method: "POST" });
+    if (r.ok) setFixSent(true);
   }
   async function remove() {
     if (!confirm(t("deleteConfirm"))) return;
@@ -56,6 +61,11 @@ export default function BookActions({ id, status, hasTests }: { id: number; stat
         <I.IconHeadphones /> {upload ?? t("addAudio")}
         <input type="file" accept="audio/*,.mp3,.m4a" multiple className="sr-only" onChange={(e) => addAudio(e.target.files)} disabled={!!upload} />
       </label>
+      {brokenScripts > 0 && (
+        <button onClick={fixScripts} disabled={fixSent} className="btn btn-sm btn-primary">
+          <I.IconSpark /> {fixSent ? t("fixScriptsSent") : t("fixScripts", { n: brokenScripts })}
+        </button>
+      )}
       <button onClick={reimport} disabled={status === "parsing"} className="btn btn-sm btn-secondary">
         <I.IconRefresh /> {t("reimport")}
       </button>
