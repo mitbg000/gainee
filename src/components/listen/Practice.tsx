@@ -62,6 +62,9 @@ export default function Practice(p: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [stats, setStats] = useState({ clean: 0, fixed: 0, hinted: 0, skipped: 0 });
   const recorded = useRef(new Set<number>());
+  // what was written at each place of the queue, so going back shows it again (by place: a sentence asked again at
+  // the end of the session starts empty)
+  const kept = useRef(new Map<number, Cur>());
   const [doneIds, setDoneIds] = useState<Set<number>>(() => new Set());
   const doneBox = useRef<HTMLOListElement>(null);
   const requeued = useRef(new Set<number>());
@@ -85,7 +88,7 @@ export default function Practice(p: Props) {
 
   // a new sentence: fresh state, play it, focus the box
   useEffect(() => {
-    setCur(fresh());
+    setCur(kept.current.get(i) ?? fresh());
     setEditing(null);
     look.setTool(null);
     if (!item) return;
@@ -174,6 +177,7 @@ export default function Practice(p: Props) {
   function next() {
     if (!item) return;
     if (p.mode === "source" && p.sourceId) fetch(`/api/listen/sources/${p.sourceId}`, { method: "PATCH", ...json({ position: i + 1 < queue.length ? queue[i + 1].idx : 0 }) });
+    kept.current.set(i, cur);
     setI(i + 1);
   }
 
@@ -403,7 +407,7 @@ export default function Practice(p: Props) {
             )}
           </div>
 
-          <StepNav n={i + 1} total={queue.length} onPrev={() => setI(i - 1)} onNext={next} className="-mx-1 mt-4 border-t border-line pt-3" />
+          <StepNav n={i + 1} total={queue.length} onPrev={() => (kept.current.set(i, cur), setI(i - 1))} onNext={next} className="-mx-1 mt-4 border-t border-line pt-3" />
         </div>
 
         {/* the captions can be wrong (automatic ones especially): fix the sentence, or report it */}
