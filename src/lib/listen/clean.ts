@@ -82,3 +82,45 @@ export function clean<T extends CleanRow>(rows: T[], minWords = 4, maxWords = 25
   }
   return { rows: joined, report };
 }
+
+/* ---------- AI clean-up: the AI groups lines and names speakers; its words are checked against the captions ---------- */
+
+export type AiSentence = { from: number; to: number; speaker?: string | null; text: string };
+const toks = (s: string) => s.toLowerCase().replace(/[’‘]/g, "'").split(/\s+/).map((w) => w.replace(/[^\p{L}\p{N}']/gu, "")).filter(Boolean);
+
+/** `b` is `a` with words left out only (no word added, changed or moved). */
+function onlyDeletes(a: string[], b: string[]): boolean {
+  let i = 0;
+  for (const w of b) {
+    while (i < a.length && a[i] !== w) i++;
+    if (i++ >= a.length) return false;
+  }
+  return true;
+}
+
+/**
+ * Apply the AI's sentences to `rows` (indexes into it). Accepted only when the sentences cover the rows in order with
+ * no gap or overlap; each sentence keeps the AI's text when it only left out non-speech (at most a couple of words
+ * more than the rule-based clean-up removes), else the rule-based text. Times come from the rows, so they stay exact.
+ */
+export function applyAi<T extends CleanRow>(rows: T[], ai: AiSentence[]): { rows: T[]; fixed: number } | null {
+  let next = 0;
+  for (const s of ai) {
+    if (!Number.isInteger(s.from) || !Number.isInteger(s.to) || s.from !== next || s.to < s.from || s.to >= rows.length) return null;
+    next = s.to + 1;
+  }
+  if (next !== rows.length) return null;
+  let fixed = 0;
+  const out: T[] = [];
+  for (const s of ai) {
+    const part = rows.slice(s.from, s.to + 1);
+    const joined = part.map((r) => r.text).join(" ");
+    const rule = clean([{ ...part[0], text: joined, end: part[part.length - 1].end }], 0).rows[0];
+    const good = onlyDeletes(toks(joined), toks(s.text)) && toks(s.text).length >= (rule ? toks(rule.text).length : 0) - 2;
+    if (!good) fixed++;
+    const text = (good ? s.text : (rule?.text ?? "")).replace(/\s+/g, " ").trim();
+    if (!text) continue;
+    out.push({ ...part[0], end: part[part.length - 1].end, text, speaker: (s.speaker?.trim() || null) ?? part[0].speaker, hidden: part.every((r) => r.hidden) });
+  }
+  return { rows: out, fixed };
+}

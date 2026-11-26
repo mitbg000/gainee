@@ -1673,7 +1673,12 @@
       "clean": "Clean up",
       "cleanHint": "Removes sound tags ((Applause), [Music], ♪…), moves speaker labels (\"Chris Anderson:\", \"CA:\") to the speaker field, joins very short sentences to a neighbour. Nothing is cut, so times stay.",
       "undo": "Undo",
-      "cleaned": "Removed {tags} sound tags and {labels} speaker labels, joined {joined} short sentences, dropped {removed} empty ones. Save to keep it."
+      "cleaned": "Removed {tags} sound tags and {labels} speaker labels, joined {joined} short sentences, dropped {removed} empty ones. Save to keep it.",
+      "aiClean": "Clean up with AI",
+      "aiCleanHint": "AI removes tags and speaker labels, joins lines into whole sentences (under ~25 words, 8 s) and names speakers. It may not change words: a sentence where it did gets the rule-based clean-up. Times stay.",
+      "aiWorking": "AI is cleaning up…",
+      "aiFailed": "AI could not do it now (check the AI settings); try again or use Clean up.",
+      "aiCleaned": "AI: {before} lines → {after} sentences. {fixed} sentences had changed words (rule-based text kept), {fallback} pieces done without AI. Save to keep it."
     },
     "ielts": {
       "redoConfirm": "This part is already in the bank. Cutting it again resets its practice history. Continue?",

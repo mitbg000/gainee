@@ -32,6 +32,22 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
   const [undo, setUndo] = useState<Row[] | null>(null);
   const [cleaned, setCleaned] = useState<string | null>(null);
 
+  const [aiBusy, setAiBusy] = useState(false);
+  /** Same as tidyUp, by AI: it joins lines by meaning and names speakers; the server checks it changed no spoken word. */
+  async function tidyUpAi() {
+    setAiBusy(true);
+    setCleaned(t("aiWorking"));
+    const r = await fetch("/api/listen/clean-ai", { method: "POST", ...json({ rows: rows.map((x, i) => ({ i, start: x.start, end: x.end, text: x.text, speaker: x.speaker, hidden: x.hidden })) }) }).catch(() => null);
+    setAiBusy(false);
+    if (!r?.ok) return setCleaned(t("aiFailed"));
+    const j: { rows: { i: number; start: number; end: number; text: string; speaker: string | null; hidden: boolean }[]; fallback: number; fixed: number } = await r.json();
+    setUndo(rows);
+    // each result is the first of the lines it joined: it keeps that line's id (and practice history)
+    setRows(j.rows.map((x) => ({ ...rows[x.i], start: x.start, end: x.end, text: x.text, speaker: x.speaker, hidden: x.hidden })));
+    setDirty(true);
+    setCleaned(t("aiCleaned", { before: rows.length, after: j.rows.length, fixed: j.fixed, fallback: j.fallback }));
+  }
+
   function tidyUp() {
     const r = clean(rows);
     setUndo(rows);
@@ -128,7 +144,10 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
           )}
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={tidyUp} className="btn btn-sm btn-secondary" title={t("cleanHint")}>
-              <I.IconSpark /> {t("clean")}
+              <I.IconChecklist /> {t("clean")}
+            </button>
+            <button onClick={tidyUpAi} disabled={aiBusy} className="btn btn-sm btn-secondary" title={t("aiCleanHint")}>
+              <I.IconSpark /> {aiBusy ? t("aiWorking") : t("aiClean")}
             </button>
             {undo && (
               <button onClick={() => (setRows(undo), setUndo(null), setCleaned(null))} className="btn btn-sm btn-ghost">
