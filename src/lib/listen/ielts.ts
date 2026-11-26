@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { UPLOAD_DIR } from "@/lib/storage";
+import { queueClips } from "./clips";
 import { saveSource } from "./queries";
 import { align, scriptWords, snap, toSentences, type TWord } from "./segment";
 
@@ -85,6 +86,7 @@ export async function cutSection(sectionId: number, onStep: (msg: string) => Pro
   const [test] = await db.select({ title: schema.ieltsTests.title, bookId: schema.ieltsTests.bookId }).from(schema.ieltsTests).where(eq(schema.ieltsTests.id, sec.testId));
   const [book] = test ? await db.select({ title: schema.ieltsBooks.title }).from(schema.ieltsBooks).where(eq(schema.ieltsBooks.id, test.bookId)) : [];
   const id = await saveSource({ kind: "ielts", sectionId: sec.id, title: [book?.title, test?.title, `Listening Part ${sec.part}`].filter(Boolean).join(" · ").slice(0, 255), captions: "script" }, clips);
+  await queueClips(sec.audio.fileId); // the old sentences' clips go, the new ones are cut ahead
   return { sourceId: id, sentences: clips.length, heard: heard.length };
 }
 

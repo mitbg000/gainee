@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { bad, idParam, parseBody } from "@/lib/api";
-import { enqueue } from "@/lib/jobs";
+import { audioOfSource, queueClips } from "@/lib/listen/clips";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -15,16 +15,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (err) return err;
   await getDb().update(schema.listenSources).set(data).where(eq(schema.listenSources.id, id));
   // sentences confirmed: cut their audio ahead, so practice never waits for the whole recording
-  if (data.reviewed) {
-    const [src] = await getDb().select({ kind: schema.listenSources.kind }).from(schema.listenSources).where(eq(schema.listenSources.id, id));
-    if (src?.kind === "ielts") await enqueue("listen_clips", { sourceId: id });
-  }
+  if (data.reviewed) await queueClips(await audioOfSource(id));
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(_req: Request, { params }: Ctx) {
   const id = idParam((await params).id);
   if (!id) return bad("invalid");
+  const audioId = await audioOfSource(id);
   await getDb().delete(schema.listenSources).where(eq(schema.listenSources.id, id));
+  await queueClips(audioId); // its clips go
   return NextResponse.json({ ok: true });
 }
