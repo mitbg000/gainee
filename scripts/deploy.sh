@@ -16,7 +16,8 @@ if [ "${1:-}" != "--no-pull" ] && [ -d .git ]; then
 fi
 
 echo "==> Installing dependencies"
-npm ci --no-audit --no-fund
+# speech recognition runs on the CPU: skip onnxruntime-node's CUDA download (404s, and no GPU here)
+ONNXRUNTIME_NODE_INSTALL_CUDA=skip npm ci --no-audit --no-fund
 
 echo "==> Building"
 NEXT_TELEMETRY_DISABLED=1 npm run build
