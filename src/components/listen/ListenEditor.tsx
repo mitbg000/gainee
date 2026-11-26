@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import * as I from "@/components/icons";
+import { clean } from "@/lib/listen/clean";
 import type { Media } from "@/lib/listen/queries";
 import { useClipPlayer } from "./useClipPlayer";
 
@@ -28,6 +29,16 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const boxes = useRef(new Map<number, HTMLTextAreaElement>());
+  const [undo, setUndo] = useState<Row[] | null>(null);
+  const [cleaned, setCleaned] = useState<string | null>(null);
+
+  function tidyUp() {
+    const r = clean(rows);
+    setUndo(rows);
+    setRows(r.rows);
+    setDirty(true);
+    setCleaned(t("cleaned", r.report));
+  }
 
   useEffect(() => {
     if (media.kind === "youtube") player.cueVideo(media.youtubeId, rows0[0]?.start ?? 0);
@@ -115,6 +126,17 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
               <input type="checkbox" checked={onlyLow} onChange={(e) => setOnlyLow(e.target.checked)} /> {t("onlyLow", { n: low })}
             </label>
           )}
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={tidyUp} className="btn btn-sm btn-secondary" title={t("cleanHint")}>
+              <I.IconSpark /> {t("clean")}
+            </button>
+            {undo && (
+              <button onClick={() => (setRows(undo), setUndo(null), setCleaned(null))} className="btn btn-sm btn-ghost">
+                <I.IconUndo /> {t("undo")}
+              </button>
+            )}
+          </div>
+          {cleaned && <p className="text-xs text-muted">{cleaned}</p>}
           <div className="flex flex-wrap gap-2">
             <button onClick={() => save(true)} disabled={saving} className="btn btn-primary">
               <I.IconCheck /> {t("saveReviewed")}

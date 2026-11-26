@@ -5,7 +5,9 @@ import AddYoutube from "@/components/listen/AddYoutube";
 import DeleteSource from "@/components/listen/DeleteSource";
 import Launcher from "@/components/listen/Launcher";
 import { MISS_KINDS } from "@/lib/listen/check";
-import { dueCount, listSources, missTotals } from "@/lib/listen/queries";
+import IeltsToBank from "@/components/listen/IeltsToBank";
+import { audioOf } from "@/lib/ielts/labels";
+import { dueCount, ieltsParts, listSources, missTotals } from "@/lib/listen/queries";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +15,8 @@ export const dynamic = "force-dynamic";
 /** Listening bank: dictation sentences from YouTube videos and IELTS Listening parts. */
 export default async function ListenPage() {
   const t = await getTranslations("listen");
-  const [sources, due, misses] = await Promise.all([listSources(), dueCount(), missTotals()]);
+  const [sources, due, misses, parts] = await Promise.all([listSources(), dueCount(), missTotals(), ieltsParts()]);
+  const books = [...new Map(parts.map((p) => [p.bookId, p.book])).entries()];
   const missTotal = Object.values(misses).reduce((a, b) => a + b, 0);
 
   return (
@@ -71,6 +74,31 @@ export default async function ListenPage() {
           </li>
         ))}
       </ul>
+
+      {/* IELTS Listening parts: add one to the bank here (or from its practice page) */}
+      {parts.length > 0 && (
+        <details className="mt-8 rounded-2xl border border-line bg-card p-4" open={!sources.some((s) => s.kind === "ielts")}>
+          <summary className="cursor-pointer font-serif text-xl font-bold">{t("ieltsParts", { added: parts.filter((p) => p.sourceId).length, n: parts.length })}</summary>
+          <p className="mt-1 text-sm text-muted">{t("ieltsPartsHint")}</p>
+          {books.map(([bookId, book]) => (
+            <div key={bookId} className="mt-4">
+              <p className="text-sm font-semibold">{book}</p>
+              <ul className="mt-1 divide-y divide-line">
+                {parts
+                  .filter((p) => p.bookId === bookId)
+                  .map((p) => (
+                    <li key={p.id} className="flex flex-wrap items-center gap-2 py-2">
+                      <span className="min-w-0 flex-1 text-sm">
+                        {p.test} · Listening Part {p.part}
+                      </span>
+                      <IeltsToBank sectionId={p.id} audio={audioOf(p.audio)!} hasScript={p.script} sourceId={p.sourceId} />
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </details>
+      )}
     </Shell>
   );
 }

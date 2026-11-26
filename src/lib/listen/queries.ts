@@ -7,7 +7,7 @@ import { getDb, schema } from "@/db";
 import { addXp, bumpActivity, XP } from "@/lib/activity";
 import { rate, type Clip } from "./segment";
 
-const { listenSources: src, listenItems: items, ieltsSections, words } = schema;
+const { listenSources: src, listenItems: items, ieltsSections, ieltsTests, ieltsBooks, words } = schema;
 
 export type Source = typeof src.$inferSelect;
 export type Item = typeof items.$inferSelect;
@@ -209,4 +209,19 @@ export async function saveItems(sourceId: number, list: EditItem[]) {
     if (x.id && keep.has(x.id)) await db.update(items).set(v).where(and(eq(items.id, x.id), eq(items.sourceId, sourceId)));
     else await db.insert(items).values({ ...v, sourceId });
   }
+}
+
+/** IELTS Listening parts that have audio, by book and test, with their place in the bank (if added). */
+export async function ieltsParts() {
+  const db = getDb();
+  const rows = await db
+    .select({ id: ieltsSections.id, part: ieltsSections.part, audio: ieltsSections.audio, script: sql<number>`length(trim(coalesce(${ieltsSections.transcript}, ''))) > 0`, test: ieltsTests.title, testNo: ieltsTests.number, book: ieltsBooks.title, bookId: ieltsBooks.id })
+    .from(ieltsSections)
+    .innerJoin(ieltsTests, eq(ieltsSections.testId, ieltsTests.id))
+    .innerJoin(ieltsBooks, eq(ieltsTests.bookId, ieltsBooks.id))
+    .where(and(eq(ieltsSections.skill, "listening"), isNotNull(ieltsSections.audio)))
+    .orderBy(asc(ieltsBooks.id), asc(ieltsTests.number), asc(ieltsSections.part));
+  const have = await db.select({ id: src.id, sectionId: src.sectionId }).from(src).where(isNotNull(src.sectionId));
+  const bank = new Map(have.map((h) => [h.sectionId, h.id]));
+  return rows.map((r) => ({ ...r, script: !!Number(r.script), sourceId: bank.get(r.id) ?? null }));
 }
