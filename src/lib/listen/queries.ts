@@ -64,8 +64,8 @@ export async function getSource(id: number) {
   return { source: s, items: rows, play: play(rows, media), media: media.get(s.id) ?? null, saved };
 }
 
-/** Practice scope: everything, one source, YouTube only, IELTS only, fast speech, sentences with numbers. */
-export const SCOPES = ["all", "youtube", "ielts", "fast", "numbers"] as const;
+/** Practice scope: everything, one source, fast speech, sentences with numbers (old "youtube" / "ielts" still read). */
+export const SCOPES = ["all", "fast", "numbers"] as const;
 function scopeWhere(scope: string): SQL[] {
   const w: SQL[] = [eq(items.hidden, false)];
   const one = scope.match(/^src:(\d+)$/);
@@ -94,12 +94,15 @@ export function interleave<T extends { sourceId: number }>(xs: T[]): T[] {
  * - random: sentences of the current round not shown yet in it (round = times shown in random practice), shuffled;
  *   sentences in the review schedule are left to review
  * - mix: about 30 % review, the rest random
+ * Random sentences come from IELTS recordings only, unless the scope is one source: a YouTube video has to load in the
+ * player for every sentence of another video, so videos are practised one at a time ("src:<id>").
  */
 export async function pickSession(mode: "review" | "random" | "mix", scope: string, n: number) {
   const db = getDb();
   const where = scopeWhere(scope);
-  const dueRows = mode === "random" ? [] : await db.select().from(items).where(and(...where, isNotNull(items.due), lte(items.due, sql`now(3)`))).orderBy(asc(items.due)).limit(mode === "review" ? n : Math.ceil(n * 0.3));
-  const fresh = and(...where, sql`(${items.due} is null or ${items.due} > now(3))`);
+  const mixed = mode !== "review" && !scope.startsWith("src:") ? [sql`${items.sourceId} in (select id from listen_sources where kind = 'ielts')`] : [];
+  const dueRows = mode === "random" ? [] : await db.select().from(items).where(and(...where, ...mixed, isNotNull(items.due), lte(items.due, sql`now(3)`))).orderBy(asc(items.due)).limit(mode === "review" ? n : Math.ceil(n * 0.3));
+  const fresh = and(...where, ...mixed, sql`(${items.due} is null or ${items.due} > now(3))`);
   let newRows: Item[] = [];
   if (mode !== "review") {
     const want = n - dueRows.length;

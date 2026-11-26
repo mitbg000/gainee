@@ -5,6 +5,7 @@ import { Readable } from "node:stream";
 import { NextResponse } from "next/server";
 import { bad, idParam } from "@/lib/api";
 import { deleteAudio, getAudio, setReceived } from "@/lib/ielts/queries";
+import { clipDir } from "@/lib/listen/clips";
 import { removeUpload, UPLOAD_DIR } from "@/lib/storage";
 
 export const runtime = "nodejs";
@@ -61,5 +62,6 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   const rel = id ? await deleteAudio(id) : null;
   if (!rel) return bad("not_found", 404);
   await removeUpload(rel);
+  await fs.rm(clipDir(id!), { recursive: true, force: true });
   return NextResponse.json({ ok: true });
 }

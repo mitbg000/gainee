@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import * as I from "@/components/icons";
 
 const SIZES = [10, 20, 30];
+const SCOPES = ["all", "fast", "numbers"]; // as in lib/listen/queries (server only)
 
 /** Start a session: today's review, random sentences not shown yet, or both mixed; dictation or gap filling. */
 export default function Launcher({ due, sources }: { due: number; sources: { id: number; title: string }[] }) {
@@ -16,7 +17,7 @@ export default function Launcher({ due, sources }: { due: number; sources: { id:
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem("rl_listen_launch") ?? "{}");
-      if (s.scope) setScope(s.scope);
+      if (SCOPES.includes(s.scope) || /^src:\d+$/.test(s.scope)) setScope(s.scope);
       if (SIZES.includes(s.n)) setN(s.n);
       if (s.kind === "gaps" || s.kind === "dictation") setKind(s.kind);
     } catch {}
@@ -43,7 +44,7 @@ export default function Launcher({ due, sources }: { due: number; sources: { id:
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <select value={scope} onChange={(e) => setScope(e.target.value)} className="field field-sm w-auto max-w-full" aria-label={t("scope")}>
-          {["all", "youtube", "ielts", "fast", "numbers"].map((s) => (
+          {SCOPES.map((s) => (
             <option key={s} value={s}>
               {t(`scopes.${s}`)}
             </option>

@@ -1577,9 +1577,7 @@
       "mix": "Mixed",
       "scope": "Scope",
       "scopes": {
-        "all": "Everything",
-        "youtube": "YouTube only",
-        "ielts": "IELTS only",
+        "all": "All IELTS tests",
         "fast": "Fast speech",
         "numbers": "With numbers"
       },
@@ -1591,7 +1589,7 @@
         "dictation": "Whole sentence",
         "gaps": "Fill the gaps"
       },
-      "hint": "Random: no sentence repeats until every one in the scope was shown (then a new round). Wrong ones come back after 1 day, 3 days, then longer."
+      "hint": "Random and Mix take sentences from the IELTS tests; practise YouTube videos one at a time under \"One recording\" (a new video for each sentence would reload the player). No sentence repeats until every one in the scope was shown (then a new round). Wrong ones come back after 1 day, 3 days, then longer."
     },
     "add": {
       "title": "Add a YouTube video",
