@@ -1560,7 +1560,9 @@
       "ending": "Đuôi từ (-s, -ed)",
       "number": "Số",
       "name": "Tên riêng",
-      "other": "Từ khác"
+      "other": "Từ khác",
+      "none": "Chưa có dữ liệu: luyện vài câu để xem bạn hay nghe sót gì.",
+      "hint": "Tính từ lần chấm đầu của mỗi câu. Từ nhỏ đọc lướt và đuôi -s/-ed cao là dấu hiệu nên luyện nghe nhại (shadowing) và nghe chậm 0.75×."
     },
     "session": {
       "review": "Ôn hôm nay",
@@ -1706,7 +1708,36 @@
         "nothing_heard": "Không nghe được lời nói trong đoạn audio (kiểm tra mốc thời gian của Part)."
       }
     },
-    "ieltsParts": "Đề IELTS Listening ({added}/{n} Part đã vào kho)",
-    "ieltsPartsHint": "Bấm \"Đưa vào kho luyện nghe\" ở một Part, hoặc \"Đưa cả sách\". Server tự nghe audio để tìm thời điểm từng câu (chạy nền, có thể đóng trang), xong Part hiện nút Luyện và có trong danh sách bài ở trên."
+    "ieltsPartsHint": "Bấm \"Đưa vào kho luyện nghe\" ở một Part, hoặc \"Đưa cả sách\". Server tự nghe audio để tìm thời điểm từng câu (chạy nền, có thể đóng trang), xong Part hiện nút Luyện và có trong danh sách bài ở trên.",
+    "tabs": {
+      "practice": "Luyện tập",
+      "library": "Bài nghe",
+      "add": "Thêm video",
+      "ielts": "Đề IELTS",
+      "stats": "Thống kê"
+    },
+    "stat": {
+      "due": "Cần ôn hôm nay",
+      "sentences": "Câu trong kho",
+      "seen": "Đã làm",
+      "sources": "Bài nghe"
+    },
+    "draftsToReview": "{n} bài chưa duyệt: nên nghe thử và sửa trước khi luyện",
+    "practiceHint": "Mẹo: ôn câu đến hạn trước, rồi luyện ngẫu nhiên. Muốn làm lần lượt cả một video, mở nó trong tab Bài nghe.",
+    "filters": {
+      "all": "Tất cả",
+      "youtube": "YouTube",
+      "ielts": "IELTS",
+      "draft": "Chưa duyệt"
+    },
+    "noneInFilter": "Không có bài nào trong mục này.",
+    "addSteps": {
+      "title": "Các bước",
+      "one": "Dán link video YouTube có phụ đề tiếng Anh (hoặc dán transcript nếu không lấy được).",
+      "two": "Ở màn Duyệt: bấm Làm sạch (hoặc Làm sạch bằng AI), nghe thử vài câu, sửa chỗ lệch, rồi Lưu & đánh dấu đã duyệt.",
+      "three": "Luyện: chép cả video lần lượt, nghe từng đoạn, hoặc để câu vào kho luyện ngẫu nhiên.",
+      "ielts": "Thêm từ đề IELTS Listening"
+    },
+    "ieltsNone": "Chưa có Part Listening nào có audio. Tải sách và audio trong mục IELTS trước."
   }
 }

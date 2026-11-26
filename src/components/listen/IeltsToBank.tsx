@@ -9,8 +9,8 @@ import * as I from "@/components/icons";
 export type CutJob = { id: number; status: string; progress: string | null } | null;
 const json = (body: unknown) => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
-/** Refresh the page every few seconds while a cut is waiting or running. */
-export function useRefreshWhile(active: boolean) {
+/** Refresh the page every few seconds while a cut is waiting or running (one per page). */
+function useRefreshWhile(active: boolean) {
   const router = useRouter();
   useEffect(() => {
     if (!active) return;
@@ -44,15 +44,20 @@ function JobState({ job }: { job: NonNullable<CutJob> }) {
   );
 }
 
+export function RefreshWhile({ active }: { active: boolean }) {
+  useRefreshWhile(active);
+  return null;
+}
+
 /**
  * IELTS Listening part → listening bank. The server's worker does it (ffmpeg + Whisper + matching to the audioscript),
  * so this page can be closed meanwhile.
  */
-export default function IeltsToBank({ sectionId, hasScript, sourceId, job }: { sectionId: number; hasScript: boolean; sourceId: number | null; job: CutJob }) {
+export default function IeltsToBank({ sectionId, hasScript, sourceId, job, refresh = true }: { sectionId: number; hasScript: boolean; sourceId: number | null; job: CutJob; /** false in lists: the page refreshes once for all rows */ refresh?: boolean }) {
   const t = useTranslations("listen.ielts");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  useRefreshWhile(!!job);
+  useRefreshWhile(refresh && !!job);
 
   async function run() {
     if (sourceId && !confirm(t("redoConfirm"))) return;
