@@ -95,8 +95,9 @@ function Lookup({
     setDict(null);
     setMore(false);
     fetch(`/api/dictionary?q=${encodeURIComponent(tool.text)}`)
-      .then((r) => r.json())
-      .then((d) => alive && setDict(d))
+      // an error reply (signed out, server error) has no entries: shown as "not in the dictionary" instead of crashing
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d: DictResult) => alive && setDict(Array.isArray(d?.entries) ? d : { query: tool.text, matched: null, via: null, entries: [] }))
       .catch(() => alive && setDict({ query: tool.text, matched: null, via: null, entries: [] }));
     return () => {
       alive = false;

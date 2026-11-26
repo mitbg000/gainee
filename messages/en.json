@@ -1644,7 +1644,8 @@
       "save": "Save",
       "cancel": "Cancel",
       "relearn": "Wrong ones again at the end",
-      "keys": "Enter: check / next · Ctrl: listen again · tap a word (once shown) to look it up and save it"
+      "keys": "Enter: check / next · Ctrl: listen again · tap a word (once shown) to look it up and save it",
+      "doneSoFar": "Written so far ({n})"
     },
     "chunks": {
       "play": "Play piece",

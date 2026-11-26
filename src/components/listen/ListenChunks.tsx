@@ -61,6 +61,12 @@ export default function ListenChunks({ items, title, saved, sourceId }: { items:
   const media = (
     <>
       <div ref={player.videoBox} className={`aspect-video w-full overflow-hidden rounded-2xl bg-black ${isVideo ? "" : "hidden"}`} />
+      {isVideo && (
+        <div className="flex items-center gap-2 text-sm text-muted">
+          <span className="min-w-0 flex-1 truncate font-medium text-ink">{title}</span>
+          <span className="text-xs">{span}</span>
+        </div>
+      )}
       {!isVideo && (
         <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-4 text-sm">
           <I.IconHeadphones className="h-6 w-6 flex-none text-accent" /> <span className="min-w-0 flex-1 truncate">{title}</span>
@@ -74,7 +80,6 @@ export default function ListenChunks({ items, title, saved, sourceId }: { items:
   return (
     <ListenLayout media={media} video={isVideo} side={look.panel(sourceId)}>
       <div className="space-y-4">
-        {isVideo && <div className="flex justify-end text-sm text-muted">{span}</div>}
         <div className="rounded-2xl border border-line bg-card p-4">
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={player.playing ? player.stop : playAll} className="btn btn-primary">

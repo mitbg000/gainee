@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as I from "@/components/icons";
 import StepNav from "@/components/StepNav";
 import { firstLetters, gapWords, mark, sameWord, type Marked } from "@/lib/listen/check";
+import { sfx } from "@/lib/sound";
 import type { PlayItem } from "@/lib/listen/queries";
 import { ListenLayout, LookupText, useLookup } from "./Lookup";
 import { prefetchClip, useClipPlayer } from "./useClipPlayer";
@@ -61,6 +62,8 @@ export default function Practice(p: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [stats, setStats] = useState({ clean: 0, fixed: 0, hinted: 0, skipped: 0 });
   const recorded = useRef(new Set<number>());
+  const [doneIds, setDoneIds] = useState<Set<number>>(() => new Set());
+  const doneBox = useRef<HTMLOListElement>(null);
   const requeued = useRef(new Set<number>());
   const seconds = useRef(0);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -96,6 +99,16 @@ export default function Practice(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the sentence changes
   }, [item?.id, i]);
 
+  // the newest written sentence in view
+  useEffect(() => {
+    doneBox.current?.scrollTo({ top: doneBox.current.scrollHeight });
+  }, [doneIds]);
+
+  // the end of the session: a short fanfare
+  useEffect(() => {
+    if (!item && queue.length) sfx("done");
+  }, [item, queue.length]);
+
   // Ctrl pressed and released alone: listen again
   useEffect(() => {
     let alone = false;
@@ -125,7 +138,8 @@ export default function Practice(p: Props) {
   });
 
   function finish(c: Cur) {
-    replay(); // once more while the words are on screen
+    setDoneIds((d) => new Set(d).add(item.id));
+    setTimeout(replay, 450); // once more while the words are on screen, after the "right" sound
     seconds.current += Math.min(180, (Date.now() - c.startedAt) / 1000);
     const minutes = Math.floor(seconds.current / 60);
     seconds.current -= minutes * 60;
@@ -153,6 +167,7 @@ export default function Practice(p: Props) {
     } else m = mark(text, cur.typed);
     const c: Cur = { ...cur, checks: cur.checks + 1, marked: m, gapRight, done: m.ok, firstOk: cur.firstOk ?? m.ok, firstMisses: cur.checks ? cur.firstMisses : m.misses };
     setCur(c);
+    sfx(m.ok ? "correct" : "wrong");
     if (m.ok) finish(c);
   }
 
@@ -178,7 +193,8 @@ export default function Practice(p: Props) {
     setCur((c) => ({ ...c, marked: null, gapRight: null }));
   }
 
-  const hint = (h: "letters" | "word" | "all") =>
+  const hint = (h: "letters" | "word" | "all") => {
+    sfx("tap");
     setCur((c) => {
       if (h === "letters") return { ...c, hinted: true, letters: true };
       if (h === "all") return { ...c, hinted: true, revealed: true };
@@ -186,6 +202,7 @@ export default function Practice(p: Props) {
       const k = pool.find((x) => !c.shown.includes(x) && !(p.kind === "gaps" ? c.gapRight?.[blanks.indexOf(x)] : c.marked?.right[x]));
       return k === undefined ? c : { ...c, hinted: true, shown: [...c.shown, k] };
     });
+  };
 
   const onEnter = (e: React.KeyboardEvent) => {
     if (e.key !== "Enter" || e.shiftKey) return;
@@ -226,10 +243,34 @@ export default function Practice(p: Props) {
       {p.round && <span className="hidden sm:inline">{t("round", p.round)}</span>}
     </span>
   );
+  // a video's sentences written so far: done in this session, or (whole video) before where it was started
+  const doneList = isVideo ? p.items.filter((x) => x.sourceId === item.sourceId && x.id !== item.id && (doneIds.has(x.id) || (p.mode === "source" && x.idx < (p.startIdx ?? 0)))).sort((a, b) => a.idx - b.idx) : [];
   const media = (
     <>
       {/* the video stays visible while learning */}
       <div ref={player.videoBox} className={`aspect-video w-full overflow-hidden rounded-2xl bg-black ${isVideo ? "" : "hidden"}`} />
+      {isVideo && (
+        <div className="flex items-center gap-2 text-sm text-muted">
+          <span className="min-w-0 flex-1 truncate font-medium text-ink">{p.titles[item.sourceId]}</span>
+          {progress}
+        </div>
+      )}
+      {/* on a computer: the sentences written so far under the video, to read back, replay and look words up */}
+      {doneList.length > 0 && (
+        <section className="hidden rounded-2xl border border-line bg-card lg:block">
+          <h2 className="border-b border-line px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted">{t("doneSoFar", { n: doneList.length })}</h2>
+          <ol ref={doneBox} className="max-h-[40vh] space-y-1 overflow-y-auto p-2">
+            {doneList.map((x) => (
+              <li key={x.id} className="flex items-start gap-2 rounded-lg px-2 py-1 hover:bg-paper">
+                <button onClick={() => player.play({ media: x.media, start: x.start, end: x.end }, speed)} className="icon-btn mt-0.5 size-7 flex-none" aria-label={t("listen")}>
+                  <I.IconPlay className="h-3.5 w-3.5" />
+                </button>
+                <LookupText text={texts[x.id] ?? x.text} onLookup={look.setTool} className="min-w-0 font-serif text-[15px] leading-relaxed" />
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
       {!isVideo && (
         <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-4 text-sm">
           <I.IconHeadphones className="h-6 w-6 flex-none text-accent" />
@@ -244,12 +285,6 @@ export default function Practice(p: Props) {
   return (
     <ListenLayout media={media} video={isVideo} side={look.panel(item.sourceId)}>
       <div className="space-y-4">
-        {isVideo && (
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="min-w-0 flex-1 truncate">{p.titles[item.sourceId]}</span>
-            {progress}
-          </div>
-        )}
 
         <div className="rounded-2xl border border-line bg-card p-4">
           <div className="flex flex-wrap items-center gap-2">

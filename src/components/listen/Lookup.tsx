@@ -101,7 +101,7 @@ export function LookupText({ text, onLookup, className = "" }: { text: string; o
  */
 export function ListenLayout({ media, video, children, side }: { media: React.ReactNode; video: boolean; children: React.ReactNode; side: React.ReactNode }) {
   const t = useTranslations("listen");
-  const cols = video ? "lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_20rem]" : "xl:grid-cols-[minmax(0,1fr)_20rem]";
+  const cols = video ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)_18rem] 2xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)_20rem]" : "xl:grid-cols-[minmax(0,1fr)_20rem]";
   return (
     <div className={`grid gap-4 md:gap-5 lg:items-start ${cols}`}>
       {video && <div className="min-w-0 space-y-3 lg:sticky lg:top-20">{media}</div>}

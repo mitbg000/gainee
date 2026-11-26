@@ -1644,7 +1644,8 @@
       "save": "Lưu",
       "cancel": "Huỷ",
       "relearn": "Câu sai: làm lại cuối buổi",
-      "keys": "Enter: chấm / sang câu · Ctrl: nghe lại · bấm vào từ (khi đã hiện chữ) để tra và lưu từ"
+      "keys": "Enter: chấm / sang câu · Ctrl: nghe lại · bấm vào từ (khi đã hiện chữ) để tra và lưu từ",
+      "doneSoFar": "Các câu đã viết ({n})"
     },
     "chunks": {
       "play": "Nghe đoạn",
