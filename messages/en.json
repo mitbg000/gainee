@@ -1604,7 +1604,8 @@
         "no_captions": "This video has no English captions. Paste the transcript below.",
         "bad_url": "Not a YouTube link.",
         "bad_transcript": "No times found in the pasted transcript.",
-        "network": "Network error, try again."
+        "network": "Network error, try again.",
+        "video_unavailable": "The video cannot be watched (private, age-restricted or removed)."
       }
     },
     "practice": {

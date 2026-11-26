@@ -1604,7 +1604,8 @@
         "no_captions": "Video không có phụ đề tiếng Anh. Hãy dán transcript bên dưới.",
         "bad_url": "Không nhận ra link YouTube.",
         "bad_transcript": "Không đọc được mốc thời gian trong transcript đã dán.",
-        "network": "Lỗi mạng, thử lại."
+        "network": "Lỗi mạng, thử lại.",
+        "video_unavailable": "Video không xem được (riêng tư, giới hạn tuổi hoặc đã bị xoá)."
       }
     },
     "practice": {
