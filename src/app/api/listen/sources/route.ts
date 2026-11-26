@@ -54,7 +54,8 @@ export async function POST(req: Request) {
     }
   }
   words = await punctuate(words);
-  const clips = toSentences(words);
+  // a little air before and after: caption times are close, never exact (no audio here to find the pauses)
+  const clips = toSentences(words).map((c) => ({ ...c, start: Math.max(0, Math.round((c.start - 0.2) * 100) / 100), end: Math.round((c.end + 0.3) * 100) / 100 }));
   const id = await saveSource({ kind: "youtube", youtubeId: vid, title: title.slice(0, 255), captions }, clips);
   return NextResponse.json({ id, n: clips.length }, { status: 201 });
 }

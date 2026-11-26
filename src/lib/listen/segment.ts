@@ -3,7 +3,16 @@
  * aligned to an IELTS audioscript), and tidying the cut points.
  */
 
-export type TWord = { w: string; s: number; e: number; speaker?: string | null; /** found in what Whisper heard */ m?: boolean };
+export type TWord = {
+  w: string;
+  s: number;
+  e: number;
+  speaker?: string | null;
+  /** found in what Whisper heard */
+  m?: boolean;
+  /** last word of a caption line: with captions timed per line only these ends have a real time */
+  c?: boolean;
+};
 export type Clip = { start: number; end: number; text: string; speaker: string | null; confidence: number | null };
 
 const ENDS = /[.!?…]["'’”)\]]*$/;
@@ -22,15 +31,22 @@ function clipOf(ws: TWord[]): Clip {
   };
 }
 
-/** Where to cut a long sentence: after a comma or before a joining word, nearest the middle; the middle otherwise. */
-function cutAt(ws: TWord[]): number {
+/**
+ * Where to cut a long sentence: after a comma or before a joining word, nearest the middle; the middle otherwise.
+ * With line-timed captions only after a line's last word (-1: no such place, keep it whole).
+ */
+function cutAt(ws: TWord[], lines: boolean): number {
   const mid = ws.length / 2;
   let best = -1;
+  let anyLine = -1;
   for (let i = 3; i <= ws.length - 3; i++) {
+    if (lines && !ws[i - 1].c) continue;
+    if (anyLine < 0 || Math.abs(i - mid) < Math.abs(anyLine - mid)) anyLine = i;
     const good = SOFT.test(ws[i - 1].w) || JOIN.has(norm(ws[i].w));
     if (good && (best < 0 || Math.abs(i - mid) < Math.abs(best - mid))) best = i;
   }
-  return best > 0 ? best : Math.round(mid);
+  if (best > 0) return best;
+  return lines ? anyLine : Math.round(mid);
 }
 
 /**
@@ -38,20 +54,27 @@ function cutAt(ws: TWord[]): number {
  * `maxSec` seconds → cut again at a comma or joining word; shorter than 3 words → joined to the sentence before.
  */
 export function toSentences(ws: TWord[], maxWords = 15, maxSec = 6): Clip[] {
+  // captions timed per line: a time inside a line is only a guess, so sentences are cut where lines end (the audio
+  // then always matches the words, even if a piece starts mid-sentence)
+  const lines = ws.some((w) => w.c);
   const groups: TWord[][] = [];
   let cur: TWord[] = [];
+  let ended = false; // a sentence ended inside the current caption line
   ws.forEach((w, i) => {
     cur.push(w);
     const next = ws[i + 1];
-    if (!next || ENDS.test(w.w) || (next.speaker ?? null) !== (w.speaker ?? null) || next.s - w.e > 1.0) {
+    ended ||= ENDS.test(w.w);
+    if (lines && !w.c && next) return;
+    if (!next || ended || (next.speaker ?? null) !== (w.speaker ?? null) || next.s - w.e > 1.0) {
+      ended = false;
       groups.push(cur);
       cur = [];
     }
   });
   const fit: TWord[][] = [];
   const split = (g: TWord[]) => {
-    if (g.length >= 6 && (g.length > maxWords || g[g.length - 1].e - g[0].s > maxSec)) {
-      const k = cutAt(g);
+    const k = g.length >= 6 && (g.length > maxWords || g[g.length - 1].e - g[0].s > maxSec) ? cutAt(g, lines && g.length <= maxWords * 1.5 && g[g.length - 1].e - g[0].s <= maxSec * 2) : -1; // a very long line is cut anyway, on a guessed time
+    if (k > 0) {
       split(g.slice(0, k));
       split(g.slice(k));
     } else fit.push(g);
@@ -88,9 +111,9 @@ export function cueWords(cues: { s: number; e: number; text: string; speaker?: s
     const ws = c.text.split(/\s+/).filter(Boolean);
     const total = ws.reduce((a, w) => a + w.length + 1, 0);
     let at = c.s;
-    return ws.map((w) => {
+    return ws.map((w, k) => {
       const d = ((c.e - c.s) * (w.length + 1)) / total;
-      const tw = { w, s: at, e: at + d, speaker: c.speaker ?? null };
+      const tw: TWord = { w, s: at, e: at + d, speaker: c.speaker ?? null, ...(k === ws.length - 1 ? { c: true, e: c.e } : {}) };
       at += d;
       return tw;
     });
