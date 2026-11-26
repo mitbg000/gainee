@@ -20,6 +20,7 @@ type CardProps = {
 /** One margin note: quote, colour, editable note and pinned AI answers. */
 export function NoteCard({ a, ai, active, autoFocus, onActivate, onPatch, onDelete, onUnpin }: CardProps) {
   const t = useTranslations("lesson.notes");
+  const summary = a.kind === "summary";
   const [note, setNote] = useState(a.note ?? "");
   const [savedNote, setSavedNote] = useState(a.note ?? "");
   const ta = useRef<HTMLTextAreaElement>(null);
@@ -54,8 +55,9 @@ export function NoteCard({ a, ai, active, autoFocus, onActivate, onPatch, onDele
       onClick={onActivate}
       className={`rounded-xl border bg-card p-3 text-sm shadow-sm transition ${active ? "border-accent ring-2 ring-accent/20" : "border-line"}`}
     >
+      {summary && <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-400">≡ {t("summary")}</p>}
       <div className="flex items-start gap-2">
-        <span className={`mt-1 h-2.5 w-2.5 flex-none rounded-full ${HL_DOT[a.color]}`} />
+        {!summary && <span className={`mt-1 h-2.5 w-2.5 flex-none rounded-full ${HL_DOT[a.color]}`} />}
         <p className="line-clamp-2 flex-1 font-serif italic text-muted">“{a.quote}”</p>
       </div>
       {(active || a.note) && (
@@ -64,7 +66,7 @@ export function NoteCard({ a, ai, active, autoFocus, onActivate, onPatch, onDele
           value={note}
           onChange={(e) => setNote(e.target.value)}
           onBlur={() => note !== savedNote && (onPatch({ note: note.trim() ? note : null }), setSavedNote(note))}
-          placeholder={t("placeholder")}
+          placeholder={t(summary ? "summaryPlaceholder" : "placeholder")}
           rows={1}
           className="mt-2 w-full resize-none rounded-lg border border-transparent bg-paper px-2 py-1.5 text-[15px] outline-none focus:border-accent"
         />
@@ -84,7 +86,7 @@ export function NoteCard({ a, ai, active, autoFocus, onActivate, onPatch, onDele
       ))}
       {active && (
         <div className="mt-2 flex items-center gap-1.5">
-          {HL_COLORS.map((c) => (
+          {!summary && HL_COLORS.map((c) => (
             <button
               key={c}
               aria-label={c}
@@ -124,7 +126,10 @@ export function MarginNotes({
   onDelete,
   onUnpin,
   measureKey,
+  tool,
 }: {
+  /** the open look-up / AI panel: placed level with its word, notes move out of its way */
+  tool?: React.ReactNode;
   annotations: Annotation[];
   aiByAnn: Map<number, AiMsg[]>;
   activeId: number | null;
@@ -137,7 +142,9 @@ export function MarginNotes({
 }) {
   const col = useRef<HTMLDivElement>(null);
   const refs = useRef(new Map<number, HTMLDivElement>());
+  const toolBox = useRef<HTMLDivElement>(null);
   const [tops, setTops] = useState<Record<number, number>>({});
+  const [toolTop, setToolTop] = useState(0);
   const visible = annotations.filter((a) => a.note || a.id === activeId || aiByAnn.get(a.id)?.length);
 
   useLayoutEffect(() => {
@@ -147,16 +154,21 @@ export function MarginNotes({
       const base = c.getBoundingClientRect().top;
       const wanted = visible
         .map((a) => {
-          const el = document.querySelector(`[data-ann="${a.id}"]`);
+          const el = document.querySelector(`[data-ann="${a.id}"], [data-sum="${a.id}"]`);
           return { id: a.id, y: el ? el.getBoundingClientRect().top - base : 0 };
         })
         .sort((x, y) => x.y - y.y);
-      // keep the active card exactly at its highlight; push others around it
+      // the look-up panel stays level with its word (or the top of the screen); cards it would cover go below it
+      const word = document.querySelector("[data-tool]");
+      const ty = tool ? Math.max(0, word ? word.getBoundingClientRect().top - base - 12 : 72 - base) : 0;
+      const tb = tool ? ty + (toolBox.current?.offsetHeight ?? 300) : -Infinity;
+      setToolTop((old) => (old === ty ? old : ty));
       const next: Record<number, number> = {};
       let bottom = -Infinity;
       for (const w of wanted) {
         const h = refs.current.get(w.id)?.offsetHeight ?? 80;
-        const y = Math.max(w.y, bottom + 8);
+        let y = Math.max(w.y, bottom + 8);
+        if (tool && y < tb + 8 && y + h > ty - 8) y = tb + 8;
         next[w.id] = y;
         bottom = y + h;
       }
@@ -166,6 +178,7 @@ export function MarginNotes({
     const ro = new ResizeObserver(layout);
     if (col.current?.parentElement) ro.observe(col.current.parentElement);
     refs.current.forEach((el) => ro.observe(el));
+    if (toolBox.current) ro.observe(toolBox.current);
     window.addEventListener("resize", layout);
     return () => {
       ro.disconnect();
@@ -175,6 +188,11 @@ export function MarginNotes({
 
   return (
     <div ref={col} className="relative h-full" data-margin>
+      {tool && (
+        <div ref={toolBox} className="absolute inset-x-0 z-10 transition-[top] duration-200" style={{ top: toolTop }}>
+          {tool}
+        </div>
+      )}
       {visible.map((a) => (
         <div
           key={a.id}

@@ -1,0 +1,1 @@
+ALTER TABLE `annotations` ADD `kind` enum('highlight','summary') DEFAULT 'highlight' NOT NULL;

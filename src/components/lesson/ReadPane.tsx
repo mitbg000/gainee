@@ -7,7 +7,7 @@ import { findAll, offsetIn, segments, sentenceAt, type Mark } from "./marks";
 import { MarginNotes, NoteCard } from "./Notes";
 import type { TermWord } from "./Panes";
 import ToolPanel from "./ToolPanel";
-import { HL_COLORS, HL_DOT, type AiMsg, type Anchor, type Annotation, type HlColor, type Tool, type Vocab, type WordCard } from "./types";
+import { HL_COLORS, HL_DOT, type AiMsg, type Anchor, type Annotation, type HlColor, type NewAnnotation, type Tool, type Vocab, type WordCard } from "./types";
 import * as I from "@/components/icons";
 
 type Props = {
@@ -31,7 +31,7 @@ type Props = {
   termWords: TermWord[];
   onSaveCard: (card: WordCard, context: string) => Promise<void>;
   flash: { p: number; start: number; end: number } | null;
-  onCreateAnnotation: (a: Omit<Annotation, "id" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix">) => Promise<number | null>;
+  onCreateAnnotation: (a: NewAnnotation) => Promise<number | null>;
   onPatchAnnotation: (id: number, patch: { note?: string | null; color?: HlColor }) => void;
   onDeleteAnnotation: (id: number) => void;
   onPin: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
@@ -162,10 +162,13 @@ export default function ReadPane(props: Props) {
       });
     }
     props.blocks.forEach((b, i) => b.styles.forEach((st) => out[i]?.push({ start: st.start, end: st.end, kind: "fmt", id: 0, color: st.kind })));
-    for (const a of annotations) if (out[a.paragraph]) out[a.paragraph].push({ start: a.startOffset, end: a.endOffset, kind: "ann", id: a.id, color: a.color });
+    for (const a of annotations) out[a.paragraph]?.push({ start: a.startOffset, end: a.endOffset, kind: a.kind === "summary" ? "sum" : "ann", id: a.id, color: a.color });
     if (props.flash) out[props.flash.p]?.push({ start: props.flash.start, end: props.flash.end, kind: "flash", id: 0 });
+    // the word being looked up: the panel beside the text is placed level with it
+    const at = tool?.anchor;
+    if (at) out[at.paragraph]?.push({ start: at.start, end: at.end, kind: "tool", id: 0 });
     return out;
-  }, [paragraphs, props.blocks, props.savedTerms, props.otherTerms, wordScope, vocab, annotations, props.flash]);
+  }, [paragraphs, props.blocks, props.savedTerms, props.otherTerms, wordScope, vocab, annotations, props.flash, tool]);
 
   useEffect(() => {
     if (!props.flash) return;
@@ -214,9 +217,9 @@ export default function ReadPane(props: Props) {
   };
   const countLookup = () => setTimer((x) => ({ ...x, lookups: x.lookups + 1 }));
 
-  async function highlight(color: HlColor, withNote = false) {
+  async function highlight(color: HlColor, withNote = false, kind: Annotation["kind"] = "highlight") {
     if (!sel) return;
-    const id = await props.onCreateAnnotation({ paragraph: sel.paragraph, startOffset: sel.start, endOffset: sel.end, quote: sel.quote.slice(0, 1000), color, note: null });
+    const id = await props.onCreateAnnotation({ paragraph: sel.paragraph, startOffset: sel.start, endOffset: sel.end, quote: sel.quote.slice(0, 1000), color, note: null, kind });
     clearSel();
     if (id && withNote) {
       setActiveAnn(id);
@@ -237,6 +240,13 @@ export default function ReadPane(props: Props) {
       try {
         localStorage.setItem(`rl_here_${props.lessonId}`, String(n));
       } catch {}
+    }
+    // the ≡ after a summary opens it; any other click inside a summary looks words up as usual
+    const sumOpen = el.closest("[data-sum-open]");
+    if (sumOpen) {
+      setActiveAnn(Number(sumOpen.getAttribute("data-sum-open")));
+      setTool(null);
+      return;
     }
     const annEl = el.closest("[data-ann]");
     const vocabEl = el.closest("[data-vocab]");
@@ -390,6 +400,8 @@ export default function ReadPane(props: Props) {
               {segments(p, marks[i]).map((seg) => {
                 if (!seg.marks.length) return seg.text;
                 const ann = [...seg.marks].reverse().find((m) => m.kind === "ann");
+                const sum = [...seg.marks].reverse().find((m) => m.kind === "sum");
+                const sumEnds = seg.marks.filter((m) => m.kind === "sum" && m.end === seg.end);
                 const voc = seg.marks.find((m) => m.kind === "vocab");
                 const trm = seg.marks.some((m) => m.kind === "term");
                 const flash = seg.marks.some((m) => m.kind === "flash");
@@ -397,17 +409,23 @@ export default function ReadPane(props: Props) {
                 const noteEnd = a && (a.note || aiByAnn.get(a.id)?.length) && seg.end === a.endOffset;
                 const bold = seg.marks.some((m) => m.kind === "fmt" && m.color === "b");
                 const ital = seg.marks.some((m) => m.kind === "fmt" && m.color === "i");
-                const cls = [ann ? `hl hl-${ann.color}` : "", ann && ann.id === activeAnn ? "active" : "", voc || trm ? "vw" : "", flash ? "flash" : "", bold ? "font-bold" : "", ital ? "italic" : ""].join(" ").trim();
+                const cls = [ann ? `hl hl-${ann.color}` : sum ? "sm" : "", (ann ?? sum)?.id === activeAnn ? "active" : "", voc || trm ? "vw" : "", flash ? "flash" : "", bold ? "font-bold" : "", ital ? "italic" : ""].join(" ").trim();
                 return (
                   <span
                     key={seg.start}
                     className={cls}
                     data-ann={ann?.id}
+                    data-sum={sum?.id}
                     data-vocab={voc?.id}
                     data-flash={flash ? "" : undefined}
+                    data-tool={seg.marks.some((m) => m.kind === "tool") ? "" : undefined}
                     data-note-end={noteEnd ? "" : undefined}
                   >
                     {seg.text}
+                    {/* empty span (the mark is CSS) so text offsets of the paragraph do not change */}
+                    {sumEnds.map((m) => (
+                      <span key={m.id} data-sum-open={m.id} className="sum-end" title={t("summaryOpen")} />
+                    ))}
                   </span>
                 );
               })}
@@ -443,9 +461,9 @@ export default function ReadPane(props: Props) {
         {/* desktop right column: tool panel (sticky) above margin notes */}
         {desktop && (
           <aside className="relative">
-            {tool && <div className="sticky top-[4.5rem] z-10 mb-3 max-h-[calc(100dvh-5.5rem)] overflow-y-auto no-scrollbar">{toolPanel}</div>}
-            <div className={tool ? "pointer-events-none absolute inset-0 opacity-30" : "absolute inset-0"}>
+            <div className="absolute inset-0">
               <MarginNotes
+                tool={tool && <div className="max-h-[calc(100dvh-5.5rem)] overflow-y-auto no-scrollbar">{toolPanel}</div>}
                 annotations={annotations}
                 aiByAnn={aiByAnn}
                 activeId={activeAnn}
@@ -487,6 +505,9 @@ export default function ReadPane(props: Props) {
           <span className="mx-1 h-6 w-px bg-line" />
           <button onClick={() => highlight("yellow", true)} className="min-h-9 rounded-lg px-2 text-sm hover:bg-paper">
             <I.IconEdit className="inline-block h-4 w-4 align-[-0.2em]" /> <span className="hidden sm:inline">{t("note")}</span>
+          </button>
+          <button onClick={() => highlight("blue", true, "summary")} title={t("summarizeHint")} className="min-h-9 rounded-lg px-2 text-sm hover:bg-paper">
+            <I.IconChecklist className="inline-block h-4 w-4 align-[-0.2em]" /> <span className="hidden sm:inline">{t("summarize")}</span>
           </button>
           <button
             onClick={() => {

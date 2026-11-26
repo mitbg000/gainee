@@ -446,6 +446,8 @@ export const annotations = mysqlTable(
     suffix: varchar("suffix", { length: 64 }),
     color: mysqlEnum("color", ["yellow", "green", "blue", "pink", "purple"]).notNull().default("yellow"),
     note: text("note"), // empty = highlight only
+    // summary: the learner's own one-line summary of a paragraph or part of it, shown faintly so words stay clickable
+    kind: mysqlEnum("kind", ["highlight", "summary"]).notNull().default("highlight"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

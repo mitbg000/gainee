@@ -265,6 +265,24 @@ body {
   margin-left: 1px;
   color: var(--accent);
 }
+/* summaries: a faint tint only, so the words inside stay easy to read and to look up */
+.sm { background: rgb(14 165 233 / 0.07); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.sm.active { background: rgb(14 165 233 / 0.16); }
+.dark .sm { background: rgb(56 189 248 / 0.09); }
+.dark .sm.active { background: rgb(56 189 248 / 0.2); }
+.sum-end { cursor: pointer; user-select: none; }
+.sum-end::after {
+  content: "≡";
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.7em;
+  font-weight: 700;
+  vertical-align: super;
+  margin-left: 2px;
+  padding: 0 3px;
+  border-radius: 4px;
+  color: rgb(2 132 199);
+  background: rgb(14 165 233 / 0.12);
+}
 .vw {
   text-decoration: underline dotted var(--accent2);
   text-decoration-thickness: 2px;

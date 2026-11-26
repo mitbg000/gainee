@@ -496,7 +496,10 @@
         "part": "Saved in this part",
         "doc": "Saved in this text",
         "all": "All saved words"
-      }
+      },
+      "summarize": "Summarise",
+      "summarizeHint": "Summarise the selected part in your own words (one sentence, any language). It is only tinted faintly, so you can still tap words to look them up.",
+      "summaryOpen": "Open summary"
     },
     "notes": {
       "placeholder": "Write a note…",
@@ -510,7 +513,9 @@
         "paraphrase": "Paraphrase",
         "custom": "Question",
         "feedback": "Feedback"
-      }
+      },
+      "summary": "Summary",
+      "summaryPlaceholder": "The main point here is… (in your own words)"
     },
     "tool": {
       "lookup": "Dictionary",

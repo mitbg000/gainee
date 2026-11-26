@@ -9,7 +9,7 @@ import { locateQuote } from "./marks";
 import { ExercisesPane, PracticePane, VocabPane, type TermWord } from "./Panes";
 import ReadPane from "./ReadPane";
 import SplitPassage from "./SplitPassage";
-import type { AiMsg, Anchor, Annotation, HlColor, LessonData, WordCard } from "./types";
+import type { AiMsg, Anchor, Annotation, HlColor, LessonData, NewAnnotation, WordCard } from "./types";
 import * as I from "@/components/icons";
 
 type Tab = "read" | "vocab" | "ex" | "practice";
@@ -86,14 +86,14 @@ export default function LessonReader({ data }: { data: LessonData }) {
 
   /* ---------- annotations ---------- */
   const createAnnotation = useCallback(
-    async (a: Omit<Annotation, "id" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix">) => {
+    async (a: NewAnnotation) => {
       const p = plain[a.paragraph];
       const body = { ...a, prefix: p.slice(Math.max(0, a.startOffset - 32), a.startOffset), suffix: p.slice(a.endOffset, a.endOffset + 32) };
       const r = await fetch(`/api/lessons/${lesson.id}/annotations`, { method: "POST", ...json(body) });
       if (!r.ok) return null;
       const { id } = await r.json();
       const now = new Date();
-      setAnnotations((xs) => [...xs, { ...body, note: a.note ?? null, id, lessonId: lesson.id, createdAt: now, updatedAt: now }]);
+      setAnnotations((xs) => [...xs, { ...body, kind: a.kind ?? "highlight", note: a.note ?? null, id, lessonId: lesson.id, createdAt: now, updatedAt: now }]);
       return id as number;
     },
     [lesson.id, plain],

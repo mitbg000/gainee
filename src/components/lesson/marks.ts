@@ -1,5 +1,5 @@
 /** Split a paragraph into segments so highlights, vocabulary and "flash" marks never nest. */
-export type MarkKind = "ann" | "vocab" | "term" | "flash" | "fmt"; // fmt: color "b" = bold, "i" = italic
+export type MarkKind = "ann" | "sum" | "vocab" | "term" | "flash" | "tool" | "fmt"; // fmt: color "b" = bold, "i" = italic; tool: the word the open look-up is about
 export type Mark = { start: number; end: number; kind: MarkKind; id: number; color?: string };
 export type Segment = { text: string; start: number; end: number; marks: Mark[] };
 

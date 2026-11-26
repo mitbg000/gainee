@@ -15,6 +15,7 @@ const Input = z.object({
   suffix: z.string().max(64).optional(),
   color: z.enum(["yellow", "green", "blue", "pink", "purple"]).default("yellow"),
   note: z.string().max(5000).nullable().optional(),
+  kind: z.enum(["highlight", "summary"]).default("highlight"),
 });
 
 export async function POST(req: Request, { params }: Ctx) {

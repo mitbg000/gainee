@@ -52,7 +52,7 @@ export default function SplitPassage({
 
   const marks = useMemo(() => {
     const out: Mark[][] = blocks.map((b) => b.styles.map((s) => ({ start: s.start, end: s.end, kind: "fmt" as const, id: 0, color: s.kind })));
-    for (const a of annotations) out[a.paragraph]?.push({ start: a.startOffset, end: a.endOffset, kind: "ann", id: a.id, color: a.color });
+    for (const a of annotations) if (a.kind !== "summary") out[a.paragraph]?.push({ start: a.startOffset, end: a.endOffset, kind: "ann", id: a.id, color: a.color });
     if (flash) out[flash.p]?.push({ start: flash.start, end: flash.end, kind: "flash", id: 0 });
     return out;
   }, [blocks, annotations, flash]);

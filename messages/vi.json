@@ -496,7 +496,10 @@
         "part": "Từ lưu ở phần này",
         "doc": "Từ lưu ở cả bài",
         "all": "Tất cả từ đã lưu"
-      }
+      },
+      "summarize": "Tóm tắt",
+      "summarizeHint": "Tự tóm tắt phần đã chọn bằng lời của bạn (một câu, tiếng Việt cũng được). Phần này chỉ tô rất nhạt, vẫn bấm tra từ bình thường.",
+      "summaryOpen": "Mở tóm tắt"
     },
     "notes": {
       "placeholder": "Viết ghi chú…",
@@ -510,7 +513,9 @@
         "paraphrase": "Paraphrase",
         "custom": "Câu hỏi",
         "feedback": "Nhận xét"
-      }
+      },
+      "summary": "Tóm tắt",
+      "summaryPlaceholder": "Ý chính của phần này là… (viết bằng lời của bạn)"
     },
     "tool": {
       "lookup": "Từ điển",
