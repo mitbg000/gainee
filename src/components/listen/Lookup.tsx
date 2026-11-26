@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ToolPanel from "@/components/lesson/ToolPanel";
 import type { Tool, WordCard } from "@/components/lesson/types";
 
@@ -94,23 +94,82 @@ export function LookupText({ text, onLookup, className = "" }: { text: string; o
   );
 }
 
+/** A column's width in px, dragged by its edge and kept in this browser (double click: back to the default). */
+function useWidth(key: string, initial: number, min: number, max: number) {
+  const [w, setW] = useState(initial);
+  const drag = useRef<{ x0: number; w0: number; last: number } | null>(null);
+  useEffect(() => {
+    try {
+      const v = Number(localStorage.getItem(key));
+      if (v >= min && v <= max) setW(v);
+    } catch {}
+  }, [key, min, max]);
+  const handle = (dir: 1 | -1, className: string, label: string) => (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label={label}
+      title={label}
+      onDoubleClick={() => {
+        setW(initial);
+        try {
+          localStorage.removeItem(key);
+        } catch {}
+      }}
+      // the pointer is captured: moves and the release still come here over the YouTube frame
+      onPointerDown={(e) => {
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        drag.current = { x0: e.clientX, w0: w, last: w };
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        if (d) setW((d.last = Math.min(max, Math.max(min, d.w0 + dir * (e.clientX - d.x0)))));
+      }}
+      onPointerUp={() => {
+        const d = drag.current;
+        drag.current = null;
+        if (d)
+          try {
+            localStorage.setItem(key, String(Math.round(d.last)));
+          } catch {}
+      }}
+      onPointerCancel={() => (drag.current = null)}
+      className={`group absolute inset-y-0 z-10 w-3 cursor-col-resize touch-none select-none ${className}`}
+    >
+      <span className="mx-auto block h-full w-0.5 rounded-full bg-transparent transition-colors group-hover:bg-accent/50 group-active:bg-accent" />
+    </div>
+  );
+  return [w, handle] as const;
+}
+
 /**
  * The listening screens' layout, like the reader's: the work in the middle, look-up on the right (xl). A video gets its
  * own column on the left (lg and up); an audio recording is a card at the top of the work. Below xl the look-up opens
- * as a bottom sheet; on phones everything is one column.
+ * as a bottom sheet; on phones everything is one column. The video and look-up columns can be dragged wider/narrower.
  */
 export function ListenLayout({ media, video, children, side }: { media: React.ReactNode; video: boolean; children: React.ReactNode; side: React.ReactNode }) {
   const t = useTranslations("listen");
-  const cols = video ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)_18rem] 2xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)_20rem]" : "xl:grid-cols-[minmax(0,1fr)_20rem]";
+  const [mediaW, mediaHandle] = useWidth("rl_listen_media_w", 520, 280, 960);
+  const [sideW, sideHandle] = useWidth("rl_listen_side_w", 320, 260, 560);
+  const cols = video ? "lg:grid-cols-[minmax(0,var(--mw))_minmax(20rem,1fr)] xl:grid-cols-[minmax(0,var(--mw))_minmax(20rem,1fr)_var(--sw)]" : "xl:grid-cols-[minmax(0,1fr)_var(--sw)]";
   return (
-    <div className={`grid gap-4 md:gap-5 lg:items-start ${cols}`}>
-      {video && <div className="min-w-0 space-y-3 lg:sticky lg:top-20">{media}</div>}
+    <div className={`grid gap-4 md:gap-5 lg:items-start ${cols}`} style={{ "--mw": `${mediaW}px`, "--sw": `${sideW}px` } as React.CSSProperties}>
+      {video && (
+        <div className="relative min-w-0 space-y-3 lg:sticky lg:top-20">
+          {media}
+          <div className="hidden lg:block">{mediaHandle(1, "-right-4", t("resize"))}</div>
+        </div>
+      )}
       <div className={`min-w-0 space-y-4 ${video ? "" : "mx-auto w-full max-w-3xl"}`}>
         {!video && media}
         {children}
       </div>
-      <aside className="min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto">
-        {side || <p className="hidden rounded-2xl border border-dashed border-line p-4 text-sm text-muted xl:block">{t("lookupHint")}</p>}
+      <aside className="relative min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100dvh-6rem)]">
+        <div className="hidden xl:block">{sideHandle(-1, "-left-4", t("resize"))}</div>
+        <div className="xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto">
+          {side || <p className="hidden rounded-2xl border border-dashed border-line p-4 text-sm text-muted xl:block">{t("lookupHint")}</p>}
+        </div>
       </aside>
     </div>
   );

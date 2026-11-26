@@ -1480,7 +1480,19 @@
       "readKeyFailed": "AI could not read the answer key.",
       "noKeyPages": "No answer key pages found for this test in the book.",
       "simpleBlanks": "Make simple answer lines",
-      "simpleBlanksConfirm": "Replace the text with lines “1. [[1]]”, “2. [[2]]”…?"
+      "simpleBlanksConfirm": "Replace the text with lines “1. [[1]]”, “2. [[2]]”…?",
+      "aiKey": "Answers by AI",
+      "aiKeyWorking": "AI is answering…",
+      "aiKeyHint": "When the book has no key: AI reads the questions and the transcript (Listening) or the passage (Reading) and answers them. Answers already written stay. Check them before saving.",
+      "aiKeyDone": "AI gave {found} answers, {added} added to empty ones. These are worked out by AI: check them, then Save.",
+      "aiKeyNoSource": "There is no transcript (or passage) for AI to work from yet. Make a transcript first.",
+      "transcribe": "Transcript from audio",
+      "transcribingShort": "Listening…",
+      "transcribing": "The server is listening to this part's audio…",
+      "transcribeHint": "When the book prints no transcript: Whisper listens to the part's saved audio stretch (its saved start/end) and writes it out, one sentence a line. Check it, then Save.",
+      "transcribeConfirm": "Replace the current transcript with what Whisper hears?",
+      "transcribed": "Transcript made from the audio (no speaker names yet). Check it, maybe use \"Fix transcript with AI\", then Save.",
+      "transcribeFailed": "Could not make a transcript: {error}"
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",
@@ -1754,6 +1766,7 @@
       "ielts": "Add from IELTS Listening tests"
     },
     "ieltsNone": "No Listening part has audio yet. Upload a book and its audio under IELTS first.",
-    "lookupHint": "Tap a word (or select a few) in a shown sentence to look it up, ask AI and save it to your notebook. The result shows here."
+    "lookupHint": "Tap a word (or select a few) in a shown sentence to look it up, ask AI and save it to your notebook. The result shows here.",
+    "resize": "Drag to resize the column (double-click: default)"
   }
 }

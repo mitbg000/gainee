@@ -1480,7 +1480,19 @@
       "readKeyFailed": "AI không đọc được trang đáp án.",
       "noKeyPages": "Không tìm thấy trang đáp án của đề này trong sách.",
       "simpleBlanks": "Tạo ô trả lời đơn giản",
-      "simpleBlanksConfirm": "Thay nội dung hiện tại bằng các dòng “1. [[1]]”, “2. [[2]]”…?"
+      "simpleBlanksConfirm": "Thay nội dung hiện tại bằng các dòng “1. [[1]]”, “2. [[2]]”…?",
+      "aiKey": "Tạo đáp án bằng AI",
+      "aiKeyWorking": "AI đang làm bài…",
+      "aiKeyHint": "Khi sách không có đáp án: AI đọc câu hỏi và transcript (Listening) hoặc bài đọc (Reading) để đưa ra đáp án. Đáp án đã có vẫn giữ. Hãy kiểm tra lại trước khi lưu.",
+      "aiKeyDone": "AI đưa ra {found} đáp án, thêm {added} ô còn trống. Đây là đáp án do AI suy ra: kiểm tra lại rồi bấm Lưu.",
+      "aiKeyNoSource": "Chưa có transcript (hoặc bài đọc) để AI làm bài. Hãy tạo transcript trước.",
+      "transcribe": "Tạo transcript từ âm thanh",
+      "transcribingShort": "Đang nghe…",
+      "transcribing": "Máy chủ đang nghe đoạn âm thanh của Part này…",
+      "transcribeHint": "Khi sách không in transcript: Whisper nghe đoạn âm thanh đã lưu của Part (theo mốc đầu/cuối đã lưu) và viết lại, mỗi câu một dòng. Kiểm tra rồi bấm Lưu.",
+      "transcribeConfirm": "Thay transcript hiện có bằng bản Whisper nghe được?",
+      "transcribed": "Đã có transcript từ âm thanh (chưa có tên người nói). Kiểm tra, có thể bấm \"Sửa transcript bằng AI\", rồi Lưu.",
+      "transcribeFailed": "Không tạo được transcript: {error}"
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",
@@ -1754,6 +1766,7 @@
       "ielts": "Thêm từ đề IELTS Listening"
     },
     "ieltsNone": "Chưa có Part Listening nào có audio. Tải sách và audio trong mục IELTS trước.",
-    "lookupHint": "Chạm vào một từ (hoặc bôi đen vài từ) trong câu đã hiện để tra nghĩa, hỏi AI và lưu vào sổ từ. Kết quả hiện ở đây."
+    "lookupHint": "Chạm vào một từ (hoặc bôi đen vài từ) trong câu đã hiện để tra nghĩa, hỏi AI và lưu vào sổ từ. Kết quả hiện ở đây.",
+    "resize": "Kéo để đổi độ rộng cột (bấm đúp: về mặc định)"
   }
 }

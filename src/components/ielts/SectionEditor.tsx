@@ -170,6 +170,42 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     setAnswers(formatAnswers(Object.fromEntries(Object.entries({ ...found, ...have }).sort((a, b) => Number(a[0]) - Number(b[0])))));
     setMsg(t("readKeyDone", { found: Object.keys(found).length, added }));
   }
+  /** No key in the book: AI works the answers out from the questions and the transcript; written answers stay. */
+  async function aiKey() {
+    setBusy("aiKey");
+    setMsg(null);
+    const r = await fetch(`/api/ielts/sections/${data.id}/answers-ai`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ transcript }) }).catch(() => null);
+    setBusy(null);
+    if (!r?.ok) return setMsg(r?.status === 409 ? t("noAi") : r?.status === 404 ? t("aiKeyNoSource") : t("readKeyFailed"));
+    const found = (await r.json()).answers as Record<string, string>;
+    const have = parseAnswers(answers);
+    const added = Object.keys(found).filter((n) => !have[n]).length;
+    setAnswers(formatAnswers(Object.fromEntries(Object.entries({ ...found, ...have }).sort((a, b) => Number(a[0]) - Number(b[0])))));
+    setMsg(t("aiKeyDone", { found: Object.keys(found).length, added }));
+  }
+  /** The book prints no transcript: the worker hears the part's saved audio stretch; the text lands in the editor. */
+  async function transcribe() {
+    if (transcript.trim() && !confirm(t("transcribeConfirm"))) return;
+    setBusy("transcribe");
+    setMsg(t("transcribing"));
+    const r = await fetch(`/api/ielts/sections/${data.id}/transcribe`, { method: "POST" }).catch(() => null);
+    if (!r?.ok) return (setBusy(null), setMsg(t("transcribeFailed", { error: "start" })));
+    const { jobId } = (await r.json()) as { jobId: number };
+    for (;;) {
+      await new Promise((ok) => setTimeout(ok, 3000));
+      const j = (await fetch(`/api/jobs/${jobId}`)
+        .then((x) => x.json())
+        .catch(() => null)) as { status: string; progress: string | null; result: { text?: string } | null; error: string | null } | null;
+      if (!j) continue;
+      if (j.status === "done") {
+        setBusy(null);
+        setTranscript(j.result?.text ?? "");
+        return setMsg(t("transcribed"));
+      }
+      if (j.status === "failed" || j.status === "cancelled") return (setBusy(null), setMsg(t("transcribeFailed", { error: j.error ?? j.status })));
+      setMsg(`${t("transcribing")} ${j.progress ?? ""}`);
+    }
+  }
   async function fixScript() {
     setBusy("script");
     setMsg(null);
@@ -384,6 +420,9 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                   <button onClick={readKey} disabled={!!busy} className="btn btn-sm btn-ghost">
                     <I.IconSpark /> {busy === "key" ? t("readingKey") : t("readKey")}
                   </button>
+                  <button onClick={aiKey} disabled={!!busy} className="btn btn-sm btn-ghost" title={t("aiKeyHint")}>
+                    <I.IconSpark /> {busy === "aiKey" ? t("aiKeyWorking") : t("aiKey")}
+                  </button>
                 </div>
                 <p className="text-xs text-muted">{t("answersHint")}</p>
                 <textarea value={answers} onChange={(e) => setAnswers(e.target.value)} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
@@ -418,6 +457,11 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                   )}
                   <div className="flex flex-wrap items-center gap-2">
                     <label className="flex-1 text-sm font-semibold">{t("transcript")}</label>
+                    {audio && (
+                      <button onClick={transcribe} disabled={!!busy} className="btn btn-sm btn-ghost" title={t("transcribeHint")}>
+                        <I.IconHeadphones /> {busy === "transcribe" ? t("transcribingShort") : t("transcribe")}
+                      </button>
+                    )}
                     <button onClick={fixScript} disabled={!!busy || transcript.trim().length < 20} className="btn btn-sm btn-ghost">
                       <I.IconSpark /> {busy === "script" ? t("fixingScript") : t("fixScript")}
                     </button>

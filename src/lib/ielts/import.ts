@@ -192,6 +192,25 @@ export function splitScript(text: string, test?: number): Record<number, string>
   return out;
 }
 
+/**
+ * All the book's audioscripts, printed without "TEST n" headings (older books: "SECTION 1"…"SECTION 4" four times) →
+ * the parts of each test in book order: a test starts where the part numbers start again.
+ */
+export function splitByOrder(text: string): Record<number, string>[] {
+  const marks = [...text.matchAll(/^\s*(?:PART|SECTION)\s+([1-4])\b.*$/gim)];
+  const groups: Record<number, string>[] = [];
+  let prev = Infinity;
+  marks.forEach((m, i) => {
+    const body = text.slice(m.index! + m[0].length, i + 1 < marks.length ? marks[i + 1].index : undefined).replace(/^\s*(?:\d{1,3}|[IVX]{1,4})\s*$/gm, "").trim();
+    if (body.length <= 200) return; // a heading with no script under it (contents, a note)
+    const part = Number(m[1]);
+    if (part <= prev) groups.push({});
+    groups[groups.length - 1][part] ??= body;
+    prev = part;
+  });
+  return groups;
+}
+
 /** Speaker names printed as a block apart from their lines ("WOMAN:\nMAN:\nWOMAN:…"): text taken from a two-column page. */
 export const scriptLooksBroken = (t: string | null) => !!t && /(^[A-Z][A-Z .'’-]{0,24}:\s*\n){3,}/m.test(t);
 
@@ -250,7 +269,8 @@ export const sameScript = (a: string, b: string) => {
 };
 
 /**
- * Worker job: split the book's audioscripts again from its stored pages, by the "TEST n" headings (payload: { bookId }).
+ * Worker job: split the book's audioscripts again from its stored pages, by the "TEST n" headings, or in book order when
+ * there are none (payload: { bookId }).
  * A Listening part gets a new transcript only when it has none or its transcript is another test's or part's (pages
  * guessed one off at import gave Test 2 the start of Test 3); transcripts fixed by hand otherwise stay.
  */
@@ -258,11 +278,18 @@ export async function resplitBookScripts(job: Job) {
   const db = getDb();
   const bookId = Number(job.payload.bookId);
   const pages = await db.select().from(ieltsPages).where(eq(ieltsPages.bookId, bookId));
-  const heads = pages.filter((p) => /^\s*Audioscripts\s*$/im.test(p.text ?? "")).map((p) => p.page);
+  const heads = pages.filter((p) => /^\s*(?:Audioscripts|Tapescripts|Transcripts)\s*$/im.test(p.text ?? "")).map((p) => p.page);
   if (!heads.length) return { fixed: 0, reason: "no_audioscripts" };
+  const tests = (await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId))).sort((a, b) => a.number - b.number);
+  let split: Map<number, Record<number, string>>;
   const region = textOf(pages, [Math.min(...heads), Math.max(...heads) + 1]);
-  const tests = await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId));
-  const split = new Map(tests.map((t) => [t.id, splitScript(region, t.number)]));
+  if (/^\s*TEST\s+\d{1,2}\s*$/m.test(region)) split = new Map(tests.map((t) => [t.id, splitScript(region, t.number)]));
+  else {
+    // no "TEST n" headings: in book order, one test per run of parts (the pages exactly, no page more)
+    const ordered = splitByOrder(textOf(pages, [Math.min(...heads), Math.max(...heads)]));
+    if (ordered.length !== tests.length) return { fixed: 0, reason: "tests_not_found", found: ordered.length };
+    split = new Map(tests.map((t, i) => [t.id, ordered[i]]));
+  }
   const all = [...split.values()].flatMap((r) => Object.values(r));
   const ss = tests.length ? await db.select({ id: ieltsSections.id, testId: ieltsSections.testId, part: ieltsSections.part, transcript: ieltsSections.transcript }).from(ieltsSections).where(and(inArray(ieltsSections.testId, tests.map((t) => t.id)), eq(ieltsSections.skill, "listening"))) : [];
   let fixed = 0;
@@ -455,6 +482,11 @@ export async function importBook(job: Job) {
     const order = [...plan.tests].sort((x, y) => x.number - y.number);
     const byOrder = new Map<number, { test: number; part?: number }>(unnamed.length === order.length ? unnamed.map((a, i) => [a.id, { test: order[i].number }]) : []);
 
+    // books without "TEST n" headings over their audioscripts: split all of them at once, in book order
+    const allScripts = textOfList(pages, plan.tests.flatMap((t) => t.scriptPages ?? []));
+    const ordered = allScripts && !/^\s*TEST\s+\d{1,2}\s*$/m.test(allScripts) ? splitByOrder(allScripts) : [];
+    const scriptOrder = new Map(ordered.length === order.length ? order.map((t, i) => [t.number, ordered[i]]) : []);
+
     const total = plan.tests.reduce((a, t) => a + (t.listening?.length ?? 0) + (t.reading?.length ?? 0) + (t.writing?.length ?? 0) + 1, 0);
     let done = 0;
     for (const t of plan.tests) {
@@ -467,7 +499,7 @@ export async function importBook(job: Job) {
       // a page more on each side when the book prints "TEST n" headings: they tell which parts are this test's own
       const sp = t.scriptPages?.length ? [Math.min(...t.scriptPages) - 1, Math.max(...t.scriptPages) + 1] : [];
       const wide = textOfList(pages, sp);
-      const scripts = /^\s*TEST\s+\d{1,2}\s*$/m.test(wide) ? splitScript(wide, t.number) : splitScript(textOfList(pages, t.scriptPages));
+      const scripts = scriptOrder.get(t.number) ?? (/^\s*TEST\s+\d{1,2}\s*$/m.test(wide) ? splitScript(wide, t.number) : splitScript(textOfList(pages, t.scriptPages)));
       const files = audio.map((a) => ({ a, to: audioTarget(a.name) ?? byOrder.get(a.id) ?? null })).filter((x) => x.to?.test === t.number);
 
       const list = sharedPages(inBookOrder((["listening", "reading", "writing"] as const).flatMap((skill) => (t[skill] ?? []).map((r) => ({ skill, part: Number(r.part), pages: [Number(r.pages[0]), Number(r.pages[1] ?? r.pages[0])] as [number, number] })))), lastPage);
@@ -585,6 +617,47 @@ export async function readAnswers(sectionId: number): Promise<Record<string, str
   const all: Record<string, string> = s.skill === "listening" ? key.listening : key.reading;
   const c = s.content as unknown as SectionContent;
   return fitAnswers(c, Object.fromEntries(numsOf(c.groups).flatMap((n) => (all[n] ? [[String(n), String(all[n])]] : []))));
+}
+
+/**
+ * Answers worked out by AI when the book prints no key: from the questions and the transcript (Listening) or the
+ * passage (Reading). Only to be checked by the reviewer: nothing is saved here.
+ */
+export async function answersByAi(sectionId: number, transcript: string): Promise<Record<string, string> | null> {
+  const db = getDb();
+  const [s] = await db.select().from(ieltsSections).where(eq(ieltsSections.id, sectionId));
+  if (!s || s.skill === "writing") return null;
+  const c = s.content as unknown as SectionContent;
+  const source = s.skill === "listening" ? transcript || s.transcript || "" : c.passage ?? "";
+  if (source.trim().length < 50) return null;
+  const { text: reply } = await chat({
+    task: "ielts_import",
+    json: true,
+    temperature: 0,
+    maxTokens: 3000,
+    timeoutMs: 180_000,
+    messages: [
+      { role: "system", content: "You are an IELTS examiner writing the answer key. Reply with one JSON object only." },
+      {
+        role: "user",
+        content: `Work out the correct answer to every question below from the ${s.skill === "listening" ? "recording's transcript" : "reading passage"}.
+Follow each group's instructions (word limits such as "ONE WORD AND/OR A NUMBER"; write the words as heard / as in the passage).
+Choice and matching questions: the letter or roman numeral only. TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN in capitals.
+Alternatives a marker would accept go with "/" ("10/ten").
+JSON: {"answers":{"1":"...","2":"..."}}
+
+QUESTIONS (JSON):
+${JSON.stringify(c.groups)}
+
+${s.skill === "listening" ? "TRANSCRIPT" : "PASSAGE"}:
+"""
+${curlyQuotes(source.slice(0, 60000))}
+"""`,
+      },
+    ],
+  });
+  const got = parseJsonReply<{ answers?: Record<string, string> }>(reply).answers ?? {};
+  return fitAnswers(c, Object.fromEntries(numsOf(c.groups).flatMap((n) => (got[n] ? [[String(n), String(got[n])]] : []))));
 }
 
 /** Re-read one section with AI (review screen button), keeping its answers when the new reply has none. */

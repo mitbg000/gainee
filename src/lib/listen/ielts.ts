@@ -57,36 +57,42 @@ export function runSpeech(file: string, start: number, end: number | null, onSte
   });
 }
 
+type Section = typeof schema.ieltsSections.$inferSelect;
+
+/** What Whisper heard in a part's stretch of the recording (times in the file); heard once per stretch, then kept. */
+async function hearSection(sec: Section, onStep: (msg: string) => Promise<void>) {
+  const db = getDb();
+  if (!sec.audio) throw new Error("no_audio");
+  const [file] = await db.select({ path: schema.ieltsAudio.path }).from(schema.ieltsAudio).where(eq(schema.ieltsAudio.id, sec.audio.fileId));
+  if (!file) throw new Error("no_audio");
+  const abs = path.join(UPLOAD_DIR, file.path);
+  if (!abs.startsWith(UPLOAD_DIR + path.sep)) throw new Error("no_audio");
+  const from = sec.audio.start ?? 0;
+  const to = sec.audio.end ?? null;
+  const [kept] = await db.select().from(schema.listenSpeech).where(eq(schema.listenSpeech.sectionId, sec.id));
+  if (kept && kept.fileId === sec.audio.fileId && kept.start === from && (kept.end ?? null) === to && kept.heard.length) return kept;
+  const r = await runSpeech(abs, from, to, (s) => onStep(s === "decode" ? "decode" : `listen ${s}`));
+  const heard = r.heard.map((w) => ({ w: w.w, s: w.s + from, e: w.e + from }));
+  const quiet = r.quiet.map(([a, b]) => [a + from, b + from] as [number, number]);
+  if (!heard.length) throw new Error("nothing_heard");
+  const row = { fileId: sec.audio.fileId, start: from, end: to, heard, quiet };
+  await db.insert(schema.listenSpeech).values({ sectionId: sec.id, ...row }).onDuplicateKeyUpdate({ set: row });
+  return row;
+}
+
 /** Cut one Listening part into the bank (replaces its sentences if it was cut before). */
 export async function cutSection(sectionId: number, onStep: (msg: string) => Promise<void>) {
   const db = getDb();
   const [sec] = await db.select().from(schema.ieltsSections).where(eq(schema.ieltsSections.id, sectionId));
   if (!sec || sec.skill !== "listening" || !sec.audio) throw new Error("no_audio");
   if (!sec.transcript?.trim()) throw new Error("no_transcript");
-  const [file] = await db.select({ path: schema.ieltsAudio.path }).from(schema.ieltsAudio).where(eq(schema.ieltsAudio.id, sec.audio.fileId));
-  if (!file) throw new Error("no_audio");
-  const abs = path.join(UPLOAD_DIR, file.path);
-  if (!abs.startsWith(UPLOAD_DIR + path.sep)) throw new Error("no_audio");
-
-  // times in the file (the player plays the whole recording); heard once per stretch, kept for the next cut
-  const from = sec.audio.start ?? 0;
-  const to = sec.audio.end ?? null;
-  const [kept] = await db.select().from(schema.listenSpeech).where(eq(schema.listenSpeech.sectionId, sec.id));
-  let { heard, quiet } = kept && kept.fileId === sec.audio.fileId && kept.start === from && (kept.end ?? null) === to ? kept : { heard: [], quiet: [] };
-  if (!heard.length) {
-    const r = await runSpeech(abs, from, to, (s) => onStep(s === "decode" ? "decode" : `listen ${s}`));
-    heard = r.heard.map((w) => ({ w: w.w, s: w.s + from, e: w.e + from }));
-    quiet = r.quiet.map(([a, b]) => [a + from, b + from] as [number, number]);
-    if (!heard.length) throw new Error("nothing_heard");
-    const row = { fileId: sec.audio.fileId, start: from, end: to, heard, quiet };
-    await db.insert(schema.listenSpeech).values({ sectionId: sec.id, ...row }).onDuplicateKeyUpdate({ set: row });
-  }
+  const { heard, quiet } = await hearSection(sec, onStep);
 
   const clips = snap(toSentences(align(scriptWords(sec.transcript), heard)), quiet);
   const [test] = await db.select({ title: schema.ieltsTests.title, bookId: schema.ieltsTests.bookId }).from(schema.ieltsTests).where(eq(schema.ieltsTests.id, sec.testId));
   const [book] = test ? await db.select({ title: schema.ieltsBooks.title }).from(schema.ieltsBooks).where(eq(schema.ieltsBooks.id, test.bookId)) : [];
   const id = await saveSource({ kind: "ielts", sectionId: sec.id, title: [book?.title, test?.title, `Listening Part ${sec.part}`].filter(Boolean).join(" · ").slice(0, 255), captions: "script" }, clips);
-  await queueClips(sec.audio.fileId); // the old sentences' clips go, the new ones are cut ahead
+  await queueClips(sec.audio!.fileId); // the old sentences' clips go, the new ones are cut ahead
   return { sourceId: id, sentences: clips.length, heard: heard.length };
 }
 
@@ -116,4 +122,21 @@ export async function cutParts(job: Job) {
   }
   if (done.length && done.every((d) => d.error)) throw new Error(done[0].error);
   return { parts: done };
+}
+
+/**
+ * Worker job "ielts_transcribe" (payload: { sectionId }): a transcript for a part whose book prints none, from what
+ * Whisper hears, one sentence a line. It is the job's result; the review screen puts it in the editor to check.
+ */
+export async function transcribeSection(job: Job) {
+  const db = getDb();
+  const [sec] = await db.select().from(schema.ieltsSections).where(eq(schema.ieltsSections.id, Number(job.payload.sectionId)));
+  if (!sec || sec.skill !== "listening" || !sec.audio) throw new Error("no_audio");
+  const { heard } = await hearSection(sec, (msg) => setProgress(job.id, msg));
+  const text = heard
+    .map((w) => w.w)
+    .join(" ")
+    .replace(/([.!?])\s+(?=[A-Z0-9"“])/g, "$1\n")
+    .trim();
+  return { text };
 }

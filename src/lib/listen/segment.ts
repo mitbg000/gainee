@@ -167,7 +167,8 @@ export function scriptWords(script: string): { w: string; speaker: string | null
   const caps = capsNames(lines);
   for (const raw of lines) {
     let line = raw.replace(/\(?\bQ\d{1,2}\b\)?/g, " ").trim(); // question numbers marked in the text ("twentieth Q31 century")
-    const m = line.match(/^([A-Z][A-Z .'’-]{1,24}|[A-Z][a-z]+(?: [A-Z][a-z]+)?)\s*:\s+/);
+    if (/^(?:[A-Z]{1,3}\s*=\s*[A-Z][\w’' -]*?\s*)+$/.test(line)) continue; // "R = Receptionist W = Woman": who is who
+    const m = line.match(/^([A-Z][A-Z .'’-]{0,24}|[A-Z][a-z]+(?: [A-Z][a-z]+)?)\s*:\s+/);
     if (m) {
       speaker = m[1].trim();
       line = line.slice(m[0].length);
