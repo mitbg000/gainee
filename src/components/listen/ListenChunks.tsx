@@ -3,9 +3,10 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as I from "@/components/icons";
+import StepNav from "@/components/StepNav";
 import type { PlayItem } from "@/lib/listen/queries";
 import { toChunks } from "@/lib/listen/segment";
-import { LookupText, useLookup } from "./Lookup";
+import { ListenLayout, LookupText, useLookup } from "./Lookup";
 import { useClipPlayer } from "./useClipPlayer";
 
 const SPEEDS = [0.75, 1, 1.25];
@@ -51,37 +52,33 @@ export default function ListenChunks({ items, title, saved, sourceId }: { items:
   if (!chunks.length) return <p className="text-muted">{t("empty")}</p>;
   const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
-  return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
-      <div className="space-y-3 lg:sticky lg:top-20">
-        <div ref={player.videoBox} className={`aspect-video w-full overflow-hidden rounded-2xl bg-black ${isVideo ? "" : "hidden"}`} />
-        {!isVideo && (
-          <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-4 text-sm">
-            <I.IconHeadphones className="h-6 w-6 text-accent" /> <span className="truncate">{title}</span>
-          </div>
-        )}
-        {look.panel(sourceId)}
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <span className="font-mono tabular-nums">
-            {t("piece", { n: k + 1, total: chunks.length })}
-          </span>
-          <span>
-            {clock(chunk[0].start)}–{clock(chunk[chunk.length - 1].end)}
-          </span>
+  // where this piece is in the recording
+  const span = (
+    <span className="font-mono tabular-nums">
+      {clock(chunk[0].start)}–{clock(chunk[chunk.length - 1].end)}
+    </span>
+  );
+  const media = (
+    <>
+      <div ref={player.videoBox} className={`aspect-video w-full overflow-hidden rounded-2xl bg-black ${isVideo ? "" : "hidden"}`} />
+      {!isVideo && (
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-4 text-sm">
+          <I.IconHeadphones className="h-6 w-6 flex-none text-accent" /> <span className="min-w-0 flex-1 truncate">{title}</span>
+          {player.loading ? <span className="text-muted">{t("loading")}</span> : <span className="text-xs text-muted">{span}</span>}
         </div>
+      )}
+      {player.failed && <p className="text-sm text-red-600">{t("playFailed")}</p>}
+    </>
+  );
+
+  return (
+    <ListenLayout media={media} video={isVideo} side={look.panel(sourceId)}>
+      <div className="space-y-4">
+        {isVideo && <div className="flex justify-end text-sm text-muted">{span}</div>}
         <div className="rounded-2xl border border-line bg-card p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={() => go(k - 1)} disabled={k === 0} className="btn btn-secondary" aria-label={t("prev")}>
-              <I.IconArrowLeft />
-            </button>
             <button onClick={player.playing ? player.stop : playAll} className="btn btn-primary">
               {player.playing ? <I.IconStop /> : <I.IconPlay />} {player.playing ? t("stop") : t("play")}
-            </button>
-            <button onClick={() => go(k + 1)} disabled={k >= chunks.length - 1} className="btn btn-secondary" aria-label={t("next")}>
-              <I.IconArrowRight />
             </button>
             <span role="group" className="inline-flex overflow-hidden rounded-lg border border-line">
               {SPEEDS.map((s) => (
@@ -111,8 +108,9 @@ export default function ListenChunks({ items, title, saved, sourceId }: { items:
           ) : (
             <p className="mt-3 text-sm text-muted">{t("hiddenHint")}</p>
           )}
+          <StepNav n={k + 1} total={chunks.length} onPrev={() => go(k - 1)} onNext={() => go(k + 1)} className="-mx-1 mt-4 border-t border-line pt-3" />
         </div>
       </div>
-    </div>
+    </ListenLayout>
   );
 }

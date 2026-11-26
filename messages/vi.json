@@ -2,7 +2,10 @@
   "app": {
     "name": "Gainee",
     "tagline": "Học tiếng Anh qua bài đọc",
-    "description": "Biến bài báo thành bài học IELTS: từ vựng, bài tập, ôn tập ngắt quãng và theo dõi tiến độ."
+    "description": "Biến bài báo thành bài học IELTS: từ vựng, bài tập, ôn tập ngắt quãng và theo dõi tiến độ.",
+    "prev": "Trước",
+    "next": "Tiếp theo",
+    "steps": "Chuyển câu"
   },
   "language": {
     "label": "Ngôn ngữ",
@@ -1644,16 +1647,15 @@
       "keys": "Enter: chấm / sang câu · Ctrl: nghe lại · bấm vào từ (khi đã hiện chữ) để tra và lưu từ"
     },
     "chunks": {
-      "piece": "Đoạn {n}/{total}",
-      "prev": "Đoạn trước",
-      "next": "Đoạn sau",
       "play": "Nghe đoạn",
       "stop": "Dừng",
       "hide": "Ẩn chữ",
       "show": "Hiện chữ",
       "playSentence": "Nghe câu này",
       "hiddenHint": "Nghe hết đoạn trước, rồi hiện chữ để kiểm tra. Bấm vào từ để tra và lưu.",
-      "empty": "Bài này chưa có câu nào."
+      "empty": "Bài này chưa có câu nào.",
+      "loading": "Đang tải âm thanh…",
+      "playFailed": "Không phát được âm thanh."
     },
     "edit": {
       "heading": "Duyệt bài nghe",
@@ -1750,6 +1752,7 @@
       "three": "Luyện: chép cả video lần lượt, nghe từng đoạn, hoặc để câu vào kho luyện ngẫu nhiên.",
       "ielts": "Thêm từ đề IELTS Listening"
     },
-    "ieltsNone": "Chưa có Part Listening nào có audio. Tải sách và audio trong mục IELTS trước."
+    "ieltsNone": "Chưa có Part Listening nào có audio. Tải sách và audio trong mục IELTS trước.",
+    "lookupHint": "Chạm vào một từ (hoặc bôi đen vài từ) trong câu đã hiện để tra nghĩa, hỏi AI và lưu vào sổ từ. Kết quả hiện ở đây."
   }
 }

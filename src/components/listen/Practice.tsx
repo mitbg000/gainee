@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as I from "@/components/icons";
+import StepNav from "@/components/StepNav";
 import { firstLetters, gapWords, mark, sameWord, type Marked } from "@/lib/listen/check";
 import type { PlayItem } from "@/lib/listen/queries";
-import { LookupText, useLookup } from "./Lookup";
+import { ListenLayout, LookupText, useLookup } from "./Lookup";
 import { prefetchClip, useClipPlayer } from "./useClipPlayer";
 
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -219,31 +220,36 @@ export default function Practice(p: Props) {
       ? words.map((w, k) => (cur.shown.includes(k) || (p.kind === "gaps" && !blanks.includes(k)) ? w : cur.letters ? firstLetters(w) : "·".repeat(Math.min(8, w.length)))).join(" ")
       : null;
 
+  const progress = (
+    <span className="flex flex-none items-center gap-2 text-xs text-muted">
+      {item.due && <span className="chip">{t("reviewChip")}</span>}
+      {p.round && <span className="hidden sm:inline">{t("round", p.round)}</span>}
+    </span>
+  );
+  const media = (
+    <>
+      {/* the video stays visible while learning */}
+      <div ref={player.videoBox} className={`aspect-video w-full overflow-hidden rounded-2xl bg-black ${isVideo ? "" : "hidden"}`} />
+      {!isVideo && (
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-4 text-sm">
+          <I.IconHeadphones className="h-6 w-6 flex-none text-accent" />
+          <span className="min-w-0 flex-1 truncate">{p.titles[item.sourceId]}</span>
+          {player.loading ? <span className="text-muted">{t("loadingAudio")}</span> : progress}
+        </div>
+      )}
+      {player.failed && <p className="text-sm text-red-600">{t("playFailed")}</p>}
+    </>
+  );
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
-      {/* recording (the video stays visible while learning) and the look-up panel */}
-      <div className="space-y-3 lg:sticky lg:top-20">
-        <div ref={player.videoBox} className={`aspect-video w-full overflow-hidden rounded-2xl bg-black ${isVideo ? "" : "hidden"}`} />
-        {!isVideo && (
-          <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-4 text-sm">
-            <I.IconHeadphones className="h-6 w-6 text-accent" />
+    <ListenLayout media={media} video={isVideo} side={look.panel(item.sourceId)}>
+      <div className="space-y-4">
+        {isVideo && (
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="min-w-0 flex-1 truncate">{p.titles[item.sourceId]}</span>
-            {player.loading && <span className="text-muted">{t("loadingAudio")}</span>}
+            {progress}
           </div>
         )}
-        {player.failed && <p className="text-sm text-red-600">{t("playFailed")}</p>}
-        {look.panel(item.sourceId)}
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <span className="font-mono tabular-nums">
-            {i + 1}/{queue.length}
-          </span>
-          <span className="min-w-0 flex-1 truncate">{p.titles[item.sourceId]}</span>
-          {p.round && <span>{t("round", p.round)}</span>}
-          {item.due && <span className="chip">{t("reviewChip")}</span>}
-        </div>
 
         <div className="rounded-2xl border border-line bg-card p-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -361,6 +367,8 @@ export default function Practice(p: Props) {
               </>
             )}
           </div>
+
+          <StepNav n={i + 1} total={queue.length} onPrev={() => setI(i - 1)} onNext={next} className="-mx-1 mt-4 border-t border-line pt-3" />
         </div>
 
         {/* the captions can be wrong (automatic ones especially): fix the sentence, or report it */}
@@ -404,8 +412,8 @@ export default function Practice(p: Props) {
             </label>
           )}
         </div>
-        <p className="text-xs text-muted">{t("keys")}</p>
+        <p className="hidden text-xs text-muted md:block">{t("keys")}</p>
       </div>
-    </div>
+    </ListenLayout>
   );
 }

@@ -2,7 +2,10 @@
   "app": {
     "name": "Gainee",
     "tagline": "Learn English through reading",
-    "description": "Turn articles into IELTS lessons: vocabulary, exercises, spaced repetition and progress tracking."
+    "description": "Turn articles into IELTS lessons: vocabulary, exercises, spaced repetition and progress tracking.",
+    "prev": "Previous",
+    "next": "Next",
+    "steps": "Move between items"
   },
   "language": {
     "label": "Language",
@@ -1644,16 +1647,15 @@
       "keys": "Enter: check / next · Ctrl: listen again · tap a word (once shown) to look it up and save it"
     },
     "chunks": {
-      "piece": "Piece {n}/{total}",
-      "prev": "Previous piece",
-      "next": "Next piece",
       "play": "Play piece",
       "stop": "Stop",
       "hide": "Hide text",
       "show": "Show text",
       "playSentence": "Play this sentence",
       "hiddenHint": "Listen to the whole piece first, then show the text to check. Tap words to look them up.",
-      "empty": "No sentences yet."
+      "empty": "No sentences yet.",
+      "loading": "Loading audio…",
+      "playFailed": "Could not play the audio."
     },
     "edit": {
       "heading": "Review recording",
@@ -1750,6 +1752,7 @@
       "three": "Practise: the whole video in order, listen in pieces, or random practice from the bank.",
       "ielts": "Add from IELTS Listening tests"
     },
-    "ieltsNone": "No Listening part has audio yet. Upload a book and its audio under IELTS first."
+    "ieltsNone": "No Listening part has audio yet. Upload a book and its audio under IELTS first.",
+    "lookupHint": "Tap a word (or select a few) in a shown sentence to look it up, ask AI and save it to your notebook. The result shows here."
   }
 }

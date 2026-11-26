@@ -1,10 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { autoSpeak, speak } from "@/lib/speech";
 import { meaningOf, type PWord } from "./questions";
 import * as I from "@/components/icons";
+import StepNav from "@/components/StepNav";
 import { sfx } from "@/lib/sound";
 
 /**
@@ -20,6 +21,7 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
   const [learning, setLearning] = useState<PWord[]>([]);
   const [known, setKnown] = useState(0);
   const w = deck[i];
+  const skipped = useRef(new Set<number>()); // places in the deck passed with "next" (not sorted)
 
   const sort = useCallback(
     (know: boolean) => {
@@ -42,11 +44,18 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
   const back = () => {
     if (!i) return;
     const prev = deck[i - 1];
+    setFlipped(false);
+    setI(i - 1);
+    if (skipped.current.delete(i - 1)) return; // skipped: nothing to undo
     // undo the last sort
     setLearning((l) => (l[l.length - 1]?.id === prev.id ? l.slice(0, -1) : l));
     if (learning[learning.length - 1]?.id !== prev.id) setKnown((n) => Math.max(0, n - 1));
+  };
+  // on without sorting: the card counts neither as known nor as still learning
+  const skip = () => {
+    skipped.current.add(i);
     setFlipped(false);
-    setI(i - 1);
+    setI((n) => Math.min(deck.length - 1, n + 1));
   };
   const restart = (list: PWord[]) => {
     setDeck(list);
@@ -54,6 +63,7 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
     setFlipped(false);
     setLearning([]);
     setKnown(0);
+    skipped.current.clear();
   };
 
   useEffect(() => {
@@ -133,9 +143,6 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line/70">
           <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${(i / deck.length) * 100}%` }} />
         </div>
-        <span className="tabular-nums text-muted">
-          {i + 1}/{deck.length}
-        </span>
         <span className="min-w-10 rounded-full border border-green-500 px-2 text-center font-semibold tabular-nums text-green-700 dark:text-green-400">{known}</span>
       </div>
 
@@ -165,10 +172,9 @@ export default function Flashcards({ words, onExit }: { words: PWord[]; onExit: 
         </button>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-sm">
-        <button onClick={back} disabled={!i} className="btn btn-sm btn-ghost">
-          <I.IconUndo className="inline-block h-4 w-4 align-[-0.2em]" /> {t("undo")}
-        </button>
+      <StepNav n={i + 1} total={deck.length} onPrev={back} onNext={skip} className="mt-4 border-t border-line pt-3" />
+
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-sm">
         <label className="flex items-center gap-2 text-muted">
           <input type="checkbox" checked={meaningFirst} onChange={(e) => setMeaningFirst(e.target.checked)} />
           {t("meaningFirst")}

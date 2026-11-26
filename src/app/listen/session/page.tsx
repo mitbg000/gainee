@@ -14,18 +14,20 @@ export default async function SessionPage({ searchParams }: { searchParams: Prom
   const n = Math.min(50, Math.max(5, Number(q.n) || 20));
   const s = await pickSession(mode, q.scope || "all", n);
   return (
-    <Shell wide>
-      <div className="mb-4 flex items-center gap-2">
-        <Link href="/listen" className="text-sm text-muted hover:text-ink">
-          ← {t("title")}
-        </Link>
-        <span className="text-sm font-semibold">· {t(`session.${mode}`)}</span>
+    <Shell full>
+      <div className="mx-auto max-w-[96rem]">
+        <div className="mb-4 flex items-center gap-2">
+          <Link href="/listen" className="text-sm text-muted hover:text-ink">
+            ← {t("title")}
+          </Link>
+          <span className="text-sm font-semibold">· {t(`session.${mode}`)}</span>
+        </div>
+        {s.items.length ? (
+          <Practice items={s.items} titles={s.titles} saved={s.saved} mode={mode === "review" ? "review" : "random"} kind={q.kind === "gaps" ? "gaps" : "dictation"} round={mode === "review" ? undefined : s.round} backHref="/listen" />
+        ) : (
+          <p className="rounded-2xl border border-line bg-card p-6 text-center text-muted">{t(mode === "review" ? "session.noneDue" : "session.none")}</p>
+        )}
       </div>
-      {s.items.length ? (
-        <Practice items={s.items} titles={s.titles} saved={s.saved} mode={mode === "review" ? "review" : "random"} kind={q.kind === "gaps" ? "gaps" : "dictation"} round={mode === "review" ? undefined : s.round} backHref="/listen" />
-      ) : (
-        <p className="rounded-2xl border border-line bg-card p-6 text-center text-muted">{t(mode === "review" ? "session.noneDue" : "session.none")}</p>
-      )}
     </Shell>
   );
 }

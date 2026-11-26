@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import ToolPanel from "@/components/lesson/ToolPanel";
 import type { Tool, WordCard } from "@/components/lesson/types";
@@ -37,10 +38,10 @@ export function useLookup(saved: { id: number; term: string }[]) {
     }
   }
 
-  /** The panel for the open look-up: beside the practice on wide screens, a bottom sheet on phones. */
+  /** The panel for the open look-up: the right column on wide screens (see ListenLayout), a bottom sheet below that. */
   const panel = (sourceId: number) =>
     tool && (
-      <div className="fixed inset-x-0 bottom-0 z-50 max-h-[70dvh] overflow-y-auto p-2 lg:static lg:z-auto lg:max-h-none lg:p-0" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
+      <div className="fixed inset-x-0 bottom-0 z-50 max-h-[70dvh] overflow-y-auto p-2 xl:static xl:z-auto xl:max-h-none xl:overflow-visible xl:p-0" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
         <ToolPanel
           tool={tool}
           vocab={[]}
@@ -90,5 +91,27 @@ export function LookupText({ text, onLookup, className = "" }: { text: string; o
         ),
       )}
     </p>
+  );
+}
+
+/**
+ * The listening screens' layout, like the reader's: the work in the middle, look-up on the right (xl). A video gets its
+ * own column on the left (lg and up); an audio recording is a card at the top of the work. Below xl the look-up opens
+ * as a bottom sheet; on phones everything is one column.
+ */
+export function ListenLayout({ media, video, children, side }: { media: React.ReactNode; video: boolean; children: React.ReactNode; side: React.ReactNode }) {
+  const t = useTranslations("listen");
+  const cols = video ? "lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_20rem]" : "xl:grid-cols-[minmax(0,1fr)_20rem]";
+  return (
+    <div className={`grid gap-4 md:gap-5 lg:items-start ${cols}`}>
+      {video && <div className="min-w-0 space-y-3 lg:sticky lg:top-20">{media}</div>}
+      <div className={`min-w-0 space-y-4 ${video ? "" : "mx-auto w-full max-w-3xl"}`}>
+        {!video && media}
+        {children}
+      </div>
+      <aside className="min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto">
+        {side || <p className="hidden rounded-2xl border border-dashed border-line p-4 text-sm text-muted xl:block">{t("lookupHint")}</p>}
+      </aside>
+    </div>
   );
 }

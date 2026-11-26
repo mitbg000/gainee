@@ -56,6 +56,7 @@ export const IconArrowLeft = base(<path d="M19 12H5M11 6l-6 6 6 6" />);
 export const IconArrowRight = base(<path d="M5 12h14M13 6l6 6-6 6" />);
 export const IconArrowUp = base(<path d="M12 19V5M6 11l6-6 6 6" />);
 export const IconArrowDown = base(<path d="M12 5v14M6 13l6 6 6-6" />);
+export const IconChevronLeft = base(<path d="M15 6l-6 6 6 6" />);
 export const IconChevronRight = base(<path d="M9 6l6 6-6 6" />);
 export const IconPlay = base(<path d="M7 5v14l12-7z" />);
 export const IconEnter = base(<path d="M20 5v7a3 3 0 0 1-3 3H5M9 11l-4 4 4 4" />);
