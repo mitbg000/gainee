@@ -1705,7 +1705,10 @@
         "ffmpeg_missing": "ffmpeg is not installed on the server. Install it: apt install ffmpeg (or aaPanel → App Store), then try again.",
         "no_transcript": "The part has no audioscript.",
         "no_audio": "The part's audio file was not found.",
-        "nothing_heard": "No speech heard in the audio (check the part's start and end times)."
+        "nothing_heard": "No speech heard in the audio (check the part's start and end times).",
+        "out_of_memory": "The server ran out of memory during speech recognition (it needs about 1 GB free). Stop other services or add RAM / swap, then try again.",
+        "interrupted": "The job was cut off several times (worker restarted). Check: pm2 logs gainee-worker.",
+        "speech_bad_output": "Speech recognition gave a broken result, try again."
       }
     },
     "ieltsPartsHint": "Press \"Add to listening bank\" on a part, or \"Add the whole book\". The server listens to the audio to time each sentence (in the background, you can close the page); then the part gets its practice button and appears in the list above.",

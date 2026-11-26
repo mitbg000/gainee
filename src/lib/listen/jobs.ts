@@ -32,7 +32,7 @@ export async function bookPartsToCut(bookId: number) {
 export async function queueCut(sectionIds: number[]) {
   const busy = new Set((await cutJobs()).flatMap((j) => j.sectionIds));
   const todo = [...new Set(sectionIds)].filter((id) => !busy.has(id));
-  return todo.length ? enqueue("listen_cut", { sectionIds: todo }, { maxAttempts: 2 }) : null;
+  return todo.length ? enqueue("listen_cut", { sectionIds: todo }, { maxAttempts: 3 }) : null;
 }
 
 /** The last finished cut, when something went wrong in it (the whole job, or some of its parts). */

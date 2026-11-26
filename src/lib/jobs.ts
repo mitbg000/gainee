@@ -78,12 +78,17 @@ export async function fail(job: Job, err: unknown) {
     .where(eq(jobs.id, job.id));
 }
 
-/** On worker start: jobs left "running" by a crash go back to the queue. */
+/**
+ * On worker start: jobs left "running" by a crash go back to the queue – unless they already used all their tries
+ * (a job that kills the worker every time would otherwise run forever).
+ */
 export async function requeueStale(olderThanMs = 10 * 60 * 1000): Promise<number> {
-  const res = (await getDb()
+  const stale = and(eq(jobs.status, "running"), lte(jobs.startedAt, new Date(Date.now() - olderThanMs)));
+  await getDb()
     .update(jobs)
-    .set({ status: "queued" })
-    .where(and(eq(jobs.status, "running"), lte(jobs.startedAt, new Date(Date.now() - olderThanMs))))) as unknown as Affected;
+    .set({ status: "failed", error: "interrupted", finishedAt: new Date() })
+    .where(and(stale, sql`${jobs.attempts} >= ${jobs.maxAttempts}`));
+  const res = (await getDb().update(jobs).set({ status: "queued" }).where(stale)) as unknown as Affected;
   return res[0].affectedRows;
 }
 

@@ -1705,7 +1705,10 @@
         "ffmpeg_missing": "Server chưa cài ffmpeg. Cài bằng: apt install ffmpeg (hoặc trong aaPanel → App Store), rồi bấm lại.",
         "no_transcript": "Part không có audioscript.",
         "no_audio": "Không tìm thấy file audio của Part.",
-        "nothing_heard": "Không nghe được lời nói trong đoạn audio (kiểm tra mốc thời gian của Part)."
+        "nothing_heard": "Không nghe được lời nói trong đoạn audio (kiểm tra mốc thời gian của Part).",
+        "out_of_memory": "Server hết RAM khi nhận dạng giọng nói (cần khoảng 1 GB trống). Tắt bớt dịch vụ khác hoặc nâng RAM/thêm swap rồi thử lại.",
+        "interrupted": "Việc bị dừng nhiều lần (worker khởi động lại giữa chừng). Xem log: pm2 logs gainee-worker.",
+        "speech_bad_output": "Bước nhận dạng giọng nói trả kết quả hỏng, thử lại."
       }
     },
     "ieltsPartsHint": "Bấm \"Đưa vào kho luyện nghe\" ở một Part, hoặc \"Đưa cả sách\". Server tự nghe audio để tìm thời điểm từng câu (chạy nền, có thể đóng trang), xong Part hiện nút Luyện và có trong danh sách bài ở trên.",
