@@ -172,8 +172,14 @@ export function scriptWords(script: string): { w: string; speaker: string | null
 }
 
 /**
- * Times for the script's words from what Whisper heard: words in both (longest common subsequence) take Whisper's
- * times, the others are spread between their matched neighbours. `m` tells which ones were heard.
+ * Times for the script's words from what Whisper heard. The recording also has what the script leaves out (the
+ * introduction, "now listen and answer questions 6 to 10", "that is the end of part 1", long pauses, a bit of the
+ * part before or after), so a single common word ("you", "the") is no proof:
+ * 1. matches count as sure only in runs of 3 or more words close together on both sides;
+ * 2. a lone match is kept only when its time fits the sure ones around it;
+ * 3. words still without a time are put at the speaker's pace next to the words they belong with (the end of a
+ *    sentence after the words before, the rest before the words after), never spread over a pause or an announcement.
+ * `m` tells which words were heard.
  */
 export function align(script: { w: string; speaker: string | null }[], heard: TWord[]): TWord[] {
   const a = script.map((x) => norm(x.w));
@@ -182,17 +188,52 @@ export function align(script: { w: string; speaker: string | null }[], heard: TW
   const k = b.length;
   const L = Array.from({ length: n + 1 }, () => new Int32Array(k + 1));
   for (let i = n - 1; i >= 0; i--) for (let j = k - 1; j >= 0; j--) L[i][j] = a[i] && a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
-  const out: TWord[] = script.map((x) => ({ w: x.w, s: NaN, e: NaN, speaker: x.speaker, m: false }));
+  const pairs: { i: number; j: number; sure: boolean }[] = [];
   for (let i = 0, j = 0; i < n && j < k; ) {
     if (a[i] && a[i] === b[j] && L[i][j] === L[i + 1][j + 1] + 1) {
-      out[i] = { ...out[i], s: heard[j].s, e: heard[j].e, m: true };
+      pairs.push({ i, j, sure: false });
       i++;
       j++;
     } else if (L[i + 1][j] >= L[i][j + 1]) i++;
     else j++;
   }
-  // spread unmatched runs evenly between the matched words around them
-  const end = heard.length ? heard[heard.length - 1].e : 0;
+
+  // 1. runs: neighbours at most 3 words apart in the script and in what was heard
+  for (let t = 0; t < pairs.length; ) {
+    let u = t + 1;
+    while (u < pairs.length && pairs[u].i - pairs[u - 1].i <= 3 && pairs[u].j - pairs[u - 1].j <= 3) u++;
+    if (u - t >= 3) for (let q = t; q < u; q++) pairs[q].sure = true;
+    t = u;
+  }
+  if (!pairs.some((p) => p.sure)) pairs.forEach((p) => (p.sure = true)); // a very short part: take what there is
+
+  // the speaker's pace (seconds per script word) inside the runs
+  const steps: number[] = [];
+  for (let t = 1; t < pairs.length; t++) {
+    const [p, q] = [pairs[t - 1], pairs[t]];
+    if (p.sure && q.sure && q.i - p.i <= 3 && q.j - p.j <= 3) steps.push((heard[q.j].s - heard[p.j].s) / (q.i - p.i));
+  }
+  steps.sort((x, y) => x - y);
+  const pace = Math.min(0.8, Math.max(0.2, steps[Math.floor(steps.length / 2)] ?? 0.35));
+
+  // 2. a lone match must be about where the pace puts it, seen from the sure matches before and after
+  const fits = (p: { i: number; j: number }, q: { i: number; j: number }) => {
+    const dt = heard[q.j].s - heard[p.j].s;
+    return dt >= 0 && dt <= (q.i - p.i) * pace * 2 + 1.5;
+  };
+  const sure = pairs.filter((p) => p.sure);
+  const kept = pairs.filter((p) => {
+    if (p.sure) return true;
+    const before = sure.findLast((s) => s.i < p.i);
+    const after = sure.find((s) => s.i > p.i);
+    return (!before || fits(before, p)) && (!after || fits(p, after));
+  });
+
+  const out: TWord[] = script.map((x) => ({ w: x.w, s: NaN, e: NaN, speaker: x.speaker, m: false }));
+  for (const p of kept) out[p.i] = { ...out[p.i], s: heard[p.j].s, e: heard[p.j].e, m: true };
+
+  // 3. the words still without a time
+  const set = (q: number, s: number, e: number) => (out[q] = { ...out[q], s, e: Math.max(e, s) });
   for (let i = 0; i < n; ) {
     if (out[i].m) {
       i++;
@@ -200,10 +241,32 @@ export function align(script: { w: string; speaker: string | null }[], heard: TW
     }
     let j = i;
     while (j < n && !out[j].m) j++;
-    const from = i > 0 ? out[i - 1].e : heard[0]?.s ?? 0;
-    const to = j < n ? out[j].s : end;
-    const step = Math.max(0, to - from) / (j - i);
-    for (let q = i; q < j; q++) out[q] = { ...out[q], s: from + step * (q - i), e: from + step * (q - i + 1) };
+    const prev = i > 0 ? out[i - 1] : null;
+    const next = j < n ? out[j] : null;
+    if (!prev && !next) {
+      // nothing heard matched: spread over the recording
+      const from = heard[0]?.s ?? 0;
+      const step = Math.max(0, (heard[k - 1]?.e ?? 0) - from) / n;
+      for (let q = 0; q < n; q++) set(q, from + step * q, from + step * (q + 1));
+      break;
+    }
+    const from = prev?.e ?? -Infinity;
+    const to = next?.s ?? Infinity;
+    if (prev && next && to - from <= (j - i) * pace * 1.8 + 1) {
+      const step = Math.max(0, to - from) / (j - i);
+      for (let q = i; q < j; q++) set(q, from + step * (q - i), from + step * (q - i + 1));
+    } else {
+      // a pause or an announcement in between: the rest of a sentence goes after `prev`, the others before `next`
+      let h = i;
+      if (!next) h = j;
+      else if (prev && !ENDS.test(prev.w)) {
+        h = i;
+        while (h < j && !ENDS.test(out[h].w)) h++;
+        h = h < j ? h + 1 : j;
+      }
+      for (let q = i; q < h; q++) set(q, Math.min(from + pace * (q - i), to), Math.min(from + pace * (q - i + 1), to));
+      for (let q = h; q < j; q++) set(q, Math.max(to - pace * (j - q), from, 0), Math.max(to - pace * (j - q - 1), from, 0));
+    }
     i = j;
   }
   return out;
