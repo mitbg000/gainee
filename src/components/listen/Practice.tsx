@@ -7,7 +7,7 @@ import * as I from "@/components/icons";
 import { firstLetters, gapWords, mark, sameWord, type Marked } from "@/lib/listen/check";
 import type { PlayItem } from "@/lib/listen/queries";
 import { LookupText, useLookup } from "./Lookup";
-import { useClipPlayer } from "./useClipPlayer";
+import { prefetchClip, useClipPlayer } from "./useClipPlayer";
 
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 const SPEEDS = [0.75, 1, 1.25];
@@ -88,6 +88,8 @@ export default function Practice(p: Props) {
     const id = setTimeout(() => {
       replay();
       input.current?.focus();
+      const after = queue[i + 1];
+      if (after) prefetchClip({ media: after.media, start: after.start, end: after.end });
     }, 250);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the sentence changes

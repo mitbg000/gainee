@@ -40,14 +40,25 @@ function youtubeApi(): Promise<YTNs> {
 
 export type Clip = { media: Media; start: number; end: number };
 
+const r2 = (x: number) => Math.round(x * 100) / 100;
+/** The server cuts this stretch out of the recording (small, so it starts at once); see api/ielts/audio/[id]/clip. */
+const clipUrl = (audioUrl: string, from: number, to: number) => `${audioUrl}/clip?s=${r2(from)}&e=${r2(to)}`;
+
+/** Load a sentence's audio ahead (the browser keeps it), e.g. the next one while this one is being typed. */
+export function prefetchClip(c: Clip) {
+  if (c.media.kind !== "ielts") return;
+  const from = Math.max(0, c.start + c.media.shift);
+  fetch(clipUrl(c.media.audioUrl, from, c.end + c.media.shift), { priority: "low" } as RequestInit).catch(() => {});
+}
+
 /**
  * Plays one sentence (start → end) of a YouTube video or an IELTS recording and stops at its end. The YouTube player
- * stays visible in `videoBox`; audio files are played from a local copy so seeking is exact.
+ * stays visible in `videoBox`; for a recording the server sends just the sentence (the whole file as a fallback).
  */
 export function useClipPlayer() {
   const videoBox = useRef<HTMLDivElement>(null);
   const yt = useRef<{ player: YTPlayer; videoId: string; ready: Promise<void> } | null>(null);
-  const audio = useRef<{ el: HTMLAudioElement; url: string } | null>(null);
+  const audio = useRef<{ el: HTMLAudioElement; url: string; /** where in the recording the file starts */ offset: number } | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -110,24 +121,36 @@ export function useClipPlayer() {
         now = () => y.player.getCurrentTime();
         pause = () => y.player.pauseVideo();
       } else {
-        if (audio.current?.url !== c.media.audioUrl) {
-          setLoading(true);
+        const media = c.media;
+        // the sentence alone, cut by the server; if that fails, the whole recording (downloaded once, then cached)
+        const ownClip = async () => {
+          const url = clipUrl(media.audioUrl, from, to);
+          if (audio.current?.url !== url) audio.current = { el: new Audio(url), url, offset: from };
+          audio.current.el.currentTime = 0;
+        };
+        const whole = async () => {
+          if (audio.current?.url !== media.audioUrl) audio.current = { el: new Audio(await localAudio(media.audioUrl, () => {})), url: media.audioUrl, offset: 0 };
+          audio.current.el.currentTime = from;
+        };
+        setLoading(true);
+        let ok = false;
+        for (const load of [ownClip, whole]) {
           try {
-            const src = await localAudio(c.media.audioUrl, () => {});
-            audio.current?.el.pause();
-            audio.current = { el: new Audio(src), url: c.media.audioUrl };
-          } catch {
-            setFailed(true);
-            return;
-          } finally {
-            setLoading(false);
+            await load();
+            audio.current!.el.playbackRate = speed;
+            await audio.current!.el.play();
+            ok = true;
+            break;
+          } catch (e) {
+            audio.current = null;
+            if (e instanceof DOMException && e.name === "NotAllowedError") break; // the browser blocks autoplay: no use trying again
           }
         }
-        const el = audio.current!.el;
-        el.playbackRate = speed;
-        el.currentTime = from;
-        await el.play().catch(() => setFailed(true));
-        now = () => el.currentTime;
+        setLoading(false);
+        if (!ok) return setFailed(true);
+        const { el, offset } = audio.current!;
+        el.onended = () => (stopTimer(), setPlaying(false));
+        now = () => offset + el.currentTime;
         pause = () => el.pause();
       }
       setPlaying(true);
