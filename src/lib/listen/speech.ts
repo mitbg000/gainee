@@ -14,10 +14,13 @@ const WINDOW = 28; // seconds per Whisper pass (it hears 30 s at most)
 /** CPU threads for Whisper and ffmpeg: 1 leaves the other cores to the website */
 const THREADS = Math.max(1, Number(process.env.SPEECH_THREADS) || 1);
 
-/** A stretch of the recording as 16 kHz mono samples. */
+/**
+ * A stretch of the recording as 16 kHz mono samples. Decoded as two channels and joined here: some recordings (Cambridge
+ * IELTS 3) have one channel turned upside down, so the usual L+R cancels the voices out; L−R is taken when it is louder.
+ */
 export function decode(file: string, start: number, end: number | null): Promise<Float32Array> {
   return new Promise((ok, no) => {
-    const args = ["-nostdin", "-v", "error", "-threads", String(THREADS), "-ss", String(start), ...(end ? ["-t", String(Math.max(1, end - start))] : []), "-i", file, "-ac", "1", "-ar", String(RATE), "-f", "f32le", "pipe:1"];
+    const args = ["-nostdin", "-v", "error", "-threads", String(THREADS), "-ss", String(start), ...(end ? ["-t", String(Math.max(1, end - start))] : []), "-i", file, "-ac", "2", "-ar", String(RATE), "-f", "f32le", "pipe:1"];
     const p = spawn("ffmpeg", args);
     const chunks: Buffer[] = [];
     let err = "";
@@ -28,9 +31,23 @@ export function decode(file: string, start: number, end: number | null): Promise
       if (code !== 0) return no(new Error(`ffmpeg: ${err.trim().slice(0, 300) || code}`));
       const buf = Buffer.concat(chunks);
       // copy into an aligned buffer: Float32Array needs a 4-byte aligned offset
-      ok(new Float32Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length - (buf.length % 4))));
+      ok(toMono(new Float32Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length - (buf.length % 8)))));
     });
   });
+}
+
+/** Interleaved stereo → mono: (L+R)/2, or (L−R)/2 when that is louder (one channel's phase inverted). */
+export function toMono(lr: Float32Array): Float32Array {
+  let sum = 0;
+  let diff = 0;
+  for (let i = 0; i + 1 < lr.length; i += 2) {
+    sum += (lr[i] + lr[i + 1]) ** 2;
+    diff += (lr[i] - lr[i + 1]) ** 2;
+  }
+  const sign = diff > sum ? -1 : 1;
+  const out = new Float32Array(lr.length >> 1);
+  for (let i = 0; i < out.length; i++) out[i] = (lr[2 * i] + sign * lr[2 * i + 1]) / 2;
+  return out;
 }
 
 /** Windows of at most WINDOW seconds that end in a pause, so no word is cut in two. */

@@ -160,7 +160,7 @@ export function scriptWords(script: string): { w: string; speaker: string | null
   let speaker: string | null = null;
   const out: { w: string; speaker: string | null }[] = [];
   for (const raw of script.replace(/\r/g, "").split("\n")) {
-    let line = raw.trim();
+    let line = raw.replace(/\(?\bQ\d{1,2}\b\)?/g, " ").trim(); // question numbers marked in the text ("twentieth Q31 century")
     const m = line.match(/^([A-Z][A-Z .'’-]{1,24}|[A-Z][a-z]+(?: [A-Z][a-z]+)?)\s*:\s+/);
     if (m) {
       speaker = m[1].trim();

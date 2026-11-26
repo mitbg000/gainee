@@ -1,5 +1,5 @@
 /**
- * "Làm sạch" on the review screen, without AI: sound tags out ((Applause), [Music], ♪ … ♪, >>), speaker labels
+ * "Làm sạch" on the review screen, without AI: sound tags out ((Applause), [Music], ♪ … ♪, >>, Q31), speaker labels
  * ("Chris Anderson:", "CA:") moved from the words to the speaker field, very short sentences joined to a neighbour.
  * Sentences are never cut here, so their times stay the caption times.
  */
@@ -7,7 +7,8 @@
 export type CleanRow = { start: number; end: number; text: string; speaker: string | null; hidden: boolean };
 export type CleanReport = { tags: number; labels: number; joined: number; removed: number };
 
-const TAG = /\[[^\]]{0,40}\]|\((?:[A-Z][\w' -]{0,30})\)|♪[^♪]{0,200}♪|[♪♫🎵🎶]|>>+/g;
+// also the question numbers IELTS audioscripts mark in the text ("twentieth Q31 century")
+const TAG = /\[[^\]]{0,40}\]|\((?:[A-Z][\w' -]{0,30})\)|♪[^♪]{0,200}♪|[♪♫🎵🎶]|>>+|\(?\bQ\d{1,2}\b\)?/g;
 // "Elon Musk:", "Chris Anderson:", "CA:", "EM:" – before a colon, at the start or after a space / end of sentence
 const LABEL = /(^|[\s.!?,;—–-])((?:[A-Z][a-z'’]+(?: [A-Z][a-z'’]+){0,2})|[A-Z]{1,4}):(?=\s|$)/g;
 const words = (s: string) => s.split(/\s+/).filter(Boolean).length;
