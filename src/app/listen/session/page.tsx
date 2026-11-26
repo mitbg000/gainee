@@ -23,7 +23,7 @@ export default async function SessionPage({ searchParams }: { searchParams: Prom
           <span className="text-sm font-semibold">· {t(`session.${mode}`)}</span>
         </div>
         {s.items.length ? (
-          <Practice items={s.items} titles={s.titles} saved={s.saved} mode={mode === "review" ? "review" : "random"} kind={q.kind === "gaps" ? "gaps" : "dictation"} round={mode === "review" ? undefined : s.round} backHref="/listen" />
+          <Practice items={s.items} titles={s.titles} saved={s.saved} mode={mode === "review" ? "review" : "random"} kind={q.kind === "gaps" ? "gaps" : "dictation"} round={mode === "review" ? undefined : s.round} backHref="/listen" resumeKey={`rl_dict:${mode}:${q.scope || "all"}:${q.kind === "gaps" ? "gaps" : "dictation"}`} />
         ) : (
           <p className="rounded-2xl border border-line bg-card p-6 text-center text-muted">{t(mode === "review" ? "session.noneDue" : "session.none")}</p>
         )}

@@ -1657,7 +1657,9 @@
       "cancel": "Cancel",
       "relearn": "Wrong ones again at the end",
       "keys": "Enter: check / next · Ctrl: listen again · tap a word (once shown) to look it up and save it",
-      "doneSoFar": "Written so far ({n})"
+      "doneSoFar": "Written so far ({n})",
+      "resumed": "Going on from last time: sentence {n}/{total}, with what you wrote.",
+      "startOver": "Start a new session"
     },
     "chunks": {
       "play": "Play piece",

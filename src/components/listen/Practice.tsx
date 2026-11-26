@@ -25,6 +25,27 @@ type Props = {
   startIdx?: number;
   round?: { n: number; done: number; total: number };
   backHref: string;
+  /** where this session's progress is kept in the browser, to go on from the same sentence next time */
+  resumeKey?: string;
+  /** start over: forget the kept progress */
+  restart?: boolean;
+};
+
+type Saved = { at: number; queue: PlayItem[]; i: number; kept: [number, Cur][]; done: number[] };
+const KEEP_DAYS = 7;
+const readSaved = (key?: string): Saved | null => {
+  if (!key) return null;
+  try {
+    const v = JSON.parse(localStorage.getItem(key) ?? "null") as Saved | null;
+    return v && Date.now() - v.at < KEEP_DAYS * 86_400_000 && v.queue?.length && v.i < v.queue.length ? v : null;
+  } catch {
+    return null;
+  }
+};
+const forget = (key?: string) => {
+  try {
+    if (key) localStorage.removeItem(key);
+  } catch {}
 };
 
 type Cur = {
@@ -70,6 +91,30 @@ export default function Practice(p: Props) {
   const requeued = useRef(new Set<number>());
   const seconds = useRef(0);
   const input = useRef<HTMLTextAreaElement>(null);
+  const [resumed, setResumed] = useState<{ n: number; total: number } | null>(null); // where last time stopped
+
+  // left half way last time: the same sentences, at the same place, with what was written
+  useEffect(() => {
+    if (p.restart) return forget(p.resumeKey);
+    const v = readSaved(p.resumeKey);
+    if (!v) return;
+    const latest = new Map(p.items.map((x) => [x.id, x])); // current words, in case a sentence was fixed since
+    kept.current = new Map(v.kept);
+    setQueue(v.queue.map((x) => latest.get(x.id) ?? x));
+    setDoneIds(new Set(v.done));
+    setI(v.i);
+    if (v.i > 0 || v.kept.length > 0) setResumed({ n: v.i + 1, total: v.queue.length });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
+  }, []);
+  // kept on every change; gone once the session is finished
+  useEffect(() => {
+    if (!p.resumeKey) return;
+    if (i >= queue.length) return forget(p.resumeKey);
+    const all = new Map(kept.current).set(i, cur);
+    try {
+      localStorage.setItem(p.resumeKey, JSON.stringify({ at: Date.now(), queue, i, kept: [...all], done: [...doneIds] } satisfies Saved));
+    } catch {}
+  }, [p.resumeKey, queue, i, cur, doneIds]);
 
   const item = queue[i];
   const text = item ? (texts[item.id] ?? item.text) : "";
@@ -289,6 +334,21 @@ export default function Practice(p: Props) {
   return (
     <ListenLayout media={media} video={isVideo} side={look.panel(item.sourceId)}>
       <div className="space-y-4">
+        {resumed && (
+          <p className="flex flex-wrap items-center gap-2 rounded-xl bg-accent/10 px-3 py-2 text-sm">
+            <I.IconRefresh className="h-4 w-4 flex-none text-accent" />
+            <span className="flex-1">{t("resumed", resumed)}</span>
+            <button
+              onClick={() => {
+                forget(p.resumeKey);
+                location.reload();
+              }}
+              className="btn btn-sm btn-ghost"
+            >
+              {t("startOver")}
+            </button>
+          </p>
+        )}
 
         <div className="rounded-2xl border border-line bg-card p-4">
           <div className="flex flex-wrap items-center gap-2">

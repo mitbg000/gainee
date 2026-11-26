@@ -1657,7 +1657,9 @@
       "cancel": "Huỷ",
       "relearn": "Câu sai: làm lại cuối buổi",
       "keys": "Enter: chấm / sang câu · Ctrl: nghe lại · bấm vào từ (khi đã hiện chữ) để tra và lưu từ",
-      "doneSoFar": "Các câu đã viết ({n})"
+      "doneSoFar": "Các câu đã viết ({n})",
+      "resumed": "Tiếp tục buổi trước: câu {n}/{total}, những gì bạn đã viết vẫn còn.",
+      "startOver": "Bắt đầu buổi mới"
     },
     "chunks": {
       "play": "Nghe đoạn",

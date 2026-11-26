@@ -51,7 +51,7 @@ export default async function SourcePage({ params, searchParams }: { params: Pro
           ) : kind === "listen" ? (
             <ListenChunks items={items} title={r.source.title} saved={r.saved} sourceId={r.source.id} />
           ) : (
-            <Practice key={`${kind}-${from}`} items={items} titles={{ [r.source.id]: r.source.title }} saved={r.saved} mode="source" kind={kind} sourceId={r.source.id} startIdx={from >= (items.at(-1)?.idx ?? 0) + 1 ? 0 : from} backHref={`/listen/${r.source.id}`} />
+            <Practice key={`${kind}-${from}`} items={items} titles={{ [r.source.id]: r.source.title }} saved={r.saved} mode="source" kind={kind} sourceId={r.source.id} startIdx={from >= (items.at(-1)?.idx ?? 0) + 1 ? 0 : from} backHref={`/listen/${r.source.id}`} resumeKey={`rl_dict:src:${r.source.id}:${kind}`} restart={q.from === "0"} />
           )}
         </div>
       </div>
