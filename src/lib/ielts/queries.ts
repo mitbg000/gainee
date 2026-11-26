@@ -66,7 +66,7 @@ export const renameTest = (id: number, title: string) => getDb().update(tests).s
 export const renameBook = (id: number, title: string) => getDb().update(books).set({ title }).where(eq(books.id, id));
 
 /** resume: keep the tests and parts already made and do only the rest (after a stop or failure). */
-export const BOOK_JOBS = ["ielts_import", "ielts_check", "ielts_fix_scripts"] as const;
+export const BOOK_JOBS = ["ielts_import", "ielts_check", "ielts_fix_scripts", "ielts_resplit_scripts"] as const;
 
 /** The book's jobs still waiting or running. */
 export async function bookJobs(bookId: number) {

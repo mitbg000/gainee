@@ -44,6 +44,11 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
     await fetch(`/api/ielts/books/${id}/fix-scripts`, { method: "POST" });
     router.refresh();
   }
+  async function resplit() {
+    if (!confirm(t("resplitConfirm"))) return;
+    await fetch(`/api/ielts/books/${id}/resplit-scripts`, { method: "POST" });
+    router.refresh();
+  }
   async function check() {
     await fetch(`/api/ielts/books/${id}/check`, { method: "POST" });
     router.refresh();
@@ -81,6 +86,11 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
       {brokenScripts > 0 && !has("ielts_fix_scripts") && (
         <button onClick={fixScripts} className="btn btn-sm btn-primary">
           <I.IconSpark /> {t("fixScripts", { n: brokenScripts })}
+        </button>
+      )}
+      {hasTests && !jobActive && (
+        <button onClick={resplit} className="btn btn-sm btn-ghost" title={t("resplitHint")}>
+          <I.IconRefresh /> {t("resplit")}
         </button>
       )}
       {toCheck > 0 && !jobActive && !has("ielts_check") && (

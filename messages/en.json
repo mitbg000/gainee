@@ -1397,12 +1397,16 @@
       "job": {
         "ielts_import": "AI is reading the book",
         "ielts_check": "Re-reading parts with missing questions",
-        "ielts_fix_scripts": "Repairing transcripts"
+        "ielts_fix_scripts": "Repairing transcripts",
+        "ielts_resplit_scripts": "Split transcripts again"
       },
       "jobQueued": "waiting",
       "cancelConfirm": "Cancel this job? Work already done is kept.",
       "deleteAudio": "Delete file",
-      "deleteAudioConfirm": "Delete the audio file “{name}”? Listening parts using it will have no audio."
+      "deleteAudioConfirm": "Delete the audio file “{name}”? Listening parts using it will have no audio.",
+      "resplit": "Split transcripts again",
+      "resplitHint": "Splits the book's audioscripts again by their TEST n headings. Only parts with no transcript or another test's or part's transcript are replaced; transcripts you fixed by hand stay.",
+      "resplitConfirm": "Split the transcripts again from the book's pages? Parts holding another test's transcript are replaced. Parts already in the dictation bank then need \"Redo\"."
     },
     "edit": {
       "back": "Back to the book",

@@ -166,13 +166,27 @@ ${text}
   return { listening: r.listening ?? {}, reading: r.reading ?? {} };
 }
 
-/** Audioscript of one test → text per part, split on "PART 2" / "SECTION 2" lines. */
-export function splitScript(text: string): Record<number, string> {
+/**
+ * Audioscript of one test → text per part, split on "PART 2" / "SECTION 2" lines. With `test`, a part counts only when
+ * the "TEST n" heading printed next to its "PART 1" (carried on to the parts after it) is that test: a page shared by
+ * two tests (the end of Test 2, then Test 3's Part 1) or pages guessed one too far then give no wrong transcript.
+ */
+export function splitScript(text: string, test?: number): Record<number, string> {
   const out: Record<number, string> = {};
   const marks = [...text.matchAll(/^\s*(?:PART|SECTION)\s+([1-4])\b.*$/gim)];
+  const heads = [...text.matchAll(/^\s*TEST\s+(\d{1,2})\s*$/gm)];
+  // no heading of this test in the text: the parts before the first heading are taken to be its own
+  const ownHead = heads.some((h) => Number(h[1]) === test);
+  let cur: number | undefined;
   marks.forEach((m, i) => {
+    const near = heads.find((h) => Math.abs(h.index! - m.index!) < 300);
+    if (near) cur = Number(near[1]);
+    if (test !== undefined && heads.length && cur !== test && !(cur === undefined && !ownHead)) return;
     const part = Number(m[1]);
-    const body = text.slice(m.index! + m[0].length, i + 1 < marks.length ? marks[i + 1].index : undefined).trim();
+    const body = text
+      .slice(m.index! + m[0].length, i + 1 < marks.length ? marks[i + 1].index : undefined)
+      .replace(/^\s*(?:TEST\s+\d{1,2}|\d{1,3}|[IVX]{1,4})\s*$/gm, "") // the "TEST 2" heading, page numbers
+      .trim();
     if (!out[part] && body.length > 200) out[part] = body;
   });
   return out;
@@ -219,6 +233,50 @@ export async function fixBookScripts(job: Job) {
     await db.update(ieltsSections).set({ transcript: await fixTranscript(s.transcript!) }).where(eq(ieltsSections.id, s.id));
   }
   return { fixed: ss.length };
+}
+
+/** First words of a transcript, letters only, speaker names left out: tells whose script it is. */
+const opening = (t: string) =>
+  t
+    .replace(/^[A-Z][A-Z .'’-]{0,24}:/gm, " ")
+    .toLowerCase()
+    .split(/[^a-z']+/)
+    .filter((w) => w.length > 2)
+    .slice(0, 25);
+export const sameScript = (a: string, b: string) => {
+  const x = opening(a);
+  const y = new Set(opening(b).concat(opening(b.slice(0, 1500)).slice(0, 60)));
+  return x.length > 0 && x.filter((w) => y.has(w)).length / x.length >= 0.6;
+};
+
+/**
+ * Worker job: split the book's audioscripts again from its stored pages, by the "TEST n" headings (payload: { bookId }).
+ * A Listening part gets a new transcript only when it has none or its transcript is another test's or part's (pages
+ * guessed one off at import gave Test 2 the start of Test 3); transcripts fixed by hand otherwise stay.
+ */
+export async function resplitBookScripts(job: Job) {
+  const db = getDb();
+  const bookId = Number(job.payload.bookId);
+  const pages = await db.select().from(ieltsPages).where(eq(ieltsPages.bookId, bookId));
+  const heads = pages.filter((p) => /^\s*Audioscripts\s*$/im.test(p.text ?? "")).map((p) => p.page);
+  if (!heads.length) return { fixed: 0, reason: "no_audioscripts" };
+  const region = textOf(pages, [Math.min(...heads), Math.max(...heads) + 1]);
+  const tests = await db.select({ id: ieltsTests.id, number: ieltsTests.number }).from(ieltsTests).where(eq(ieltsTests.bookId, bookId));
+  const split = new Map(tests.map((t) => [t.id, splitScript(region, t.number)]));
+  const all = [...split.values()].flatMap((r) => Object.values(r));
+  const ss = tests.length ? await db.select({ id: ieltsSections.id, testId: ieltsSections.testId, part: ieltsSections.part, transcript: ieltsSections.transcript }).from(ieltsSections).where(and(inArray(ieltsSections.testId, tests.map((t) => t.id)), eq(ieltsSections.skill, "listening"))) : [];
+  let fixed = 0;
+  for (const [i, s] of ss.entries()) {
+    await setProgress(job.id, `transcript ${i + 1}/${ss.length}`);
+    const want = split.get(s.testId)?.[s.part];
+    if (!want) continue;
+    const have = s.transcript?.trim() ?? "";
+    const wrong = !have || (!sameScript(have, want) && all.some((o) => o !== want && sameScript(have, o)));
+    if (!wrong) continue;
+    await db.update(ieltsSections).set({ transcript: await repaired(want) }).where(eq(ieltsSections.id, s.id));
+    fixed++;
+  }
+  return { fixed };
 }
 
 /** "Cambridge 21 - Test 1.mp3" → {test:1}; "Test 6 Section 4.mp3" / "IELTS11_Test1_Section1" → {test, part}. */
@@ -406,7 +464,10 @@ export async function importBook(job: Job) {
 
       await setProgress(job.id, `answers ${t.number} (${++done}/${total})`);
       const key = left && t.answerPages?.length ? await answerKey(t.number, textOfList(pages, t.answerPages)).catch(() => ({ listening: {}, reading: {} })) : { listening: {}, reading: {} };
-      const scripts = splitScript(textOfList(pages, t.scriptPages));
+      // a page more on each side when the book prints "TEST n" headings: they tell which parts are this test's own
+      const sp = t.scriptPages?.length ? [Math.min(...t.scriptPages) - 1, Math.max(...t.scriptPages) + 1] : [];
+      const wide = textOfList(pages, sp);
+      const scripts = /^\s*TEST\s+\d{1,2}\s*$/m.test(wide) ? splitScript(wide, t.number) : splitScript(textOfList(pages, t.scriptPages));
       const files = audio.map((a) => ({ a, to: audioTarget(a.name) ?? byOrder.get(a.id) ?? null })).filter((x) => x.to?.test === t.number);
 
       const list = sharedPages(inBookOrder((["listening", "reading", "writing"] as const).flatMap((skill) => (t[skill] ?? []).map((r) => ({ skill, part: Number(r.part), pages: [Number(r.pages[0]), Number(r.pages[1] ?? r.pages[0])] as [number, number] })))), lastPage);
