@@ -1673,14 +1673,18 @@
       "hidden": "Ẩn",
       "delete": "Xoá câu",
       "clean": "Làm sạch",
-      "cleanHint": "Bỏ ký hiệu âm thanh ((Applause), [Music], ♪…), chuyển tên người nói (\"Chris Anderson:\", \"CA:\") sang ô Người nói, gộp câu quá ngắn vào câu bên cạnh. Không cắt câu nên thời gian giữ nguyên.",
+      "cleanHint": "Bỏ ký hiệu âm thanh ((Applause), [Music], ♪…, Q31), chuyển tên người nói (\"Chris Anderson:\", \"CA:\", hay \"JOHN\" viết hoa dính ở đầu hoặc cuối câu) sang ô Người nói, gộp câu quá ngắn vào câu bên cạnh. Không cắt câu nên thời gian giữ nguyên.",
       "undo": "Hoàn tác",
       "cleaned": "Đã bỏ {tags} ký hiệu, {labels} tên người nói, gộp {joined} câu ngắn, xoá {removed} câu rỗng. Bấm Lưu để giữ.",
       "aiClean": "Làm sạch bằng AI",
       "aiCleanHint": "AI bỏ ký hiệu và tên người nói, gộp các dòng thành câu trọn ý (dưới ~25 từ, 8 giây), điền tên người nói. AI không được đổi từ: câu nào bị đổi từ sẽ dùng cách làm sạch không AI. Thời gian giữ nguyên.",
       "aiWorking": "AI đang làm sạch…",
       "aiFailed": "AI không làm được lúc này (kiểm tra cài đặt AI), thử lại hoặc dùng Làm sạch.",
-      "aiCleaned": "AI: {before} dòng → {after} câu. {fixed} câu AI đổi từ nên dùng bản không AI, {fallback} đoạn AI trả lời sai nên làm không AI. Bấm Lưu để giữ."
+      "aiCleaned": "AI: {before} dòng → {after} câu. {fixed} câu AI đổi từ nên dùng bản không AI, {fallback} đoạn AI trả lời sai nên làm không AI. Bấm Lưu để giữ.",
+      "strike": "Xoá các từ này",
+      "strikePlaceholder": "Từ cần xoá, cách nhau bằng dấu phẩy: JOHN, MARY",
+      "strikeHint": "Xoá các từ hoặc cụm từ đã gõ khỏi mọi câu: chỉ khớp nguyên từ và đúng chữ hoa, chữ thường (\"JOHN\" không xoá \"John\").",
+      "struck": "Đã xoá {n} chỗ. Bấm Lưu để giữ."
     },
     "ielts": {
       "redoConfirm": "Phần này đã có trong kho. Chia câu lại sẽ xoá tiến độ luyện của nó. Tiếp tục?",

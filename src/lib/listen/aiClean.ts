@@ -24,7 +24,7 @@ export async function aiClean<T extends CleanRow>(rows: T[]): Promise<{ rows: T[
             role: "system",
             content: `You tidy timed video captions into sentences for a dictation exercise. Lines are "index|speaker|seconds|text".
 Rules:
-- Remove what is not speech: sound and music tags ((Applause), [Music], (Laughter), ♪ lyrics ♪, >>) and speaker labels in the text ("Chris Anderson:", "CA:").
+- Remove what is not speech: sound and music tags ((Applause), [Music], (Laughter), ♪ lyrics ♪, >>) speaker labels in the text ("Chris Anderson:", "CA:"), and speaker names in capitals stuck to the start or end of a line ("… you envisage. JOHN" means JOHN speaks next), and question numbers ("Q31").
 - Never add, change or reorder a spoken word. You may only leave out non-speech, and fix capital letters and punctuation.
 - Group consecutive lines into sentences a learner can write after one listen: join lines that are very short or cut in the middle of a thought; keep each sentence under about 25 words and 8 seconds; never join lines of different speakers.
 - Every line index belongs to exactly one sentence, in order, with no gaps.

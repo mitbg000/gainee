@@ -2,6 +2,7 @@
  * Cutting a recording into dictation sentences and listening chunks from timed words (YouTube captions, Whisper
  * aligned to an IELTS audioscript), and tidying the cut points.
  */
+import { capsNames } from "./clean";
 
 export type TWord = {
   w: string;
@@ -155,18 +156,32 @@ export function parseTimed(text: string): { s: number; e: number; text: string }
     .filter((c) => c.text);
 }
 
-/** "WOMAN: Hello…" lines → words with their speaker (IELTS audioscripts). */
+/**
+ * "WOMAN: Hello…" lines → words with their speaker (IELTS audioscripts). Names in capitals without a colon ("JOHN" on
+ * its own line or at the end of the line before) also set the speaker and are not words.
+ */
 export function scriptWords(script: string): { w: string; speaker: string | null }[] {
   let speaker: string | null = null;
   const out: { w: string; speaker: string | null }[] = [];
-  for (const raw of script.replace(/\r/g, "").split("\n")) {
+  const lines = script.replace(/\r/g, "").split("\n");
+  const caps = capsNames(lines);
+  for (const raw of lines) {
     let line = raw.replace(/\(?\bQ\d{1,2}\b\)?/g, " ").trim(); // question numbers marked in the text ("twentieth Q31 century")
     const m = line.match(/^([A-Z][A-Z .'’-]{1,24}|[A-Z][a-z]+(?: [A-Z][a-z]+)?)\s*:\s+/);
     if (m) {
       speaker = m[1].trim();
       line = line.slice(m[0].length);
     }
-    for (const w of line.split(/\s+/)) if (w) out.push({ w, speaker });
+    const ws = line.split(/\s+/).filter(Boolean);
+    for (let k = 0; k < ws.length; k++) {
+      const atEdge = k === 0 || ENDS.test(ws[k - 1]);
+      const two = `${ws[k]} ${ws[k + 1]}`;
+      if (atEdge && caps.has(two)) {
+        speaker = two;
+        k++;
+      } else if (atEdge && caps.has(ws[k])) speaker = ws[k];
+      else out.push({ w: ws[k], speaker });
+    }
   }
   return out;
 }

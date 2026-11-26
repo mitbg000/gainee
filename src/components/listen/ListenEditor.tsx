@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import * as I from "@/components/icons";
-import { clean } from "@/lib/listen/clean";
+import { clean, removeWords } from "@/lib/listen/clean";
 import type { Media } from "@/lib/listen/queries";
 import { useClipPlayer } from "./useClipPlayer";
 
@@ -46,6 +46,16 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
     setRows(j.rows.map((x) => ({ ...rows[x.i], start: x.start, end: x.end, text: x.text, speaker: x.speaker, hidden: x.hidden })));
     setDirty(true);
     setCleaned(t("aiCleaned", { before: rows.length, after: j.rows.length, fixed: j.fixed, fallback: j.fallback }));
+  }
+
+  const [strike, setStrike] = useState("");
+  /** Take the words typed (comma-separated, e.g. names stuck in the lines) out of every sentence. */
+  function strikeWords() {
+    const r = removeWords(rows, strike.split(","));
+    setUndo(rows);
+    setRows(r.rows);
+    setDirty(true);
+    setCleaned(t("struck", { n: r.removed }));
   }
 
   function tidyUp() {
@@ -155,6 +165,12 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
               </button>
             )}
           </div>
+          <form onSubmit={(e) => (e.preventDefault(), strikeWords())} className="flex gap-2">
+            <input value={strike} onChange={(e) => setStrike(e.target.value)} placeholder={t("strikePlaceholder")} aria-label={t("strikePlaceholder")} className="field field-sm min-w-0 flex-1" />
+            <button disabled={!strike.trim()} className="btn btn-sm btn-secondary" title={t("strikeHint")}>
+              {t("strike")}
+            </button>
+          </form>
           {cleaned && <p className="text-xs text-muted">{cleaned}</p>}
           <div className="flex flex-wrap gap-2">
             <button onClick={() => save(true)} disabled={saving} className="btn btn-primary">

@@ -14,6 +14,20 @@ const LABEL = /(^|[\s.!?,;—–-])((?:[A-Z][a-z'’]+(?: [A-Z][a-z'’]+){0,2})
 const words = (s: string) => s.split(/\s+/).filter(Boolean).length;
 const initials = (name: string) => name.split(" ").map((w) => w[0]).join("");
 
+/*
+ * Speaker names in capitals with no colon, as audioscripts copied from a PDF have them: "JOHN" on its own line, or
+ * stuck to the end of the line before ("… problems you envisage. JOHN"). A name in capitals that comes back at least
+ * twice at the start or end of a sentence; everyday capitals (OK, TV, UK…) are not names.
+ */
+const COMMON = new Set(["OK", "TV", "UK", "US", "USA", "BBC", "CD", "DVD", "PC", "AM", "PM", "ID", "IT", "EU", "UN", "NO", "YES"]);
+const CAPS = /(^|[.!?…"”’)]\s+)([A-Z][A-Z'’-]+(?: [A-Z][A-Z'’-]+)?)(?=\s|$)/g;
+const titleCase = (s: string) => s.toLowerCase().replace(/(^|[\s'’-])\p{L}/gu, (c) => c.toUpperCase());
+export function capsNames(texts: string[]): Set<string> {
+  const count = new Map<string, number>();
+  for (const x of texts) for (const m of x.matchAll(CAPS)) if (!COMMON.has(m[2])) count.set(m[2], (count.get(m[2]) ?? 0) + 1);
+  return new Set([...count].filter(([, n]) => n >= 2).map(([k]) => k));
+}
+
 /**
  * Which "Name:" are speaker labels: names of two or three words always; one word or initials only when they come
  * back (twice or more) or are the initials of a full name ("EM" for "Elon Musk") – "Remember: …" in speech is not one.
@@ -43,6 +57,7 @@ const tidy = (s: string) =>
 export function clean<T extends CleanRow>(rows: T[], minWords = 4, maxWords = 25): { rows: T[]; report: CleanReport } {
   const report: CleanReport = { tags: 0, labels: 0, joined: 0, removed: 0 };
   const names = speakers(rows);
+  const caps = capsNames(rows.map((r) => r.text));
   let current: string | null = null;
   const out: T[] = [];
   for (const r of rows) {
@@ -57,6 +72,14 @@ export function clean<T extends CleanRow>(rows: T[], minWords = 4, maxWords = 25
       if (first && !text.slice(0, at).trim()) speaker = r.speaker ?? name;
       first = false;
       current = name;
+      return before;
+    });
+    // "JOHN" at the start names this sentence's speaker; inside or at the end, the speaker of what follows
+    text = text.replace(CAPS, (m, before: string, name: string, at: number) => {
+      if (!caps.has(name)) return m;
+      report.labels++;
+      if (!text.slice(0, at + before.length).trim()) speaker = r.speaker ?? titleCase(name);
+      current = titleCase(name);
       return before;
     });
     text = tidy(text);
@@ -82,6 +105,16 @@ export function clean<T extends CleanRow>(rows: T[], minWords = 4, maxWords = 25
     } else joined.push(r);
   }
   return { rows: joined, report };
+}
+
+/** Remove every listed word or phrase (whole words, same capitals) from all rows; rows left empty go. */
+export function removeWords<T extends CleanRow>(rows: T[], list: string[]): { rows: T[]; removed: number } {
+  const esc = list.map((w) => w.trim()).filter(Boolean).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if (!esc.length) return { rows, removed: 0 };
+  const re = new RegExp(`(?<![\\p{L}\\p{N}'’])(?:${esc.join("|")})(?![\\p{L}\\p{N}'’])`, "gu");
+  let removed = 0;
+  const out = rows.map((r) => ({ ...r, text: tidy(r.text.replace(re, () => (removed++, " "))) })).filter((r) => r.text);
+  return { rows: out, removed };
 }
 
 /* ---------- AI clean-up: the AI groups lines and names speakers; its words are checked against the captions ---------- */
