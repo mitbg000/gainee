@@ -1682,20 +1682,31 @@
     },
     "ielts": {
       "redoConfirm": "This part is already in the bank. Cutting it again resets its practice history. Continue?",
-      "step": {
-        "audio": "Loading audio {pct}%",
-        "model": "Loading speech model {pct}% (once)",
-        "listen": "Listening to piece {n}/{total}…",
-        "save": "Matching with the audioscript…"
-      },
       "noScript": "An audioscript is needed for the listening bank.",
       "open": "Dictation practice",
       "redo": "Cut again",
       "add": "Add to listening bank",
-      "hint": "Speech recognition in this browser finds when each audioscript sentence is said (1–3 minutes, once).",
-      "failed": "Error: {error}"
+      "addBook": "Add the whole book ({n} parts)",
+      "hint": "The server listens to the audio (Whisper) to time each audioscript sentence. Runs in the background: you can close the page.",
+      "failed": "Error: {error}",
+      "queued": "Waiting for the server…",
+      "starting": "Starting…",
+      "running": "Part {k}/{n}: {step}",
+      "step": {
+        "decode": "reading audio",
+        "listen": "listening {n}/{total}"
+      },
+      "cancel": "Cancel",
+      "cancelConfirm": "Stop adding these parts to the bank?",
+      "problem": "The last run had a problem{parts, plural, =0 {} other { in # parts}}: {error}",
+      "errors": {
+        "ffmpeg_missing": "ffmpeg is not installed on the server. Install it: apt install ffmpeg (or aaPanel → App Store), then try again.",
+        "no_transcript": "The part has no audioscript.",
+        "no_audio": "The part's audio file was not found.",
+        "nothing_heard": "No speech heard in the audio (check the part's start and end times)."
+      }
     },
     "ieltsParts": "IELTS Listening tests ({added}/{n} parts in the bank)",
-    "ieltsPartsHint": "Press \"Add to listening bank\" on a part: the browser listens to the audio to time each audioscript sentence (1–3 minutes, once), then opens the review. The button is also on each part's practice page."
+    "ieltsPartsHint": "Press \"Add to listening bank\" on a part, or \"Add the whole book\". The server listens to the audio to time each sentence (in the background, you can close the page); then the part gets its practice button and appears in the list above."
   }
 }

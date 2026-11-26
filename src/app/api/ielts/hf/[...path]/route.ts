@@ -9,8 +9,8 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 type Ctx = { params: Promise<{ path: string[] }> };
 
-// Only the speech models used here (part marks, timing listening sentences): this is not an open proxy.
-const ALLOWED = /^(onnx-community\/moonshine-tiny-ONNX|Xenova\/whisper-tiny\.en)\/resolve\/main\/[\w.-]+(\/[\w.-]+)?$/;
+// Only the speech model used for part marks: this is not an open proxy.
+const ALLOWED = /^onnx-community\/moonshine-tiny-ONNX\/resolve\/main\/[\w.-]+(\/[\w.-]+)?$/;
 const CACHE = path.join(UPLOAD_DIR, "hf");
 
 /**

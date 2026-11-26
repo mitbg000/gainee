@@ -1682,20 +1682,31 @@
     },
     "ielts": {
       "redoConfirm": "Phần này đã có trong kho. Chia câu lại sẽ xoá tiến độ luyện của nó. Tiếp tục?",
-      "step": {
-        "audio": "Tải audio {pct}%",
-        "model": "Tải mô hình nghe {pct}% (một lần)",
-        "listen": "Đang nghe đoạn {n}/{total}…",
-        "save": "Đang khớp với audioscript…"
-      },
       "noScript": "Cần audioscript để đưa vào kho luyện nghe.",
       "open": "Luyện chép chính tả",
       "redo": "Chia câu lại",
       "add": "Đưa vào kho luyện nghe",
-      "hint": "Máy nghe đoạn audio ngay trên trình duyệt để biết thời điểm từng câu trong audioscript (1–3 phút, làm một lần).",
-      "failed": "Lỗi: {error}"
+      "addBook": "Đưa cả sách ({n} Part)",
+      "hint": "Server nghe audio (Whisper) để tìm thời điểm từng câu của audioscript. Chạy nền: có thể đóng trang.",
+      "failed": "Lỗi: {error}",
+      "queued": "Đang chờ server…",
+      "starting": "Đang bắt đầu…",
+      "running": "Part {k}/{n}: {step}",
+      "step": {
+        "decode": "đọc audio",
+        "listen": "nghe đoạn {n}/{total}"
+      },
+      "cancel": "Huỷ",
+      "cancelConfirm": "Huỷ việc đưa các Part này vào kho?",
+      "problem": "Lần xử lý gần nhất gặp lỗi{parts, plural, =0 {} other { ở # Part}}: {error}",
+      "errors": {
+        "ffmpeg_missing": "Server chưa cài ffmpeg. Cài bằng: apt install ffmpeg (hoặc trong aaPanel → App Store), rồi bấm lại.",
+        "no_transcript": "Part không có audioscript.",
+        "no_audio": "Không tìm thấy file audio của Part.",
+        "nothing_heard": "Không nghe được lời nói trong đoạn audio (kiểm tra mốc thời gian của Part)."
+      }
     },
     "ieltsParts": "Đề IELTS Listening ({added}/{n} Part đã vào kho)",
-    "ieltsPartsHint": "Bấm \"Đưa vào kho luyện nghe\" ở một Part: trình duyệt nghe audio để tìm thời điểm từng câu của audioscript (1–3 phút, làm một lần), xong sẽ mở màn duyệt. Nút này cũng có ở trang Luyện của từng Part."
+    "ieltsPartsHint": "Bấm \"Đưa vào kho luyện nghe\" ở một Part, hoặc \"Đưa cả sách\". Server tự nghe audio để tìm thời điểm từng câu (chạy nền, có thể đóng trang), xong Part hiện nút Luyện và có trong danh sách bài ở trên."
   }
 }

@@ -5,8 +5,8 @@ import AddYoutube from "@/components/listen/AddYoutube";
 import DeleteSource from "@/components/listen/DeleteSource";
 import Launcher from "@/components/listen/Launcher";
 import { MISS_KINDS } from "@/lib/listen/check";
-import IeltsToBank from "@/components/listen/IeltsToBank";
-import { audioOf } from "@/lib/ielts/labels";
+import IeltsToBank, { CutBook } from "@/components/listen/IeltsToBank";
+import { cutJobs, lastCutProblem } from "@/lib/listen/jobs";
 import { dueCount, ieltsParts, listSources, missTotals } from "@/lib/listen/queries";
 import * as I from "@/components/icons";
 
@@ -15,7 +15,8 @@ export const dynamic = "force-dynamic";
 /** Listening bank: dictation sentences from YouTube videos and IELTS Listening parts. */
 export default async function ListenPage() {
   const t = await getTranslations("listen");
-  const [sources, due, misses, parts] = await Promise.all([listSources(), dueCount(), missTotals(), ieltsParts()]);
+  const [sources, due, misses, parts, jobs, problem] = await Promise.all([listSources(), dueCount(), missTotals(), ieltsParts(), cutJobs(), lastCutProblem()]);
+  const jobOf = new Map(jobs.flatMap((j) => j.sectionIds.map((s) => [s, { id: j.id, status: j.status, progress: j.progress }] as const)));
   const books = [...new Map(parts.map((p) => [p.bookId, p.book])).entries()];
   const missTotal = Object.values(misses).reduce((a, b) => a + b, 0);
 
@@ -80,9 +81,17 @@ export default async function ListenPage() {
         <details className="mt-8 rounded-2xl border border-line bg-card p-4" open={!sources.some((s) => s.kind === "ielts")}>
           <summary className="cursor-pointer font-serif text-xl font-bold">{t("ieltsParts", { added: parts.filter((p) => p.sourceId).length, n: parts.length })}</summary>
           <p className="mt-1 text-sm text-muted">{t("ieltsPartsHint")}</p>
+          {problem && (
+            <p className="mt-2 rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+              {t("ielts.problem", { parts: problem.parts, error: t.has(`ielts.errors.${problem.error}`) ? t(`ielts.errors.${problem.error}`) : problem.error })}
+            </p>
+          )}
           {books.map(([bookId, book]) => (
             <div key={bookId} className="mt-4">
-              <p className="text-sm font-semibold">{book}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="min-w-0 flex-1 text-sm font-semibold">{book}</p>
+                <CutBook bookId={bookId} left={parts.filter((p) => p.bookId === bookId && p.script && !p.sourceId && !jobOf.has(p.id)).length} />
+              </div>
               <ul className="mt-1 divide-y divide-line">
                 {parts
                   .filter((p) => p.bookId === bookId)
@@ -91,7 +100,7 @@ export default async function ListenPage() {
                       <span className="min-w-0 flex-1 text-sm">
                         {p.test} · Listening Part {p.part}
                       </span>
-                      <IeltsToBank sectionId={p.id} audio={audioOf(p.audio)!} hasScript={p.script} sourceId={p.sourceId} />
+                      <IeltsToBank sectionId={p.id} hasScript={p.script} sourceId={p.sourceId} job={jobOf.get(p.id) ?? null} />
                     </li>
                   ))}
               </ul>

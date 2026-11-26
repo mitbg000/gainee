@@ -3,107 +3,63 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as I from "@/components/icons";
-import { localAudio } from "@/lib/ielts/audioCache";
-import { LIB } from "@/lib/ielts/partMarks";
-import { silences, type TWord } from "@/lib/listen/segment";
 
-const MODEL = "Xenova/whisper-tiny.en";
-const RATE = 16000;
-const WINDOW = 28; // seconds per Whisper pass (it hears 30 s at most), cut in a quiet place
+export type CutJob = { id: number; status: string; progress: string | null } | null;
+const json = (body: unknown) => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
-type Chunk = { text: string; timestamp: [number, number | null] };
-type Asr = (pcm: Float32Array, o: Record<string, unknown>) => Promise<{ text: string; chunks?: Chunk[] }>;
+/** Refresh the page every few seconds while a cut is waiting or running. */
+export function useRefreshWhile(active: boolean) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => router.refresh(), 4000);
+    return () => clearInterval(id);
+  }, [active, router]);
+}
 
-/** Windows of at most WINDOW seconds that end in a pause, so no word is cut in two. */
-function windows(len: number, quiet: [number, number][]): [number, number][] {
-  const out: [number, number][] = [];
-  for (let from = 0; from < len - 0.5; ) {
-    const limit = Math.min(len, from + WINDOW);
-    const q = limit >= len ? null : quiet.filter(([a, b]) => (a + b) / 2 > from + 10 && (a + b) / 2 <= limit).at(-1);
-    const to = q ? (q[0] + q[1]) / 2 : limit;
-    out.push([from, to]);
-    from = to;
-  }
-  return out;
+/** "2/16 · listen 3/15" → "Part 2/16: nghe 3/15" */
+function JobState({ job }: { job: NonNullable<CutJob> }) {
+  const t = useTranslations("listen.ielts");
+  const router = useRouter();
+  const m = job.progress?.match(/^(\d+)\/(\d+) · (\w+)(?: (\d+)\/(\d+))?/);
+  const step = m ? t(`step.${m[3] === "listen" ? "listen" : "decode"}`, { n: m[4] ?? 0, total: m[5] ?? 0 }) : "";
+  return (
+    <span className="flex items-center gap-2 text-sm">
+      <span className="animate-pulse text-muted">
+        {job.status === "queued" ? t("queued") : m ? t("running", { k: m[1], n: m[2], step }) : t("starting")}
+      </span>
+      <button
+        onClick={async () => {
+          if (!confirm(t("cancelConfirm"))) return;
+          await fetch(`/api/jobs/${job.id}`, { method: "DELETE" });
+          router.refresh();
+        }}
+        className="btn btn-sm btn-ghost"
+      >
+        {t("cancel")}
+      </button>
+    </span>
+  );
 }
 
 /**
- * IELTS Listening part → listening bank. Whisper (in this browser, free) hears the part and gives a time for every
- * word; the server matches those words to the audioscript, so the sentences keep the book's exact words.
+ * IELTS Listening part → listening bank. The server's worker does it (ffmpeg + Whisper + matching to the audioscript),
+ * so this page can be closed meanwhile.
  */
-export default function IeltsToBank({ sectionId, audio, hasScript, sourceId }: { sectionId: number; audio: { url: string; start: number | null; end: number | null }; hasScript: boolean; sourceId: number | null }) {
+export default function IeltsToBank({ sectionId, hasScript, sourceId, job }: { sectionId: number; hasScript: boolean; sourceId: number | null; job: CutJob }) {
   const t = useTranslations("listen.ielts");
   const router = useRouter();
-  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  useRefreshWhile(!!job);
 
   async function run() {
     if (sourceId && !confirm(t("redoConfirm"))) return;
     setError(null);
-    try {
-      setStatus(t("step.audio", { pct: 0 }));
-      const url = await localAudio(audio.url, (p) => setStatus(t("step.audio", { pct: Math.round(p * 100) })));
-      const ctx = new AudioContext({ sampleRate: RATE });
-      const buf = await ctx.decodeAudioData(await (await fetch(url)).arrayBuffer());
-      void ctx.close();
-      const all = buf.getChannelData(0);
-      const from = audio.start ?? 0;
-      const pcm = all.subarray(Math.floor(from * RATE), audio.end ? Math.floor(audio.end * RATE) : all.length);
-      const quiet = silences(pcm, RATE);
-
-      setStatus(t("step.model", { pct: 0 }));
-      const lib = await import(/* webpackIgnore: true */ LIB);
-      lib.env.allowLocalModels = false;
-      lib.env.remoteHost = `${location.origin}/api/ielts/hf/`;
-      const files: Record<string, { loaded: number; total: number }> = {};
-      const asr: Asr = await lib.pipeline("automatic-speech-recognition", MODEL, {
-        device: "wasm",
-        dtype: "q8",
-        progress_callback: (p: { status: string; file?: string; loaded?: number; total?: number }) => {
-          if (p.status !== "progress" || !p.file || !p.total) return;
-          files[p.file] = { loaded: p.loaded ?? 0, total: p.total };
-          const v = Object.values(files);
-          setStatus(t("step.model", { pct: Math.round((v.reduce((a, f) => a + f.loaded, 0) / v.reduce((a, f) => a + f.total, 0)) * 100) }));
-        },
-      });
-
-      const heard: TWord[] = [];
-      let wordTimes = true; // a time per word when the model allows it, else per phrase (spread over its words)
-      const ws = windows(pcm.length / RATE, quiet);
-      for (const [k, [a, b]] of ws.entries()) {
-        setStatus(t("step.listen", { n: k + 1, total: ws.length }));
-        const piece = pcm.subarray(Math.floor(a * RATE), Math.floor(b * RATE));
-        let out;
-        try {
-          out = await asr(piece, { return_timestamps: wordTimes ? "word" : true });
-        } catch (e) {
-          if (!wordTimes) throw e;
-          wordTimes = false;
-          out = await asr(piece, { return_timestamps: true });
-        }
-        for (const c of out.chunks ?? []) {
-          const s = c.timestamp[0] + a;
-          const e = (c.timestamp[1] ?? b - a) + a;
-          const parts = c.text.trim().split(/\s+/).filter(Boolean);
-          parts.forEach((w, q) => heard.push({ w, s: from + s + ((e - s) * q) / parts.length, e: from + s + ((e - s) * (q + 1)) / parts.length }));
-        }
-      }
-
-      setStatus(t("step.save"));
-      const r = await fetch("/api/listen/sources", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ sectionId, heard: heard.map((h) => ({ w: h.w.slice(0, 100), s: Math.max(0, h.s), e: Math.max(0, h.e) })), quiet: quiet.map(([x, y]) => [x + from, y + from]) }),
-      });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error ?? `HTTP ${r.status}`);
-      router.push(`/listen/${j.id}/edit`);
-    } catch (e) {
-      setStatus(null);
-      setError(e instanceof Error ? e.message : String(e));
-    }
+    const r = await fetch("/api/listen/ielts", json({ sectionIds: [sectionId] })).catch(() => null);
+    if (!r?.ok) return setError(t("failed", { error: (await r?.json().catch(() => ({})))?.error ?? "network" }));
+    router.refresh();
   }
 
   if (!hasScript) return <span className="text-xs text-muted">{t("noScript")}</span>;
@@ -114,11 +70,36 @@ export default function IeltsToBank({ sectionId, audio, hasScript, sourceId }: {
           <I.IconHeadphones /> {t("open")}
         </Link>
       )}
-      <button onClick={run} disabled={!!status} className="btn btn-sm btn-ghost" title={t("hint")}>
-        <I.IconPen /> {sourceId ? t("redo") : t("add")}
-      </button>
-      {status && <span className="animate-pulse text-muted">{status}</span>}
-      {error && <span className="text-red-600">{t("failed", { error })}</span>}
+      {job ? (
+        <JobState job={job} />
+      ) : (
+        <button onClick={run} className="btn btn-sm btn-ghost" title={t("hint")}>
+          <I.IconPen /> {sourceId ? t("redo") : t("add")}
+        </button>
+      )}
+      {error && <span className="text-red-600">{error}</span>}
     </span>
+  );
+}
+
+/** Every part of a book that is not in the bank yet, in one job. */
+export function CutBook({ bookId, left }: { bookId: number; left: number }) {
+  const t = useTranslations("listen.ielts");
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  if (!left) return null;
+  return (
+    <button
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        await fetch("/api/listen/ielts", json({ bookId })).catch(() => null);
+        setBusy(false);
+        router.refresh();
+      }}
+      className="btn btn-sm btn-secondary"
+    >
+      <I.IconHeadphones /> {t("addBook", { n: left })}
+    </button>
   );
 }

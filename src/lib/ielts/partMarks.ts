@@ -5,7 +5,7 @@
  */
 export type PartMarks = Record<string, number>; // part → second where its announcement starts
 
-export const LIB = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js";
+const LIB = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js";
 /** Moonshine: compute grows with the clip length (Whisper always works on 30 s), so short clips are several times faster. */
 export const MODEL = "onnx-community/moonshine-tiny-ONNX";
 const RATE = 16000;

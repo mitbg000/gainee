@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:worker": "tsx watch --env-file=.env src/worker/index.ts",
     "build": "next build && npm run build:scripts",
-    "build:scripts": "esbuild src/worker/index.ts src/db/migrate.ts src/scripts/hash-password.ts src/scripts/import-dictionary.ts --bundle --platform=node --target=node20 --format=cjs --external:mysql2 --outdir=dist --entry-names=[name] && mv dist/index.js dist/worker.js",
+    "build:scripts": "esbuild src/worker/index.ts src/db/migrate.ts src/scripts/hash-password.ts src/scripts/import-dictionary.ts --bundle --platform=node --target=node20 --format=cjs --external:mysql2 --external:@huggingface/transformers --outdir=dist --entry-names=[name] && mv dist/index.js dist/worker.js",
     "start": "next start",
     "worker": "node --env-file=.env dist/worker.js",
     "db:generate": "drizzle-kit generate",
@@ -17,6 +17,7 @@
     "dict:import": "node --env-file=.env dist/import-dictionary.js"
   },
   "dependencies": {
+    "@huggingface/transformers": "3.8.1",
     "drizzle-orm": "^0.45.4",
     "fflate": "^0.8.3",
     "jose": "^6.2.18",

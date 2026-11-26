@@ -2,6 +2,7 @@ import type { Job } from "@/lib/jobs";
 import { setProgress } from "@/lib/jobs";
 import { processDocument } from "@/lib/documents/process";
 import { checkBook, fixBookScripts, importBook } from "@/lib/ielts/import";
+import { cutParts } from "@/lib/listen/ielts";
 
 export type Handler = (job: Job) => Promise<unknown>;
 
@@ -19,6 +20,8 @@ export const handlers: Record<string, Handler> = {
   ielts_fix_scripts: fixBookScripts,
   /** Re-read the parts of a book that miss question numbers, with more pages (payload: { bookId }). */
   ielts_check: checkBook,
+  /** Cut IELTS Listening parts into the listening bank with Whisper (payload: { sectionIds }). */
+  listen_cut: cutParts,
 
   async ping(job) {
     for (let i = 1; i <= 3; i++) {
