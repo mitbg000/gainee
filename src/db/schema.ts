@@ -661,3 +661,19 @@ export const listenItems = mysqlTable(
   },
   (t) => [index("listen_items_source").on(t.sourceId, t.idx), index("listen_items_due").on(t.due)],
 );
+
+/**
+ * What Whisper heard in an IELTS part's stretch of audio (times in the file): compared with the sentences in the review
+ * editor, given to the AI clean-up, and reused when the part is cut again from the same stretch.
+ */
+export const listenSpeech = mysqlTable("listen_speech", {
+  sectionId: int("section_id")
+    .primaryKey()
+    .references(() => ieltsSections.id, { onDelete: "cascade" }),
+  fileId: int("file_id").notNull(),
+  start: double("start").notNull(),
+  end: double("end"),
+  heard: jsonText<{ w: string; s: number; e: number }[]>("heard").notNull(),
+  quiet: jsonText<[number, number][]>("quiet").notNull(),
+  createdAt: createdAt(),
+});

@@ -67,15 +67,21 @@ export async function cutSection(sectionId: number, onStep: (msg: string) => Pro
   const abs = path.join(UPLOAD_DIR, file.path);
   if (!abs.startsWith(UPLOAD_DIR + path.sep)) throw new Error("no_audio");
 
+  // times in the file (the player plays the whole recording); heard once per stretch, kept for the next cut
   const from = sec.audio.start ?? 0;
-  const { heard, quiet } = await runSpeech(abs, from, sec.audio.end ?? null, (s) => onStep(s === "decode" ? "decode" : `listen ${s}`));
-  if (!heard.length) throw new Error("nothing_heard");
+  const to = sec.audio.end ?? null;
+  const [kept] = await db.select().from(schema.listenSpeech).where(eq(schema.listenSpeech.sectionId, sec.id));
+  let { heard, quiet } = kept && kept.fileId === sec.audio.fileId && kept.start === from && (kept.end ?? null) === to ? kept : { heard: [], quiet: [] };
+  if (!heard.length) {
+    const r = await runSpeech(abs, from, to, (s) => onStep(s === "decode" ? "decode" : `listen ${s}`));
+    heard = r.heard.map((w) => ({ w: w.w, s: w.s + from, e: w.e + from }));
+    quiet = r.quiet.map(([a, b]) => [a + from, b + from] as [number, number]);
+    if (!heard.length) throw new Error("nothing_heard");
+    const row = { fileId: sec.audio.fileId, start: from, end: to, heard, quiet };
+    await db.insert(schema.listenSpeech).values({ sectionId: sec.id, ...row }).onDuplicateKeyUpdate({ set: row });
+  }
 
-  // times in the file (the player plays the whole recording)
-  const clips = snap(
-    toSentences(align(scriptWords(sec.transcript), heard.map((w) => ({ ...w, s: w.s + from, e: w.e + from })))),
-    quiet.map(([a, b]) => [a + from, b + from] as [number, number]),
-  );
+  const clips = snap(toSentences(align(scriptWords(sec.transcript), heard)), quiet);
   const [test] = await db.select({ title: schema.ieltsTests.title, bookId: schema.ieltsTests.bookId }).from(schema.ieltsTests).where(eq(schema.ieltsTests.id, sec.testId));
   const [book] = test ? await db.select({ title: schema.ieltsBooks.title }).from(schema.ieltsBooks).where(eq(schema.ieltsBooks.id, test.bookId)) : [];
   const id = await saveSource({ kind: "ielts", sectionId: sec.id, title: [book?.title, test?.title, `Listening Part ${sec.part}`].filter(Boolean).join(" · ").slice(0, 255), captions: "script" }, clips);

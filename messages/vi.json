@@ -1684,7 +1684,10 @@
       "strike": "Xoá các từ này",
       "strikePlaceholder": "Từ cần xoá, cách nhau bằng dấu phẩy: JOHN, MARY",
       "strikeHint": "Xoá các từ hoặc cụm từ đã gõ khỏi mọi câu: chỉ khớp nguyên từ và đúng chữ hoa, chữ thường (\"JOHN\" không xoá \"John\").",
-      "struck": "Đã xoá {n} chỗ. Bấm Lưu để giữ."
+      "struck": "Đã xoá {n} chỗ. Bấm Lưu để giữ.",
+      "heard": "Whisper nghe:",
+      "heardNothing": "(không nghe thấy gì trong khoảng này)",
+      "notHeard": "Không nghe thấy:"
     },
     "ielts": {
       "redoConfirm": "Phần này đã có trong kho. Chia câu lại sẽ xoá tiến độ luyện của nó. Tiếp tục?",

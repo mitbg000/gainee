@@ -4,13 +4,14 @@ import { applyAi, clean, type AiSentence, type CleanRow } from "./clean";
 
 const CHUNK = 60; // lines per request
 
-export async function aiClean<T extends CleanRow>(rows: T[]): Promise<{ rows: T[]; fallback: number; fixed: number }> {
+export async function aiClean<T extends CleanRow & { heard?: string }>(rows: T[]): Promise<{ rows: T[]; fallback: number; fixed: number }> {
   const out: T[] = [];
   let fallback = 0; // pieces done without AI (its answer did not fit)
   let fixed = 0; // sentences whose AI text changed words: rule-based text kept
   for (let i = 0; i < rows.length; i += CHUNK) {
     const part = rows.slice(i, i + CHUNK);
-    const lines = part.map((r, k) => `${k}|${r.speaker ?? ""}|${(r.end - r.start).toFixed(1)}s|${r.text}`).join("\n");
+    const heard = part.some((r) => r.heard !== undefined);
+    const lines = part.map((r, k) => `${k}|${r.speaker ?? ""}|${(r.end - r.start).toFixed(1)}s|${r.text}${heard ? `|${r.heard ?? ""}` : ""}`).join("\n");
     let done: { rows: T[]; fixed: number } | null = null;
     try {
       const { text } = await chat({
@@ -22,7 +23,8 @@ export async function aiClean<T extends CleanRow>(rows: T[]): Promise<{ rows: T[
         messages: [
           {
             role: "system",
-            content: `You tidy timed video captions into sentences for a dictation exercise. Lines are "index|speaker|seconds|text".
+            content: `You tidy timed video captions into sentences for a dictation exercise. Lines are "index|speaker|seconds|text"${heard ? `|heard`: ""}.${heard ? `
+"heard" is what speech recognition heard in that line's audio. It makes mistakes with words, but a word of the text it did not hear at all and that looks like a label (a NAME in capitals, "Q31", a heading) is not speech: leave it out.` : ""}
 Rules:
 - Remove what is not speech: sound and music tags ((Applause), [Music], (Laughter), ♪ lyrics ♪, >>) speaker labels in the text ("Chris Anderson:", "CA:"), and speaker names in capitals stuck to the start or end of a line ("… you envisage. JOHN" means JOHN speaks next), and question numbers ("Q31").
 - Never add, change or reorder a spoken word. You may only leave out non-speech, and fix capital letters and punctuation.

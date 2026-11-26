@@ -225,3 +225,10 @@ export async function ieltsParts() {
   const bank = new Map(have.map((h) => [h.sectionId, h.id]));
   return rows.map((r) => ({ ...r, script: !!Number(r.script), sourceId: bank.get(r.id) ?? null }));
 }
+
+/** Whisper's words for an IELTS part (times in the file), for the review editor; null if it was never heard. */
+export async function heardWords(sectionId: number | null) {
+  if (!sectionId) return null;
+  const [r] = await getDb().select({ heard: schema.listenSpeech.heard }).from(schema.listenSpeech).where(eq(schema.listenSpeech.sectionId, sectionId));
+  return r?.heard ?? null;
+}

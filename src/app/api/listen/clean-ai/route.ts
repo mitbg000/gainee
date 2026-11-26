@@ -6,7 +6,7 @@ import { aiClean } from "@/lib/listen/aiClean";
 export const runtime = "nodejs";
 export const maxDuration = 600;
 
-const Row = z.object({ i: z.number().int().min(0), start: z.number(), end: z.number(), text: z.string().max(5000), speaker: z.string().max(64).nullable(), hidden: z.boolean() });
+const Row = z.object({ i: z.number().int().min(0), start: z.number(), end: z.number(), text: z.string().max(5000), speaker: z.string().max(64).nullable(), hidden: z.boolean(), heard: z.string().max(5000).optional() });
 
 /** The review editor's unsaved sentences → cleaned and joined by AI (each result keeps `i` of its first line). */
 export async function POST(req: Request) {

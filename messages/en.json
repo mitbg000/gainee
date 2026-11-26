@@ -1684,7 +1684,10 @@
       "strike": "Remove these words",
       "strikePlaceholder": "Words to remove, comma-separated: JOHN, MARY",
       "strikeHint": "Removes the typed words or phrases from every sentence: whole words only, same capitals (\"JOHN\" does not remove \"John\").",
-      "struck": "Removed {n} places. Press Save to keep it."
+      "struck": "Removed {n} places. Press Save to keep it.",
+      "heard": "Whisper heard:",
+      "heardNothing": "(nothing heard in this stretch)",
+      "notHeard": "Not heard:"
     },
     "ielts": {
       "redoConfirm": "This part is already in the bank. Cutting it again resets its practice history. Continue?",

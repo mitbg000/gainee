@@ -12,12 +12,16 @@ type Row = { key: number; id?: number; start: number; end: number; text: string;
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const LOW = 0.7;
+type Heard = { w: string; s: number; e: number }[];
+const norm = (w: string) => w.toLowerCase().replace(/[’‘]/g, "'").replace(/[^\p{L}\p{N}']/gu, "");
+/** Whisper's words inside a sentence's time (the middle of the word inside it). */
+const heardIn = (heard: Heard, from: number, to: number) => heard.filter((w) => (w.s + w.e) / 2 >= from && (w.s + w.e) / 2 < to).map((w) => w.w);
 
 /**
  * Review of a recording's sentences before practice: listen to each cut, fix words, move start / end by 0.25 s,
  * join or split sentences. Cuts Whisper was unsure of (IELTS) are marked and can be shown alone.
  */
-export default function ListenEditor({ sourceId, title: title0, shift: shift0, media, rows: rows0, captions }: { sourceId: number; title: string; shift: number; media: Media; rows: Omit<Row, "key">[]; captions: string }) {
+export default function ListenEditor({ sourceId, title: title0, shift: shift0, media, rows: rows0, captions, heard }: { sourceId: number; title: string; shift: number; media: Media; rows: Omit<Row, "key">[]; captions: string; /** what Whisper heard (IELTS), times in the file */ heard: Heard | null }) {
   const t = useTranslations("listen.edit");
   const router = useRouter();
   const player = useClipPlayer();
@@ -37,7 +41,7 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
   async function tidyUpAi() {
     setAiBusy(true);
     setCleaned(t("aiWorking"));
-    const r = await fetch("/api/listen/clean-ai", { method: "POST", ...json({ rows: rows.map((x, i) => ({ i, start: x.start, end: x.end, text: x.text, speaker: x.speaker, hidden: x.hidden })) }) }).catch(() => null);
+    const r = await fetch("/api/listen/clean-ai", { method: "POST", ...json({ rows: rows.map((x, i) => ({ i, start: x.start, end: x.end, text: x.text, speaker: x.speaker, hidden: x.hidden, ...(heard ? { heard: heardIn(heard, x.start + shift, x.end + shift).join(" ") } : {}) })) }) }).catch(() => null);
     setAiBusy(false);
     if (!r?.ok) return setCleaned(t("aiFailed"));
     const j: { rows: { i: number; start: number; end: number; text: string; speaker: string | null; hidden: boolean }[]; fallback: number; fixed: number } = await r.json();
@@ -212,6 +216,7 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
                 rows={2}
                 className="field mt-2 w-full resize-y font-serif text-[15px]"
               />
+              {heard && <HeardLine heard={heardIn(heard, r.start + shift, r.end + shift)} text={r.text} />}
               <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
                 <button onClick={() => split(r.key)} className="btn btn-sm btn-ghost">
                   <I.IconScissors /> {t("split")}
@@ -232,6 +237,36 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
           );
         })}
       </ol>
+    </div>
+  );
+}
+
+/**
+ * Under a sentence: what Whisper heard in its time, words not in the sentence marked; and the sentence's words Whisper
+ * did not hear (a name or a "Q31" left in the text, or a cut in the wrong place). Whisper mishears too: a hint only.
+ */
+function HeardLine({ heard, text }: { heard: string[]; text: string }) {
+  const t = useTranslations("listen.edit");
+  const mine = new Set(text.split(/\s+/).map(norm).filter(Boolean));
+  const got = new Set(heard.map(norm));
+  const missing = text.split(/\s+/).filter((w) => norm(w) && !got.has(norm(w)));
+  return (
+    <div className="mt-1 space-y-0.5 text-xs text-muted">
+      <p>
+        <span className="font-semibold">{t("heard")}</span>{" "}
+        {heard.length
+          ? heard.map((w, k) => (
+              <span key={k} className={mine.has(norm(w)) ? "" : "rounded bg-amber-100 px-0.5 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"}>
+                {w}{" "}
+              </span>
+            ))
+          : t("heardNothing")}
+      </p>
+      {missing.length > 0 && heard.length > 0 && (
+        <p>
+          <span className="font-semibold">{t("notHeard")}</span> <span className="text-red-700 dark:text-red-400">{missing.join(", ")}</span>
+        </p>
+      )}
     </div>
   );
 }

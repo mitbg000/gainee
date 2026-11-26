@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import ListenEditor from "@/components/listen/ListenEditor";
-import { getSource } from "@/lib/listen/queries";
+import { getSource, heardWords } from "@/lib/listen/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +11,7 @@ export default async function EditSourcePage({ params }: { params: Promise<{ id:
   const t = await getTranslations("listen");
   const r = await getSource(Number((await params).id));
   if (!r) notFound();
+  const heard = await heardWords(r.source.sectionId);
   return (
     <Shell wide>
       <Link href={`/listen/${r.source.id}`} className="text-sm text-muted hover:text-ink">
@@ -26,6 +27,7 @@ export default async function EditSourcePage({ params }: { params: Promise<{ id:
             shift={r.source.shift}
             media={r.media}
             captions={r.source.captions}
+            heard={heard}
             rows={r.items.map((i) => ({ id: i.id, start: i.start, end: i.end, text: i.text, speaker: i.speaker, hidden: i.hidden, confidence: i.confidence }))}
           />
         ) : (
