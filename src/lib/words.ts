@@ -20,6 +20,7 @@ export const WordInput = z.union([
     context: z.string().max(2000).optional(),
     note: z.string().max(2000).optional(),
     lessonId: z.number().int().positive().optional(),
+    listenSourceId: z.number().int().positive().optional(),
   }),
 ]);
 
@@ -49,7 +50,11 @@ export async function addWord(input: z.infer<typeof WordInput>): Promise<number>
       const [dup] = await db.select({ id: words.id }).from(words).where(and(eq(words.term, input.term), eq(words.lessonId, input.lessonId)));
       if (dup) return dup.id;
     }
-    values = { term: input.term, ipa: input.ipa || null, pos: input.pos || null, meaningVi: input.meaningVi || null, definitionEn: input.definitionEn || null, example: input.example || null, context: input.context || null, note: input.note || null, lessonId: input.lessonId ?? null };
+    if (input.listenSourceId) {
+      const [dup] = await db.select({ id: words.id }).from(words).where(and(eq(words.term, input.term), eq(words.listenSourceId, input.listenSourceId)));
+      if (dup) return dup.id;
+    }
+    values = { term: input.term, ipa: input.ipa || null, pos: input.pos || null, meaningVi: input.meaningVi || null, definitionEn: input.definitionEn || null, example: input.example || null, context: input.context || null, note: input.note || null, lessonId: input.lessonId ?? null, listenSourceId: input.listenSourceId ?? null };
   }
   const [{ id }] = await db.insert(words).values(values).$returningId();
   if (values.lessonId) {

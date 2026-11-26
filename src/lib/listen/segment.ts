@@ -1,0 +1,236 @@
+/**
+ * Cutting a recording into dictation sentences and listening chunks from timed words (YouTube captions, Whisper
+ * aligned to an IELTS audioscript), and tidying the cut points.
+ */
+
+export type TWord = { w: string; s: number; e: number; speaker?: string | null; /** found in what Whisper heard */ m?: boolean };
+export type Clip = { start: number; end: number; text: string; speaker: string | null; confidence: number | null };
+
+const ENDS = /[.!?…]["'’”)\]]*$/;
+const SOFT = /[,;:–—]["'’”)\]]*$/;
+const JOIN = new Set(["and", "but", "because", "which", "who", "so", "when", "while", "although", "though", "where", "that", "or", "if"]);
+const norm = (w: string) => w.toLowerCase().replace(/[’‘]/g, "'").replace(/[^\p{L}\p{N}']/gu, "");
+
+function clipOf(ws: TWord[]): Clip {
+  const heard = ws.filter((w) => w.m !== undefined);
+  return {
+    start: ws[0].s,
+    end: ws[ws.length - 1].e,
+    text: ws.map((w) => w.w).join(" "),
+    speaker: ws[0].speaker ?? null,
+    confidence: heard.length ? Math.round((heard.filter((w) => w.m).length / heard.length) * 100) / 100 : null,
+  };
+}
+
+/** Where to cut a long sentence: after a comma or before a joining word, nearest the middle; the middle otherwise. */
+function cutAt(ws: TWord[]): number {
+  const mid = ws.length / 2;
+  let best = -1;
+  for (let i = 3; i <= ws.length - 3; i++) {
+    const good = SOFT.test(ws[i - 1].w) || JOIN.has(norm(ws[i].w));
+    if (good && (best < 0 || Math.abs(i - mid) < Math.abs(best - mid))) best = i;
+  }
+  return best > 0 ? best : Math.round(mid);
+}
+
+/**
+ * Sentences for dictation: a cut after . ? !, at a change of speaker and at a long pause; longer than `maxWords` words or
+ * `maxSec` seconds → cut again at a comma or joining word; shorter than 3 words → joined to the sentence before.
+ */
+export function toSentences(ws: TWord[], maxWords = 15, maxSec = 6): Clip[] {
+  const groups: TWord[][] = [];
+  let cur: TWord[] = [];
+  ws.forEach((w, i) => {
+    cur.push(w);
+    const next = ws[i + 1];
+    if (!next || ENDS.test(w.w) || (next.speaker ?? null) !== (w.speaker ?? null) || next.s - w.e > 1.0) {
+      groups.push(cur);
+      cur = [];
+    }
+  });
+  const fit: TWord[][] = [];
+  const split = (g: TWord[]) => {
+    if (g.length >= 6 && (g.length > maxWords || g[g.length - 1].e - g[0].s > maxSec)) {
+      const k = cutAt(g);
+      split(g.slice(0, k));
+      split(g.slice(k));
+    } else fit.push(g);
+  };
+  groups.forEach(split);
+  const out: TWord[][] = [];
+  for (const g of fit) {
+    const prev = out[out.length - 1];
+    if (g.length < 3 && prev && (prev[0].speaker ?? null) === (g[0].speaker ?? null) && g[0].s - prev[prev.length - 1].e < 1.5) prev.push(...g);
+    else out.push([...g]);
+  }
+  // a short opening piece goes onto the next one instead
+  if (out.length > 1 && out[0].length < 3 && (out[1][0].speaker ?? null) === (out[0][0].speaker ?? null)) out.splice(0, 2, [...out[0], ...out[1]]);
+  return out.map(clipOf);
+}
+
+/** Listen-only chunks: consecutive sentences joined into 20–40 s, cut at a change of speaker or a pause when long enough. */
+export function toChunks<T extends { start: number; end: number; speaker: string | null }>(clips: T[], min = 20, max = 40): T[][] {
+  const out: T[][] = [];
+  for (const c of clips) {
+    const g = out[out.length - 1];
+    const len = g ? g[g.length - 1].end - g[0].start : 0;
+    const last = g?.[g.length - 1];
+    const breakHere = !g || c.end - g[0].start > max || (len >= min && (c.speaker !== last!.speaker || c.start - last!.end > 0.8));
+    if (breakHere) out.push([c]);
+    else g.push(c);
+  }
+  return out;
+}
+
+/** Timed words from caption cues that have no time per word: each word gets a share of its cue by length. */
+export function cueWords(cues: { s: number; e: number; text: string; speaker?: string | null }[]): TWord[] {
+  return cues.flatMap((c) => {
+    const ws = c.text.split(/\s+/).filter(Boolean);
+    const total = ws.reduce((a, w) => a + w.length + 1, 0);
+    let at = c.s;
+    return ws.map((w) => {
+      const d = ((c.e - c.s) * (w.length + 1)) / total;
+      const tw = { w, s: at, e: at + d, speaker: c.speaker ?? null };
+      at += d;
+      return tw;
+    });
+  });
+}
+
+const STAMP = /^(?:(\d+):)?(\d{1,2}):(\d{2})(?:[.,](\d{1,3}))?$/;
+const secs = (m: RegExpMatchArray) => (Number(m[1] ?? 0) * 3600 + Number(m[2]) * 60 + Number(m[3]) + Number((m[4] ?? "0").padEnd(3, "0")) / 1000);
+
+/**
+ * Pasted transcript → cues. Reads SRT / WebVTT ("00:00:01,000 --> 00:00:04,000") and YouTube's "Show transcript"
+ * copy ("0:04" on its own line or in front of the text).
+ */
+export function parseTimed(text: string): { s: number; e: number; text: string }[] {
+  const cues: { s: number; e?: number; text: string }[] = [];
+  for (const raw of text.replace(/\r/g, "").split("\n")) {
+    const line = raw.trim();
+    if (!line || line === "WEBVTT" || /^\d+$/.test(line)) continue;
+    const arrow = line.match(/^([\d:.,]+)\s*-->\s*([\d:.,]+)/);
+    if (arrow) {
+      const a = arrow[1].match(STAMP);
+      const b = arrow[2].match(STAMP);
+      if (a && b) cues.push({ s: secs(a), e: secs(b), text: "" });
+      continue;
+    }
+    const lead = line.match(/^((?:\d+:)?\d{1,2}:\d{2})\s*(.*)$/);
+    const st = lead?.[1].match(STAMP);
+    if (lead && st) {
+      cues.push({ s: secs(st), text: lead[2] });
+      continue;
+    }
+    if (/^\d+ (seconds?|minutes?|giây|phút)/i.test(line)) continue; // screen-reader labels YouTube copies along
+    const last = cues[cues.length - 1];
+    if (last) last.text = `${last.text} ${line.replace(/<[^>]+>/g, "")}`.trim();
+  }
+  return cues
+    .filter((c) => c.text)
+    .map((c, i, all) => ({ s: c.s, e: c.e ?? (all[i + 1]?.s ?? c.s + 4), text: c.text.replace(/\[(music|applause|laughter|âm nhạc|vỗ tay)\]/gi, "").replace(/\s+/g, " ").trim() }))
+    .filter((c) => c.text);
+}
+
+/** "WOMAN: Hello…" lines → words with their speaker (IELTS audioscripts). */
+export function scriptWords(script: string): { w: string; speaker: string | null }[] {
+  let speaker: string | null = null;
+  const out: { w: string; speaker: string | null }[] = [];
+  for (const raw of script.replace(/\r/g, "").split("\n")) {
+    let line = raw.trim();
+    const m = line.match(/^([A-Z][A-Z .'’-]{1,24}|[A-Z][a-z]+(?: [A-Z][a-z]+)?)\s*:\s+/);
+    if (m) {
+      speaker = m[1].trim();
+      line = line.slice(m[0].length);
+    }
+    for (const w of line.split(/\s+/)) if (w) out.push({ w, speaker });
+  }
+  return out;
+}
+
+/**
+ * Times for the script's words from what Whisper heard: words in both (longest common subsequence) take Whisper's
+ * times, the others are spread between their matched neighbours. `m` tells which ones were heard.
+ */
+export function align(script: { w: string; speaker: string | null }[], heard: TWord[]): TWord[] {
+  const a = script.map((x) => norm(x.w));
+  const b = heard.map((x) => norm(x.w));
+  const n = a.length;
+  const k = b.length;
+  const L = Array.from({ length: n + 1 }, () => new Int32Array(k + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = k - 1; j >= 0; j--) L[i][j] = a[i] && a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out: TWord[] = script.map((x) => ({ w: x.w, s: NaN, e: NaN, speaker: x.speaker, m: false }));
+  for (let i = 0, j = 0; i < n && j < k; ) {
+    if (a[i] && a[i] === b[j] && L[i][j] === L[i + 1][j + 1] + 1) {
+      out[i] = { ...out[i], s: heard[j].s, e: heard[j].e, m: true };
+      i++;
+      j++;
+    } else if (L[i + 1][j] >= L[i][j + 1]) i++;
+    else j++;
+  }
+  // spread unmatched runs evenly between the matched words around them
+  const end = heard.length ? heard[heard.length - 1].e : 0;
+  for (let i = 0; i < n; ) {
+    if (out[i].m) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < n && !out[j].m) j++;
+    const from = i > 0 ? out[i - 1].e : heard[0]?.s ?? 0;
+    const to = j < n ? out[j].s : end;
+    const step = Math.max(0, to - from) / (j - i);
+    for (let q = i; q < j; q++) out[q] = { ...out[q], s: from + step * (q - i), e: from + step * (q - i + 1) };
+    i = j;
+  }
+  return out;
+}
+
+/** Quiet stretches [from, to] in seconds (frames of 50 ms under a threshold taken from the recording itself). */
+export function silences(pcm: Float32Array, rate: number, minGap = 0.25): [number, number][] {
+  const frame = Math.floor(rate * 0.05);
+  const rms: number[] = [];
+  for (let i = 0; i + frame <= pcm.length; i += frame) {
+    let sum = 0;
+    for (let q = i; q < i + frame; q++) sum += pcm[q] * pcm[q];
+    rms.push(Math.sqrt(sum / frame));
+  }
+  const sorted = [...rms].sort((x, y) => x - y);
+  const pct = (p: number) => sorted[Math.floor(p * (sorted.length - 1))] ?? 0;
+  const thr = Math.max(pct(0.1) * 2, pct(0.5) * 0.15, 1e-4);
+  const out: [number, number][] = [];
+  let from = -1;
+  rms.forEach((v, i) => {
+    if (v < thr && from < 0) from = i;
+    if ((v >= thr || i === rms.length - 1) && from >= 0) {
+      if ((i - from) * 0.05 >= minGap) out.push([from * 0.05, i * 0.05]);
+      from = -1;
+    }
+  });
+  return out;
+}
+
+/**
+ * Cut points moved into the nearest quiet stretch (within 0.6 s) so a sentence never starts or ends inside a word;
+ * a little air is left before and after the speech.
+ */
+export function snap<T extends { start: number; end: number }>(clips: T[], quiet: [number, number][]): T[] {
+  const near = (t: number, pick: (q: [number, number]) => number) => {
+    let best: number | null = null;
+    for (const q of quiet) {
+      const v = pick(q);
+      if (Math.abs(v - t) <= 0.6 && (best === null || Math.abs(v - t) < Math.abs(best - t))) best = v;
+    }
+    return best;
+  };
+  return clips.map((c) => {
+    const s = near(c.start, (q) => q[1]);
+    const e = near(c.end, (q) => q[0]);
+    const start = Math.max(0, (s ?? c.start) - 0.15);
+    const end = (e ?? c.end) + 0.2;
+    return { ...c, start: Math.round(start * 100) / 100, end: Math.round(Math.max(end, start + 0.5) * 100) / 100 };
+  });
+}
+
+/** Spoken words per second: tells fast speech from slow. */
+export const rate = (c: { start: number; end: number; text: string }) => Math.round((c.text.split(/\s+/).length / Math.max(0.5, c.end - c.start)) * 10) / 10;

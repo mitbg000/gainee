@@ -35,7 +35,8 @@
     "practice": "Practise saved words",
     "writing": "Writing practice",
     "quick": "Quick study",
-    "ielts": "IELTS practice"
+    "ielts": "IELTS practice",
+    "listen": "Listening"
   },
   "login": {
     "username": "Username",
@@ -75,7 +76,8 @@
     "importFirst": "Import your first article",
     "advanced": "System & tools",
     "goals": "Today's goals",
-    "allProgress": "All progress"
+    "allProgress": "All progress",
+    "listenDue": "Dictation review today: {n} sentences"
   },
   "jobs": {
     "title": "Background jobs",
@@ -1527,6 +1529,161 @@
         "failed": "Finding marks failed: {error}",
         "download_stalled": "The audio download stalled for over a minute (network or server). Press again to retry."
       }
+    }
+  },
+  "listen": {
+    "title": "Listening & dictation",
+    "intro": "Hear one sentence, type it. Sentences from YouTube videos and IELTS Listening tests; wrong ones come back on a schedule.",
+    "sources": "Recordings ({n})",
+    "empty": "Nothing yet. Add a YouTube video, or open an IELTS Listening part and press \"Add to listening bank\".",
+    "count": "{n} sentences",
+    "seen": "{pct}% done",
+    "due": "{n} due",
+    "autoCaptions": "automatic captions",
+    "notReviewed": "not reviewed",
+    "low": "{n} to check",
+    "modes": {
+      "listen": "Listen in pieces",
+      "dictation": "Dictation",
+      "gaps": "Fill the gaps"
+    },
+    "review": "Review",
+    "delete": "Delete",
+    "deleteConfirm": "Delete \"{title}\" and its practice history?",
+    "restart": "Start over",
+    "savedWords": "{n} saved words",
+    "reviewFirst": "Not reviewed yet: cuts may be off or words wrong. Press \"Review\" to listen and fix them first.",
+    "noMedia": "This recording cannot be played (no audio or video).",
+    "misses": {
+      "title": "What you miss most",
+      "function": "Small weak words (a, the, of…)",
+      "ending": "Endings (-s, -ed)",
+      "number": "Numbers",
+      "name": "Names",
+      "other": "Other words"
+    },
+    "session": {
+      "review": "Today's review",
+      "random": "Random practice",
+      "mix": "Review + new",
+      "noneDue": "Nothing to review today.",
+      "none": "No sentences left in this scope."
+    },
+    "launch": {
+      "review": "Today's review ({n})",
+      "random": "Random",
+      "mix": "Mixed",
+      "scope": "Scope",
+      "scopes": {
+        "all": "Everything",
+        "youtube": "YouTube only",
+        "ielts": "IELTS only",
+        "fast": "Fast speech",
+        "numbers": "With numbers"
+      },
+      "oneSource": "One recording",
+      "size": "Sentences",
+      "sentences": "{n} sentences",
+      "kind": "Exercise",
+      "kinds": {
+        "dictation": "Whole sentence",
+        "gaps": "Fill the gaps"
+      },
+      "hint": "Random: no sentence repeats until every one in the scope was shown (then a new round). Wrong ones come back after 1 day, 3 days, then longer."
+    },
+    "add": {
+      "title": "Add a YouTube video",
+      "add": "Get captions",
+      "addPasted": "Add with the pasted transcript",
+      "working": "Getting captions and cutting sentences…",
+      "pasteHint": "Paste a transcript with times: on YouTube press \"…More\" → \"Show transcript\", select all and copy. The text of an .srt or .vtt file works too.",
+      "pasteInstead": "Or paste a transcript",
+      "hint": "The video plays in YouTube's own player. Automatic captions get punctuation from AI to find sentences; review them before practice.",
+      "errors": {
+        "captions_blocked": "YouTube refused the captions right now. Paste the transcript below.",
+        "no_captions": "This video has no English captions. Paste the transcript below.",
+        "bad_url": "Not a YouTube link.",
+        "bad_transcript": "No times found in the pasted transcript.",
+        "network": "Network error, try again."
+      }
+    },
+    "practice": {
+      "finished": "Session done!",
+      "summary": "{total} sentences: {clean} right at once, {fixed} right after fixing, {hinted} with a hint.",
+      "back": "Back",
+      "again": "New session",
+      "loadingAudio": "Loading audio…",
+      "playFailed": "Could not play this piece.",
+      "round": "Round {n}: {done}/{total} done",
+      "reviewChip": "review",
+      "replayKey": "Listen again (press Ctrl)",
+      "playing": "Playing…",
+      "listen": "Listen",
+      "typeHere": "Type what you hear…",
+      "notYet": "Not all right yet: fix it and press Enter to check again.",
+      "rightFirst": "Right first time!",
+      "right": "Right.",
+      "revealedHint": "The answer (you still type it right to go on):",
+      "next": "Next",
+      "check": "Check",
+      "hintLetters": "First letters",
+      "hintWord": "Show a word",
+      "hintAll": "Show answer",
+      "edit": "Fix this sentence",
+      "report": "Report & skip",
+      "reportConfirm": "Hide this sentence from the bank (wrong captions or cut) until you review it?",
+      "editHint": "Correct the words to what is said (for the whole bank).",
+      "save": "Save",
+      "cancel": "Cancel",
+      "relearn": "Wrong ones again at the end",
+      "keys": "Enter: check / next · Ctrl: listen again · tap a word (once shown) to look it up and save it"
+    },
+    "chunks": {
+      "piece": "Piece {n}/{total}",
+      "prev": "Previous piece",
+      "next": "Next piece",
+      "play": "Play piece",
+      "stop": "Stop",
+      "hide": "Hide text",
+      "show": "Show text",
+      "playSentence": "Play this sentence",
+      "hiddenHint": "Listen to the whole piece first, then show the text to check. Tap words to look them up.",
+      "empty": "No sentences yet."
+    },
+    "edit": {
+      "heading": "Review recording",
+      "intro": "Listen to each sentence, fix words, move start/end by 0.25 s, join or split. Yellow ones are where the machine was unsure.",
+      "title": "Title",
+      "shift": "Shift for the whole recording",
+      "shiftHint": "When every sentence starts equally early or late.",
+      "autoCaptions": "YouTube's automatic captions: some words may be wrong and sentences cut oddly.",
+      "onlyLow": "Show only the {n} to check",
+      "saveReviewed": "Save & mark reviewed",
+      "saveDraft": "Save draft",
+      "count": "{n} sentences",
+      "saveFailed": "Could not save, try again.",
+      "listen": "Listen",
+      "confidence": "{pct}% matched",
+      "speaker": "Speaker",
+      "split": "Split at cursor",
+      "join": "Join with next",
+      "hidden": "Hidden",
+      "delete": "Delete sentence"
+    },
+    "ielts": {
+      "redoConfirm": "This part is already in the bank. Cutting it again resets its practice history. Continue?",
+      "step": {
+        "audio": "Loading audio {pct}%",
+        "model": "Loading speech model {pct}% (once)",
+        "listen": "Listening to piece {n}/{total}…",
+        "save": "Matching with the audioscript…"
+      },
+      "noScript": "An audioscript is needed for the listening bank.",
+      "open": "Dictation practice",
+      "redo": "Cut again",
+      "add": "Add to listening bank",
+      "hint": "Speech recognition in this browser finds when each audioscript sentence is said (1–3 minutes, once).",
+      "failed": "Error: {error}"
     }
   }
 }

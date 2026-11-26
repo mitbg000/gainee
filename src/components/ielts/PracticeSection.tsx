@@ -10,6 +10,7 @@ import Markdown from "@/components/lesson/Markdown";
 import { useAiAsk } from "@/components/lesson/useAiAsk";
 import { sfx } from "@/lib/sound";
 import PartPlayer from "./PartPlayer";
+import IeltsToBank from "@/components/listen/IeltsToBank";
 import Questions, { Passage } from "./Questions";
 import * as I from "@/components/icons";
 
@@ -23,6 +24,8 @@ export type PracticeData = {
   answers: Record<string, string>;
   transcript: string | null;
   audio: { url: string; start: number | null; end: number | null } | null;
+  /** this part in the listening bank (dictation), if added */
+  listenSourceId?: number | null;
 };
 
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s);
@@ -237,6 +240,11 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
           ) : (
             <p className="text-sm text-muted">{t("noAudio")}</p>
           )}
+        </div>
+      )}
+      {data.skill === "listening" && data.audio && (
+        <div className="-mt-2 mb-4">
+          <IeltsToBank sectionId={data.id} audio={data.audio} hasScript={!!data.transcript?.trim()} sourceId={data.listenSourceId ?? null} />
         </div>
       )}
 

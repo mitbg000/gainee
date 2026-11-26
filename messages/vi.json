@@ -35,7 +35,8 @@
     "practice": "Luyện từ đã lưu",
     "writing": "Luyện Writing",
     "quick": "Học nhanh 5 phút",
-    "ielts": "Luyện thi IELTS"
+    "ielts": "Luyện thi IELTS",
+    "listen": "Luyện nghe"
   },
   "login": {
     "username": "Tên đăng nhập",
@@ -75,7 +76,8 @@
     "importFirst": "Nhập bài báo đầu tiên",
     "advanced": "Hệ thống & công cụ",
     "goals": "Mục tiêu hôm nay",
-    "allProgress": "Xem tiến độ"
+    "allProgress": "Xem tiến độ",
+    "listenDue": "Ôn chính tả hôm nay: {n} câu"
   },
   "jobs": {
     "title": "Việc nền",
@@ -1527,6 +1529,161 @@
         "failed": "Tìm mốc lỗi: {error}",
         "download_stalled": "Tải file audio bị đứng hơn 1 phút (mạng hoặc server). Bấm lại để thử tiếp."
       }
+    }
+  },
+  "listen": {
+    "title": "Luyện nghe & chính tả",
+    "intro": "Nghe từng câu rồi gõ lại. Câu từ video YouTube và đề IELTS Listening, ôn lại câu sai theo lịch.",
+    "sources": "Bài nghe ({n})",
+    "empty": "Chưa có bài nào. Thêm một video YouTube, hoặc mở một Part Listening IELTS và bấm \"Đưa vào kho luyện nghe\".",
+    "count": "{n} câu",
+    "seen": "đã làm {pct}%",
+    "due": "{n} câu cần ôn",
+    "autoCaptions": "phụ đề tự động",
+    "notReviewed": "chưa duyệt",
+    "low": "{n} câu cần xem",
+    "modes": {
+      "listen": "Nghe từng đoạn",
+      "dictation": "Chép chính tả",
+      "gaps": "Điền từ"
+    },
+    "review": "Duyệt",
+    "delete": "Xoá",
+    "deleteConfirm": "Xoá \"{title}\" và tiến độ luyện của nó?",
+    "restart": "Làm lại từ đầu",
+    "savedWords": "{n} từ đã lưu",
+    "reviewFirst": "Bài này chưa được duyệt: câu có thể bị cắt lệch hoặc sai chữ. Nên bấm \"Duyệt\" để nghe thử và sửa trước.",
+    "noMedia": "Không phát được bài này (thiếu audio hoặc video).",
+    "misses": {
+      "title": "Bạn hay nghe sót",
+      "function": "Từ nhỏ đọc lướt (a, the, of…)",
+      "ending": "Đuôi từ (-s, -ed)",
+      "number": "Số",
+      "name": "Tên riêng",
+      "other": "Từ khác"
+    },
+    "session": {
+      "review": "Ôn hôm nay",
+      "random": "Luyện ngẫu nhiên",
+      "mix": "Trộn ôn + mới",
+      "noneDue": "Hôm nay không có câu nào cần ôn.",
+      "none": "Không còn câu nào trong phạm vi này."
+    },
+    "launch": {
+      "review": "Ôn hôm nay ({n})",
+      "random": "Luyện ngẫu nhiên",
+      "mix": "Trộn",
+      "scope": "Phạm vi",
+      "scopes": {
+        "all": "Tất cả",
+        "youtube": "Chỉ video YouTube",
+        "ielts": "Chỉ đề IELTS",
+        "fast": "Câu nói nhanh",
+        "numbers": "Câu có số"
+      },
+      "oneSource": "Một bài",
+      "size": "Số câu",
+      "sentences": "{n} câu",
+      "kind": "Cách luyện",
+      "kinds": {
+        "dictation": "Chép cả câu",
+        "gaps": "Điền từ"
+      },
+      "hint": "Ngẫu nhiên: không lặp câu nào cho tới khi đã làm hết phạm vi (sang vòng mới). Câu sai được ôn lại sau 1 ngày, 3 ngày, rồi giãn dần."
+    },
+    "add": {
+      "title": "Thêm video YouTube",
+      "add": "Lấy phụ đề",
+      "addPasted": "Thêm với transcript đã dán",
+      "working": "Đang lấy và chia câu…",
+      "pasteHint": "Dán transcript có mốc thời gian: trên YouTube bấm \"…Thêm\" → \"Hiện bản chép lời\", chọn hết rồi copy. Cũng nhận nội dung file .srt hoặc .vtt.",
+      "pasteInstead": "Hoặc dán transcript",
+      "hint": "Video được phát bằng trình phát của YouTube. Phụ đề tự động được AI thêm dấu câu để chia câu; nên duyệt lại trước khi luyện.",
+      "errors": {
+        "captions_blocked": "YouTube không cho lấy phụ đề lúc này. Hãy dán transcript bên dưới.",
+        "no_captions": "Video không có phụ đề tiếng Anh. Hãy dán transcript bên dưới.",
+        "bad_url": "Không nhận ra link YouTube.",
+        "bad_transcript": "Không đọc được mốc thời gian trong transcript đã dán.",
+        "network": "Lỗi mạng, thử lại."
+      }
+    },
+    "practice": {
+      "finished": "Xong lượt luyện!",
+      "summary": "{total} câu: {clean} đúng ngay, {fixed} đúng sau khi sửa, {hinted} có dùng gợi ý.",
+      "back": "Quay lại",
+      "again": "Lượt mới",
+      "loadingAudio": "Đang tải audio…",
+      "playFailed": "Không phát được đoạn này.",
+      "round": "Vòng {n}: đã làm {done}/{total}",
+      "reviewChip": "ôn lại",
+      "replayKey": "Nghe lại (bấm Ctrl)",
+      "playing": "Đang phát…",
+      "listen": "Nghe",
+      "typeHere": "Gõ những gì bạn nghe được…",
+      "notYet": "Chưa đúng hết: sửa rồi bấm Enter để chấm lại.",
+      "rightFirst": "Đúng ngay lần đầu!",
+      "right": "Đúng rồi.",
+      "revealedHint": "Đáp án (vẫn cần tự gõ đúng mới sang câu tiếp):",
+      "next": "Câu tiếp",
+      "check": "Chấm",
+      "hintLetters": "Chữ cái đầu",
+      "hintWord": "Hiện 1 từ",
+      "hintAll": "Hiện đáp án",
+      "edit": "Sửa câu này",
+      "report": "Báo sai & bỏ qua",
+      "reportConfirm": "Ẩn câu này khỏi kho (phụ đề sai hoặc cắt lệch) cho tới khi bạn duyệt lại?",
+      "editHint": "Sửa chữ của câu cho đúng với lời nói (áp dụng cho cả kho).",
+      "save": "Lưu",
+      "cancel": "Huỷ",
+      "relearn": "Câu sai: làm lại cuối buổi",
+      "keys": "Enter: chấm / sang câu · Ctrl: nghe lại · bấm vào từ (khi đã hiện chữ) để tra và lưu từ"
+    },
+    "chunks": {
+      "piece": "Đoạn {n}/{total}",
+      "prev": "Đoạn trước",
+      "next": "Đoạn sau",
+      "play": "Nghe đoạn",
+      "stop": "Dừng",
+      "hide": "Ẩn chữ",
+      "show": "Hiện chữ",
+      "playSentence": "Nghe câu này",
+      "hiddenHint": "Nghe hết đoạn trước, rồi hiện chữ để kiểm tra. Bấm vào từ để tra và lưu.",
+      "empty": "Bài này chưa có câu nào."
+    },
+    "edit": {
+      "heading": "Duyệt bài nghe",
+      "intro": "Nghe thử từng câu, sửa chữ, dịch đầu/cuối câu 0.25 giây, gộp hoặc tách câu. Câu viền vàng là chỗ máy không chắc.",
+      "title": "Tên bài",
+      "shift": "Lệch thời gian cả bài",
+      "shiftHint": "Dùng khi mọi câu đều bắt đầu sớm hoặc muộn như nhau.",
+      "autoCaptions": "Phụ đề tự động của YouTube: có thể sai vài từ và chia câu chưa chuẩn.",
+      "onlyLow": "Chỉ hiện {n} câu cần xem",
+      "saveReviewed": "Lưu & đánh dấu đã duyệt",
+      "saveDraft": "Lưu nháp",
+      "count": "{n} câu",
+      "saveFailed": "Không lưu được, thử lại.",
+      "listen": "Nghe thử",
+      "confidence": "khớp {pct}%",
+      "speaker": "Người nói",
+      "split": "Tách tại con trỏ",
+      "join": "Gộp với câu sau",
+      "hidden": "Ẩn",
+      "delete": "Xoá câu"
+    },
+    "ielts": {
+      "redoConfirm": "Phần này đã có trong kho. Chia câu lại sẽ xoá tiến độ luyện của nó. Tiếp tục?",
+      "step": {
+        "audio": "Tải audio {pct}%",
+        "model": "Tải mô hình nghe {pct}% (một lần)",
+        "listen": "Đang nghe đoạn {n}/{total}…",
+        "save": "Đang khớp với audioscript…"
+      },
+      "noScript": "Cần audioscript để đưa vào kho luyện nghe.",
+      "open": "Luyện chép chính tả",
+      "redo": "Chia câu lại",
+      "add": "Đưa vào kho luyện nghe",
+      "hint": "Máy nghe đoạn audio ngay trên trình duyệt để biết thời điểm từng câu trong audioscript (1–3 phút, làm một lần).",
+      "failed": "Lỗi: {error}"
     }
   }
 }

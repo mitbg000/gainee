@@ -33,7 +33,7 @@ export default function ToolPanel({
   onSaveCard,
 }: {
   tool: NonNullable<Tool>;
-  lessonId: number;
+  lessonId?: number;
   vocab: Vocab[];
   saved: Record<number, number>;
   savedTerms: Record<string, number>;
@@ -42,7 +42,8 @@ export default function ToolPanel({
   onSaveTerm: (term: string, context: string, extra?: { ipa?: string | null; pos?: string | null; meaningVi?: string | null; example?: string | null }) => void;
   onClose: () => void;
   onAskAi: (t: Extract<Tool, { mode: "ai" }>) => void;
-  onPin: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
+  /** pin the answer beside the text; left out where there is no text to pin to (listening practice) */
+  onPin?: (messageId: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
   onSaveCard: (card: WordCard, context: string) => Promise<void>;
 }) {
   const t = useTranslations("lesson.tool");
@@ -248,8 +249,8 @@ function AiAsk({
   onSaveCard,
 }: {
   tool: Extract<Tool, { mode: "ai" }>;
-  lessonId: number;
-  onPin: (id: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
+  lessonId?: number;
+  onPin?: (id: number, answer: string, anchor?: Anchor, annotationId?: number, action?: AiMsg["action"]) => Promise<void>;
   onSaveCard: (card: WordCard, context: string) => Promise<void>;
 }) {
   const t = useTranslations("lesson.tool");
@@ -354,7 +355,7 @@ function AiAsk({
         ) : null}
       </div>
 
-      {!isCard && ai.messageId && !ai.loading && ai.text && !ai.text.startsWith("⚠️") && (
+      {onPin && !isCard && ai.messageId && !ai.loading && ai.text && !ai.text.startsWith("⚠️") && (
         <div className="border-t border-line pt-3">
           <button
             disabled={pinned}

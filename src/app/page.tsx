@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSetting } from "@/lib/settings";
 import { dashboardStats, nextLesson } from "@/lib/stats";
 import { goalProgress } from "@/lib/goals";
+import { dueCount as listenDue } from "@/lib/listen/queries";
 import GoalBars from "@/components/GoalBars";
 import Shell from "@/components/Shell";
 import JobsPanel from "@/components/JobsPanel";
@@ -12,8 +13,8 @@ import * as I from "@/components/icons";
 export const dynamic = "force-dynamic";
 
 async function loadStats() {
-  const [s, hb, next, goals] = await Promise.all([dashboardStats(), getSetting<number>("worker.heartbeat"), nextLesson(), goalProgress()]);
-  return { ...s, heartbeat: hb ?? 0, next, goals };
+  const [s, hb, next, goals, listen] = await Promise.all([dashboardStats(), getSetting<number>("worker.heartbeat"), nextLesson(), goalProgress(), listenDue()]);
+  return { ...s, heartbeat: hb ?? 0, next, goals, listen };
 }
 
 export default async function DashboardPage() {
@@ -47,6 +48,13 @@ export default async function DashboardPage() {
       ) : (
         <Link href="/import" className="mt-4 flex min-h-11 items-center rounded-2xl border border-dashed border-accent px-4 py-3 font-medium text-accent">
           + {t("importFirst")}
+        </Link>
+      )}
+
+      {!!stats?.listen && (
+        <Link href="/listen/session?mode=review" className="mt-3 flex min-h-11 items-center gap-2 rounded-2xl border border-line bg-card px-4 py-3 font-medium hover:border-accent">
+          <I.IconHeadphones className="h-5 w-5 text-accent" /> {t("listenDue", { n: stats.listen })}
+          <I.IconArrowRight className="ml-auto h-4 w-4 text-muted" />
         </Link>
       )}
 

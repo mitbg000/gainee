@@ -24,6 +24,7 @@ import {
   tinyint,
   uniqueIndex,
   varchar,
+  type AnyMySqlColumn,
 } from "drizzle-orm/mysql-core";
 
 /* ---------- helpers ---------- */
@@ -157,6 +158,8 @@ export const words = mysqlTable(
     mnemonic: text("mnemonic"), // personal memory hook
     lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
     lessonVocabId: int("lesson_vocab_id").references(() => lessonVocab.id, { onDelete: "set null" }),
+    /** saved while practising listening: the video / IELTS part it was heard in */
+    listenSourceId: int("listen_source_id").references((): AnyMySqlColumn => listenSources.id, { onDelete: "set null" }),
     // FSRS card state
     due: ts("due").notNull().default(sql`CURRENT_TIMESTAMP(3)`),
     stability: double("stability").notNull().default(0),
@@ -605,4 +608,56 @@ export const ieltsAttempts = mysqlTable(
     createdAt: createdAt(),
   },
   (t) => [index("ielts_attempts_created").on(t.createdAt), index("ielts_attempts_section").on(t.sectionId)],
+);
+
+/* =====================================================================
+ *  Listening bank: dictation sentences from YouTube videos and IELTS Listening parts
+ * ===================================================================== */
+/** One recording cut into sentences: a YouTube video (played in YouTube's own player) or an IELTS Listening part. */
+export const listenSources = mysqlTable("listen_sources", {
+  id: pk(),
+  kind: mysqlEnum("kind", ["youtube", "ielts"]).notNull(),
+  youtubeId: varchar("youtube_id", { length: 20 }),
+  sectionId: int("section_id").references(() => ieltsSections.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  /** where the words came from: the uploader's captions, YouTube's automatic ones, pasted by the learner, an audioscript */
+  captions: mysqlEnum("captions", ["manual", "auto", "pasted", "script"]).notNull(),
+  /** seconds added to every cut (captions running early or late) */
+  shift: double("shift").notNull().default(0),
+  reviewed: boolean("reviewed").notNull().default(false),
+  /** next sentence of "dictate the whole video" */
+  position: int("position").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+export const listenItems = mysqlTable(
+  "listen_items",
+  {
+    id: pk(),
+    sourceId: int("source_id").notNull().references(() => listenSources.id, { onDelete: "cascade" }),
+    idx: int("idx").notNull(),
+    start: double("start").notNull(),
+    end: double("end").notNull(),
+    text: text("text").notNull(),
+    speaker: varchar("speaker", { length: 64 }),
+    /** share of the script's words Whisper heard at this place (IELTS); low → check the cut */
+    confidence: double("confidence"),
+    /** words per second */
+    rate: double("rate").notNull().default(0),
+    /** reported as wrong while practising: out of the bank until reviewed */
+    hidden: boolean("hidden").notNull().default(false),
+    /** random practice: how many rounds have shown it (the next round takes the least-shown ones) */
+    round: int("round").notNull().default(0),
+    seenAt: ts("seen_at"),
+    tries: int("tries").notNull().default(0),
+    /** first check right with no hint */
+    clean: int("clean").notNull().default(0),
+    /** review schedule: only sentences once got wrong; null = not in review */
+    due: ts("due"),
+    interval: int("interval").notNull().default(0),
+    lapses: int("lapses").notNull().default(0),
+    /** missed words by kind, all tries: {"function":3,"ending":1} */
+    misses: jsonText<Record<string, number> | null>("misses"),
+  },
+  (t) => [index("listen_items_source").on(t.sourceId, t.idx), index("listen_items_due").on(t.due)],
 );
