@@ -1589,7 +1589,7 @@
         "dictation": "Whole sentence",
         "gaps": "Fill the gaps"
       },
-      "hint": "Random and Mix take sentences from the IELTS tests; practise YouTube videos one at a time under \"One recording\" (a new video for each sentence would reload the player). No sentence repeats until every one in the scope was shown (then a new round). Wrong ones come back after 1 day, 3 days, then longer."
+      "hint": "Review, Random and Mix take sentences from the IELTS tests; practise and review YouTube videos one at a time under \"One recording\" (a new video for each sentence would reload the player). No sentence repeats until every one in the scope was shown (then a new round). Wrong ones come back after 1 day, 3 days, then longer."
     },
     "add": {
       "title": "Add a YouTube video",

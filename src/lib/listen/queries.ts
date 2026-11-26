@@ -94,13 +94,13 @@ export function interleave<T extends { sourceId: number }>(xs: T[]): T[] {
  * - random: sentences of the current round not shown yet in it (round = times shown in random practice), shuffled;
  *   sentences in the review schedule are left to review
  * - mix: about 30 % review, the rest random
- * Random sentences come from IELTS recordings only, unless the scope is one source: a YouTube video has to load in the
- * player for every sentence of another video, so videos are practised one at a time ("src:<id>").
+ * Sentences come from IELTS recordings only, unless the scope is one source: a YouTube video has to load in the
+ * player for every sentence of another video, so videos are practised and reviewed one at a time ("src:<id>").
  */
 export async function pickSession(mode: "review" | "random" | "mix", scope: string, n: number) {
   const db = getDb();
   const where = scopeWhere(scope);
-  const mixed = mode !== "review" && !scope.startsWith("src:") ? [sql`${items.sourceId} in (select id from listen_sources where kind = 'ielts')`] : [];
+  const mixed = !scope.startsWith("src:") ? [sql`${items.sourceId} in (select id from listen_sources where kind = 'ielts')`] : [];
   const dueRows = mode === "random" ? [] : await db.select().from(items).where(and(...where, ...mixed, isNotNull(items.due), lte(items.due, sql`now(3)`))).orderBy(asc(items.due)).limit(mode === "review" ? n : Math.ceil(n * 0.3));
   const fresh = and(...where, ...mixed, sql`(${items.due} is null or ${items.due} > now(3))`);
   let newRows: Item[] = [];
@@ -124,8 +124,12 @@ export async function pickSession(mode: "review" | "random" | "mix", scope: stri
   };
 }
 
+/** Sentences due for review in the IELTS recordings (YouTube videos are reviewed one video at a time). */
 export async function dueCount() {
-  const [{ n }] = await getDb().select({ n: sql<number>`count(*)` }).from(items).where(and(eq(items.hidden, false), isNotNull(items.due), lte(items.due, sql`now(3)`)));
+  const [{ n }] = await getDb()
+    .select({ n: sql<number>`count(*)` })
+    .from(items)
+    .where(and(eq(items.hidden, false), isNotNull(items.due), lte(items.due, sql`now(3)`), sql`${items.sourceId} in (select id from listen_sources where kind = 'ielts')`));
   return Number(n);
 }
 
