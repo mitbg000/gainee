@@ -1276,7 +1276,8 @@
       },
       "streak": "Chuỗi {n} ngày!",
       "doneTip": "Bạn đã thuộc {known} từ (hẹn ôn lại sau ít nhất 3 tuần). Hẹn gặp lại ngày mai.",
-      "seeProgress": "Xem tiến độ"
+      "seeProgress": "Xem tiến độ",
+      "allDone": "Bạn đã ôn hết các từ đến hạn và học hết từ mới cho lúc này. Quay lại sau để ôn những từ được hẹn."
     }
   },
   "sound": {

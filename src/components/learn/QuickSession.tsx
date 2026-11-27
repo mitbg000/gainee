@@ -14,7 +14,7 @@ type Part = "review" | "learn";
  * "Quick study": two parts, one after the other – words due for review (FSRS says when), then new words.
  * A part with no words is left out; each part is about 10 questions' worth of words.
  */
-export default function QuickSession({ review, learn, others, streak, activeToday, learned }: { review: QWord[]; learn: QWord[]; others: Other[]; streak: number; activeToday: boolean; learned: number }) {
+export default function QuickSession({ review, learn, others, streak, activeToday, learned, skip }: { review: QWord[]; learn: QWord[]; others: Other[]; streak: number; activeToday: boolean; learned: number; skip: number[] }) {
   const t = useTranslations("learn.quick");
   const router = useRouter();
   const parts = ([["review", review], ["learn", learn]] as const).filter(([, ws]) => ws.length).map(([p]) => p as Part);
@@ -25,7 +25,7 @@ export default function QuickSession({ review, learn, others, streak, activeToda
     return (
       <div className="mx-auto max-w-2xl rounded-3xl border border-dashed border-line bg-card p-8 text-center">
         <I.BigIcon icon={I.IconWords} />
-        <p className="mt-3 font-semibold">{t("nothing")}</p>
+        <p className="mt-3 font-semibold">{t(skip.length ? "allDone" : "nothing")}</p>
         <Link href="/library" className="btn btn-primary mt-4">
           {t("goRead")}
         </Link>
@@ -54,7 +54,7 @@ export default function QuickSession({ review, learn, others, streak, activeToda
           <p className="mt-3 font-serif text-3xl font-bold">{t("streak", { n: activeToday ? streak : streak + 1 })}</p>
           <p className="mt-2 text-muted">{t("doneTip", { known: learned })}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <button onClick={() => router.refresh()} className="btn btn-primary">
+            <button onClick={() => router.push(`/quick?skip=${[...skip, ...[...review, ...learn].map((w) => w.id)].slice(-300).join(",")}`)} className="btn btn-primary">
               {t("again")}
             </button>
             <Link href="/progress" className="btn btn-secondary">

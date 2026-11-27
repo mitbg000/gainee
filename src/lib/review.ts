@@ -128,10 +128,11 @@ export const LEARNED_DAYS = 21;
  * Words for one quick round. "learn": new words, the latest saved first. "review": words due now, the most overdue
  * first (FSRS decides when). Each with what is needed to ask about it.
  */
-export async function quickWords(kind: "learn" | "review", size = 10) {
+export async function quickWords(kind: "learn" | "review", size = 10, skip: number[] = []) {
   const db = getDb();
   const uid = await myId();
-  const base = and(eq(words.userId, uid), eq(words.suspended, false), or(isNotNull(words.meaningVi), isNotNull(words.definitionEn)));
+  // skip: words of the rounds already done in this sitting ("Study more" gives other words)
+  const base = and(eq(words.userId, uid), eq(words.suspended, false), or(isNotNull(words.meaningVi), isNotNull(words.definitionEn)), skip.length ? notInArray(words.id, skip) : undefined);
   const rows =
     kind === "learn"
       ? await db.select().from(words).where(and(base, eq(words.state, 0))).orderBy(desc(words.id)).limit(size)

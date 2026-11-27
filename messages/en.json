@@ -1276,7 +1276,8 @@
       },
       "streak": "{n}-day streak!",
       "doneTip": "You have learned {known} words (next review 3+ weeks away). See you tomorrow.",
-      "seeProgress": "See progress"
+      "seeProgress": "See progress",
+      "allDone": "You have reviewed every word that is due and learned all new words for now. Come back later for the words scheduled again."
     }
   },
   "sound": {
