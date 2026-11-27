@@ -1,6 +1,7 @@
 /** Daily activity + XP bookkeeping (feeds streaks, heat map and the dashboard). */
 import { sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 
 export function today(tz = process.env.TZ || "Asia/Ho_Chi_Minh"): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -13,7 +14,7 @@ export async function bumpActivity(c: Counters) {
   const a = schema.activity;
   await getDb()
     .insert(a)
-    .values({ day: today(), ...v })
+    .values({ userId: await myId(), day: today(), ...v })
     .onDuplicateKeyUpdate({
       set: {
         minutes: sql`${a.minutes} + ${v.minutes}`,
@@ -29,6 +30,6 @@ export const XP = { lessonDone: 50, perfectScore: 30, correctAnswer: 5, readingM
 
 export async function addXp(kind: string, amount: number, ref?: { type: string; id: number }) {
   if (amount <= 0) return;
-  await getDb().insert(schema.xpEvents).values({ kind, amount, refType: ref?.type, refId: ref?.id });
+  await getDb().insert(schema.xpEvents).values({ userId: await myId(), kind, amount, refType: ref?.type, refId: ref?.id });
   await bumpActivity({ xp: amount });
 }

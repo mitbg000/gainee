@@ -3,7 +3,8 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { bad, idParam, parseBody } from "@/lib/api";
-import { acceptSuggestions, deleteDocument, dismissSuggestions, getDocument, setDocumentLabels } from "@/lib/documents/queries";
+import { acceptSuggestions, deleteDocument, dismissSuggestions, getDocument, setDocumentLabels, setVisibility } from "@/lib/documents/queries";
+import { canEditDoc } from "@/lib/owner";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,8 @@ const Patch = z.object({
   labelIds: z.array(z.number().int().positive()).max(50).optional(),
   acceptSuggestions: z.object({ topics: z.array(z.string().max(100)).max(10), source: z.string().max(200).nullable() }).optional(),
   dismissSuggestions: z.literal(true).optional(),
+  visibility: z.enum(["private", "public", "groups"]).optional(),
+  groupIds: z.array(z.number().int().positive()).max(100).optional(),
 });
 
 export async function PATCH(req: Request, { params }: Ctx) {
@@ -30,7 +33,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!id) return bad("invalid");
   const [data, err] = await parseBody(req, Patch);
   if (err) return err;
-  const { labelIds, acceptSuggestions: acc, dismissSuggestions: dis, ...fields } = data;
+  const { labelIds, acceptSuggestions: acc, dismissSuggestions: dis, visibility, groupIds, ...fields } = data;
+  // the text itself and who sees it: its owner and admins; labels are each learner's own
+  if ((Object.keys(fields).length || visibility) && !(await canEditDoc(id))) return bad("forbidden", 403);
+  if (visibility) await setVisibility(id, visibility, groupIds ?? []);
   if (Object.keys(fields).length) await getDb().update(schema.documents).set(fields).where(eq(schema.documents.id, id));
   if (labelIds) await setDocumentLabels(id, labelIds);
   if (acc) await acceptSuggestions(id, acc.topics, acc.source);

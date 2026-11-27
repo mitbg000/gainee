@@ -1,6 +1,7 @@
 /** Image uploads: type sniffing, storage and the media table. */
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { removeUpload, saveUpload } from "./storage";
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -50,6 +51,8 @@ export const imageUrl = (path: string) => `/api/${path}`;
 /** Save an uploaded file as a word image; returns null if it is not a supported image. */
 export async function addWordImage(wordId: number, file: File) {
   if (file.size > MAX_IMAGE_BYTES) return null;
+  const [own] = await getDb().select({ id: schema.words.id }).from(schema.words).where(and(eq(schema.words.id, wordId), eq(schema.words.userId, await myId())));
+  if (!own) return null;
   const bytes = new Uint8Array(await file.arrayBuffer());
   const ext = sniff(bytes);
   if (!ext) return null;
@@ -64,7 +67,13 @@ export async function addWordImage(wordId: number, file: File) {
 
 export async function removeWordImage(mediaId: number) {
   const db = getDb();
-  const [m] = await db.select({ path: schema.media.path }).from(schema.media).where(eq(schema.media.id, mediaId));
+  const [m] = await db
+    .select({ path: schema.media.path })
+    .from(schema.media)
+    .innerJoin(schema.wordMedia, eq(schema.wordMedia.mediaId, schema.media.id))
+    .innerJoin(schema.words, eq(schema.words.id, schema.wordMedia.wordId))
+    .where(and(eq(schema.media.id, mediaId), eq(schema.words.userId, await myId())));
+  if (!m) return;
   await db.delete(schema.media).where(eq(schema.media.id, mediaId)); // cascades to word_media
   await removeUpload(m?.path);
 }

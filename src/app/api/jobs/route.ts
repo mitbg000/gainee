@@ -1,12 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { enqueue, recentJobs } from "@/lib/jobs";
+import { currentUser, RANK } from "@/lib/users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return NextResponse.json(await recentJobs());
+  const u = await currentUser();
+  if (!u) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  return NextResponse.json(await recentJobs(RANK[u.role] >= RANK.editor ? null : u.id));
 }
 
 const Body = z.object({ type: z.enum(["ping"]), payload: z.record(z.string(), z.unknown()).optional() });

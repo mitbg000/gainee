@@ -4,6 +4,7 @@ import { getDb, schema } from "@/db";
 import { parseBody } from "@/lib/api";
 import { AiError, chatStream } from "@/lib/ai/client";
 import { ASK_ACTIONS, askMessages } from "@/lib/ai/prompts";
+import { myId } from "@/lib/owner";
 import { getProfile } from "@/lib/profile";
 
 export const runtime = "nodejs";
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
   const [{ id }] = await db
     .insert(schema.aiMessages)
     .values({
+      userId: await myId(),
       lessonId: data.lessonId ?? null,
       annotationId: data.annotationId ?? null,
       action: data.action === "vocab_card" ? "custom" : data.action, // DB enum predates vocab cards

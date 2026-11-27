@@ -93,6 +93,7 @@ export async function requeueStale(olderThanMs = 10 * 60 * 1000): Promise<number
   return res[0].affectedRows;
 }
 
-export async function recentJobs(limit = 20) {
-  return getDb().select().from(jobs).orderBy(sql`${jobs.id} desc`).limit(limit);
+/** Latest jobs: a learner's own, or everyone's (`userId` null: editors and admins, who run the shared imports). */
+export async function recentJobs(userId: number | null, limit = 20) {
+  return getDb().select().from(jobs).where(userId ? eq(jobs.userId, userId) : undefined).orderBy(sql`${jobs.id} desc`).limit(limit);
 }

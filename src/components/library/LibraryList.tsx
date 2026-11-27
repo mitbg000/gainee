@@ -159,6 +159,7 @@ export default function LibraryList({ docs, filtered }: { docs: LibraryItem[]; f
                   <div className="flex items-center gap-2 text-xs">
                     {d.level && <span className="rounded-md bg-accent/10 px-1.5 py-0.5 font-bold text-accent">{d.level}</span>}
                     <span className="text-muted">{meta(d)}</span>
+                    {(!d.mine || d.visibility !== "private") && <span className="ml-auto rounded-md bg-paper px-1.5 py-0.5 text-muted">{d.mine ? t(`shared.${d.visibility}`) : t("shared.fromTeacher")}</span>}
                   </div>
                   <Link href={`/library/${d.id}`} className="mt-2 font-serif text-lg font-bold leading-snug hover:text-accent">
                     {d.title}

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { addXp, XP } from "@/lib/activity";
 import { bad, idParam, parseBody } from "@/lib/api";
+import { myId, readableLesson } from "@/lib/owner";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -34,14 +35,17 @@ export async function POST(req: Request, { params }: Ctx) {
   const total = data.answers.length;
   const pct = Math.round((score / total) * 100);
 
-  const [lesson] = await db.select({ bestScore: schema.lessons.bestScore }).from(schema.lessons).where(eq(schema.lessons.id, lessonId));
-  if (!lesson) return bad("not_found", 404);
+  const userId = await myId();
+  if (!(await readableLesson(lessonId, userId))) return bad("not_found", 404);
+  const P = schema.lessonProgress;
+  const [cur] = await db.select({ bestScore: P.bestScore }).from(P).where(and(eq(P.userId, userId), eq(P.lessonId, lessonId)));
+  const lesson = { bestScore: cur?.bestScore ?? null };
   const firstTry = lesson.bestScore == null;
 
   const attemptId = await db.transaction(async (tx) => {
-    const [{ id }] = await tx.insert(schema.attempts).values({ lessonId, score, total, durationSec: data.durationSec }).$returningId();
+    const [{ id }] = await tx.insert(schema.attempts).values({ userId, lessonId, score, total, durationSec: data.durationSec }).$returningId();
     await tx.insert(schema.answerLogs).values(data.answers.map((a) => ({ attemptId: id, ...a })));
-    if (lesson.bestScore == null || pct > lesson.bestScore) await tx.update(schema.lessons).set({ bestScore: pct }).where(eq(schema.lessons.id, lessonId));
+    if (lesson.bestScore == null || pct > lesson.bestScore) await tx.insert(P).values({ userId, lessonId, bestScore: pct }).onDuplicateKeyUpdate({ set: { bestScore: pct } });
     return id;
   });
   // XP only for the first attempt, so retrying does not farm points

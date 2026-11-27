@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import WordPractice from "@/components/practice/WordPractice";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { dueByDocument } from "@/lib/review";
 import { imagesForWords } from "@/lib/images";
 
@@ -19,7 +20,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
     .from(words)
     .leftJoin(lessons, eq(words.lessonId, lessons.id))
     .leftJoin(documents, eq(lessons.documentId, documents.id))
-    .where(eq(words.suspended, false))
+    .where(and(eq(words.userId, await myId()), eq(words.suspended, false)))
     .orderBy(desc(words.id))
     .limit(3000);
 

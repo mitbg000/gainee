@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { bad, idParam, parseBody } from "@/lib/api";
+import { myId, readableLesson } from "@/lib/owner";
 import { wordCount } from "@/lib/text/clean";
 
 export const runtime = "nodejs";
@@ -16,9 +17,11 @@ export async function PUT(req: Request, { params }: Ctx) {
   if (err) return err;
   const db = getDb();
   const w = schema.writings;
-  const [cur] = await db.select({ id: w.id }).from(w).where(and(eq(w.lessonId, lessonId), eq(w.kind, data.kind)));
+  const userId = await myId();
+  if (!(await readableLesson(lessonId, userId))) return bad("not_found", 404);
+  const [cur] = await db.select({ id: w.id }).from(w).where(and(eq(w.userId, userId), eq(w.lessonId, lessonId), eq(w.kind, data.kind)));
   const values = { prompt: data.prompt ?? null, body: data.body, wordCount: wordCount(data.body) };
   if (cur) await db.update(w).set(values).where(eq(w.id, cur.id));
-  else await db.insert(w).values({ lessonId, kind: data.kind, ...values });
+  else await db.insert(w).values({ userId, lessonId, kind: data.kind, ...values });
   return NextResponse.json({ ok: true });
 }

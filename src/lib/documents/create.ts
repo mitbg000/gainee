@@ -1,5 +1,7 @@
 /** Import pipeline: input → plain text → paragraphs → lessons → background generation job. */
+import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { enqueue } from "@/lib/jobs";
 import { getProfile } from "@/lib/profile";
 import { saveUpload } from "@/lib/storage";
@@ -89,6 +91,7 @@ export async function parseImportForm(form: FormData): Promise<ParsedInput> {
 
 export async function createDocument(input: ParsedInput): Promise<number> {
   const db = getDb();
+  const uid = await myId();
   const filePath = input.file ? await saveUpload(input.file.bytes, "documents", input.file.ext) : null;
   const words = input.paragraphs.reduce((a, p) => a + wordCount(p), 0);
   const firstLine = input.paragraphs.map(toPlain).find((p) => wordCount(p) >= 3) ?? "Untitled";
@@ -98,6 +101,7 @@ export async function createDocument(input: ParsedInput): Promise<number> {
     const [{ id }] = await tx
       .insert(schema.documents)
       .values({
+        userId: uid,
         title,
         author: input.author,
         source: input.source,
@@ -120,7 +124,7 @@ export async function createDocument(input: ParsedInput): Promise<number> {
       })),
     );
     if (input.labelIds.length) {
-      const existing = new Set((await tx.select({ id: schema.labels.id }).from(schema.labels)).map((l) => l.id));
+      const existing = new Set((await tx.select({ id: schema.labels.id }).from(schema.labels).where(eq(schema.labels.userId, uid))).map((l) => l.id));
       const ok = input.labelIds.filter((l) => existing.has(l));
       if (ok.length) await tx.insert(schema.documentLabels).values(ok.map((labelId) => ({ documentId: id, labelId })));
     }

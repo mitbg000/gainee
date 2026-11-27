@@ -10,7 +10,7 @@ import { getDb, schema } from "@/db";
 import { actorId } from "@/lib/actor";
 import { addCredits, aiCost, getCreditConfig } from "@/lib/credits";
 import { getSetting } from "@/lib/settings";
-import { canUse, getUser, type Feature, type User } from "@/lib/users";
+import { canUse, getUser, groupSwitches, type Feature, type User } from "@/lib/users";
 import { getProvider, listProviders } from "./providers";
 import type { AiRoute, AiRouting, AiTask } from "./tasks";
 
@@ -63,7 +63,7 @@ async function gate(feature: Feature): Promise<User | null> {
   if (!id) return null;
   const u = await getUser(id);
   if (!u || u.disabled) throw new AiError("Account locked", "forbidden", 403);
-  if (!canUse(u, feature)) throw new AiError("This AI feature is switched off for your account", "forbidden", 403);
+  if (!canUse(u, feature, await groupSwitches(u.id))) throw new AiError("This AI feature is switched off for your account", "forbidden", 403);
   if (u.role !== "admin" && u.credits <= 0) throw new AiError("Not enough credits: top up on the Credits page", "no_credits", 402);
   return u;
 }

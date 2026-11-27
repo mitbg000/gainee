@@ -8,10 +8,12 @@ import type { DocumentDetail } from "@/lib/documents/queries";
 import LabelChip from "@/components/labels/LabelChip";
 import LabelPicker from "@/components/labels/LabelPicker";
 import * as I from "@/components/icons";
+import ShareDoc from "./ShareDoc";
 
 type Info = { title: string; author: string; source: string; level: string; lessons: Record<number, { title: string; titleVi: string }> };
 
-export default function DocumentView({ initial }: { initial: DocumentDetail }) {
+/** `groups`: given to editors and admins, who may show the text to learners. */
+export default function DocumentView({ initial, groups }: { initial: DocumentDetail; groups?: { id: number; name: string }[] }) {
   const t = useTranslations("document");
   const router = useRouter();
   const [doc, setDoc] = useState(initial);
@@ -76,7 +78,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
       </Link>
       <div className="mt-2 flex items-start gap-2">
         <h1 className="flex-1 font-serif text-3xl font-bold leading-tight md:text-4xl">{doc.title}</h1>
-        {!info && (
+        {!info && doc.canEdit && (
           <button onClick={openInfo} className="btn btn-sm btn-secondary mt-1">
             <I.IconEdit /> {t("editInfo")}
           </button>
@@ -184,7 +186,9 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
         </div>
       )}
 
-      {suggestions ? (
+      {doc.canEdit && groups && <ShareDoc id={doc.id} visibility={doc.visibility} groupIds={doc.groupIds} groups={groups} />}
+
+      {suggestions && doc.canEdit ? (
         <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/5 p-4 text-sm">
           <p className="font-medium"><I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("suggestTitle")}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -256,7 +260,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
                   )}
                 </div>
               </div>
-              {l.status === "error" && !busy && (
+              {l.status === "error" && !busy && doc.canEdit && (
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -275,11 +279,12 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
       </ol>
 
       <div className="mt-6 flex flex-wrap gap-2 text-sm">
-        {failed.length > 1 && !busy && (
+        {failed.length > 1 && !busy && doc.canEdit && (
           <button onClick={() => regen(failed.map((l) => l.id))} className="btn btn-secondary">
             {t("retryAll", { n: failed.length })}
           </button>
         )}
+        {doc.canEdit && (
         <button
           onClick={async () => {
             if (!confirm(t("confirmDelete"))) return;
@@ -291,6 +296,7 @@ export default function DocumentView({ initial }: { initial: DocumentDetail }) {
         >
           {t("delete")}
         </button>
+        )}
       </div>
       {doc.error && !busy && <p className="mt-3 text-sm text-muted">{doc.error}</p>}
     </div>

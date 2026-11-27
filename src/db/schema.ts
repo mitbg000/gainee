@@ -97,6 +97,23 @@ export const topups = mysqlTable(
   (t) => [index("topups_status").on(t.status, t.createdAt), index("topups_user").on(t.userId)],
 );
 
+/** Learner groups: which shared texts they see, and feature switches for all their members. */
+export const groups = mysqlTable("learner_groups", {
+  id: pk(),
+  name: varchar("name", { length: 100 }).notNull(),
+  features: jsonText<Record<string, boolean> | null>("features"),
+  createdAt: createdAt(),
+});
+
+export const userGroups = mysqlTable(
+  "user_groups",
+  {
+    userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    groupId: int("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.groupId] }), index("user_groups_group").on(t.groupId)],
+);
+
 /* =====================================================================
  * Settings (key/value)
  * ===================================================================== */
@@ -118,6 +135,7 @@ export const labels = mysqlTable(
   "labels",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     kind: mysqlEnum("kind", ["topic", "source", "custom"]).notNull(),
     name: varchar("name", { length: 100 }).notNull(),
     emoji: varchar("emoji", { length: 16 }),
@@ -127,7 +145,7 @@ export const labels = mysqlTable(
     position: int("position").notNull().default(0),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("labels_kind_name").on(t.kind, t.name), index("labels_parent").on(t.parentId)],
+  (t) => [uniqueIndex("labels_user_kind_name").on(t.userId, t.kind, t.name), index("labels_parent").on(t.parentId)],
 );
 
 /* =====================================================================
@@ -135,6 +153,9 @@ export const labels = mysqlTable(
  * ===================================================================== */
 export const documents = mysqlTable("documents", {
   id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
+  /** who else sees it: nobody, every learner, or the learners of the chosen groups (document_groups) */
+  visibility: mysqlEnum("visibility", ["private", "public", "groups"]).notNull().default("private"),
   title: varchar("title", { length: 500 }).notNull(),
   author: varchar("author", { length: 255 }),
   source: varchar("source", { length: 1000 }), // publication name or URL
@@ -167,6 +188,7 @@ export const lessons = mysqlTable(
     content: jsonText<Record<string, unknown>>("content"),
     status: mysqlEnum("status", ["pending", "generating", "ready", "error"]).notNull().default("pending"),
     error: text("error"),
+    // legacy (one-user days): copied to lesson_progress for the first admin, no longer written
     completedAt: ts("completed_at"),
     bestScore: int("best_score"), // 0..100
     notes: text("notes"),
@@ -194,6 +216,28 @@ export const lessonVocab = mysqlTable(
   (t) => [index("lesson_vocab_lesson").on(t.lessonId)],
 );
 
+/** A learner's own state of a lesson (the lesson itself may be a shared one). */
+export const lessonProgress = mysqlTable(
+  "lesson_progress",
+  {
+    userId: int("user_id").notNull().references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }),
+    lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+    completedAt: ts("completed_at"),
+    bestScore: int("best_score"),
+    notes: text("notes"),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.lessonId] })],
+);
+
+export const documentGroups = mysqlTable(
+  "document_groups",
+  {
+    documentId: int("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+    groupId: int("group_id").notNull().references((): AnyMySqlColumn => groups.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.documentId, t.groupId] }), index("document_groups_group").on(t.groupId)],
+);
+
 /* =====================================================================
  * Vocabulary notebook + FSRS spaced repetition + images
  * ===================================================================== */
@@ -201,6 +245,7 @@ export const words = mysqlTable(
   "words",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     term: varchar("term", { length: 191 }).notNull(),
     ipa: varchar("ipa", { length: 191 }),
     pos: varchar("pos", { length: 32 }),
@@ -228,7 +273,7 @@ export const words = mysqlTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("words_due").on(t.due), index("words_term").on(t.term)],
+  (t) => [index("words_due").on(t.userId, t.due), index("words_term").on(t.term)],
 );
 
 /** Uploaded / pasted files (images for words, original documents, audio recordings). */
@@ -260,6 +305,7 @@ export const reviewLogs = mysqlTable(
   "review_logs",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     wordId: int("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
     rating: tinyint("rating").notNull(), // 1 Again, 2 Hard, 3 Good, 4 Easy
     mode: mysqlEnum("mode", ["recognize", "recall", "cloze", "listen", "spell", "image", "sentence", "passage"]).notNull(), // sentence: wrote a sentence with it; passage: met it in a review passage
@@ -277,6 +323,7 @@ export const attempts = mysqlTable(
   "attempts",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
     score: int("score").notNull(),
     total: int("total").notNull(),
@@ -304,6 +351,7 @@ export const readingSessions = mysqlTable(
   "reading_sessions",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
     seconds: int("seconds").notNull(),
     words: int("words").notNull(),
@@ -317,6 +365,7 @@ export const readingSessions = mysqlTable(
 /** Writing & speaking with AI band scores per IELTS criterion. */
 export const writings = mysqlTable("writings", {
   id: pk(),
+  userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
   lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
   kind: mysqlEnum("kind", ["paraphrase", "speaking", "task1", "task2", "free", "translate", "sentence"]).notNull(),
   prompt: text("prompt"),
@@ -338,6 +387,7 @@ export const assessments = mysqlTable(
   "assessments",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     kind: mysqlEnum("kind", ["reading_test", "vocab_size", "writing_task2", "speaking", "word_practice"]).notNull(),
     score: double("score").notNull(),
     maxScore: double("max_score"),
@@ -353,7 +403,8 @@ export const assessments = mysqlTable(
  * ===================================================================== */
 /** One row per local day – streaks, heat map, daily goal. */
 export const activity = mysqlTable("activity", {
-  day: date("day", { mode: "string" }).primaryKey(), // YYYY-MM-DD in the user's time zone
+  userId: int("user_id").notNull().default(0),
+  day: date("day", { mode: "string" }).notNull(), // YYYY-MM-DD in the user's time zone
   minutes: int("minutes").notNull().default(0),
   xp: int("xp").notNull().default(0),
   reviews: int("reviews").notNull().default(0),
@@ -363,12 +414,13 @@ export const activity = mysqlTable("activity", {
   freezeUsed: boolean("freeze_used").notNull().default(false), // streak freeze
   mood: tinyint("mood"), // optional 1..5 self-rating
   reflection: text("reflection"), // "What did I learn today?"
-});
+}, (t) => [primaryKey({ columns: [t.userId, t.day] })]);
 
 export const xpEvents = mysqlTable(
   "xp_events",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     kind: varchar("kind", { length: 50 }).notNull(), // lesson_done, review, perfect_score, streak_bonus...
     amount: int("amount").notNull(),
     refType: varchar("ref_type", { length: 50 }),
@@ -380,6 +432,7 @@ export const xpEvents = mysqlTable(
 
 export const goals = mysqlTable("goals", {
   id: pk(),
+  userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
   kind: mysqlEnum("kind", [
     "daily_minutes",
     "daily_reviews",
@@ -395,10 +448,11 @@ export const goals = mysqlTable("goals", {
 });
 
 export const achievements = mysqlTable("achievements", {
-  code: varchar("code", { length: 64 }).primaryKey(), // e.g. streak_7, words_100, first_band_7
+  userId: int("user_id").notNull().default(0),
+  code: varchar("code", { length: 64 }).notNull(), // e.g. streak_7, words_100, first_band_7
   progress: int("progress").notNull().default(0),
   unlockedAt: ts("unlocked_at"),
-});
+}, (t) => [primaryKey({ columns: [t.userId, t.code] })]);
 
 /* =====================================================================
  * AI providers & usage
@@ -497,6 +551,7 @@ export const annotations = mysqlTable(
   "annotations",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     lessonId: int("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
     paragraph: int("paragraph").notNull(), // index in lessons.paragraphs
     startOffset: int("start_offset").notNull(), // character offsets in the paragraph's plain text
@@ -519,6 +574,7 @@ export const aiMessages = mysqlTable(
   "ai_messages",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     lessonId: int("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
     annotationId: int("annotation_id").references(() => annotations.id, { onDelete: "set null" }),
     action: mysqlEnum("action", ["explain_word", "explain_sentence", "grammar", "translate", "paraphrase", "custom", "feedback"]).notNull(),
@@ -561,6 +617,7 @@ export const wordLabels = mysqlTable(
  * ===================================================================== */
 export const wordSets = mysqlTable("word_sets", {
   id: pk(),
+  userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
   title: varchar("title", { length: 191 }).notNull(),
   description: varchar("description", { length: 1000 }),
   createdAt: createdAt(),
@@ -652,6 +709,7 @@ export const ieltsAttempts = mysqlTable(
   "ielts_attempts",
   {
     id: pk(),
+    userId: int("user_id").references((): AnyMySqlColumn => users.id, { onDelete: "cascade" }), // owner
     testId: int("test_id").notNull().references(() => ieltsTests.id, { onDelete: "cascade" }),
     sectionId: int("section_id").references(() => ieltsSections.id, { onDelete: "cascade" }),
     mode: mysqlEnum("mode", ["mock", "practice"]).notNull(),
@@ -703,6 +761,7 @@ export const listenItems = mysqlTable(
     rate: double("rate").notNull().default(0),
     /** reported as wrong while practising: out of the bank until reviewed */
     hidden: boolean("hidden").notNull().default(false),
+    // legacy (one-user days), copied to listen_progress for the first admin, no longer written: round … misses
     /** random practice: how many rounds have shown it (the next round takes the least-shown ones) */
     round: int("round").notNull().default(0),
     seenAt: ts("seen_at"),
@@ -734,3 +793,32 @@ export const listenSpeech = mysqlTable("listen_speech", {
   quiet: jsonText<[number, number][]>("quiet").notNull(),
   createdAt: createdAt(),
 });
+
+/** A learner's practice of one bank sentence (the sentences are shared). */
+export const listenProgress = mysqlTable(
+  "listen_progress",
+  {
+    userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    itemId: int("item_id").notNull().references(() => listenItems.id, { onDelete: "cascade" }),
+    round: int("round").notNull().default(0),
+    seenAt: ts("seen_at"),
+    tries: int("tries").notNull().default(0),
+    clean: int("clean").notNull().default(0),
+    due: ts("due"),
+    interval: int("interval").notNull().default(0),
+    lapses: int("lapses").notNull().default(0),
+    misses: jsonText<Record<string, number> | null>("misses"),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.itemId] }), index("listen_progress_due").on(t.userId, t.due)],
+);
+
+/** A learner's next sentence of "dictate the whole video". */
+export const listenPositions = mysqlTable(
+  "listen_positions",
+  {
+    userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    sourceId: int("source_id").notNull().references(() => listenSources.id, { onDelete: "cascade" }),
+    position: int("position").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.sourceId] })],
+);

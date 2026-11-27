@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { bad, idParam, parseBody } from "@/lib/api";
+import { myId } from "@/lib/owner";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -18,13 +19,13 @@ export async function PATCH(req: Request, { params }: Ctx) {
   await getDb()
     .update(schema.annotations)
     .set({ ...data, ...(data.note !== undefined ? { note: data.note || null } : {}) })
-    .where(eq(schema.annotations.id, id));
+    .where(and(eq(schema.annotations.id, id), eq(schema.annotations.userId, await myId())));
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(_req: Request, { params }: Ctx) {
   const id = idParam((await params).id);
   if (!id) return bad("invalid");
-  await getDb().delete(schema.annotations).where(eq(schema.annotations.id, id));
+  await getDb().delete(schema.annotations).where(and(eq(schema.annotations.id, id), eq(schema.annotations.userId, await myId())));
   return NextResponse.json({ ok: true });
 }

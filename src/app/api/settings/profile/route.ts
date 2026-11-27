@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { parseBody } from "@/lib/api";
-import { getProfile, Profile } from "@/lib/profile";
-import { setSetting } from "@/lib/settings";
+import { getProfile, Profile, setProfile } from "@/lib/profile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +12,6 @@ export async function GET() {
 export async function PUT(req: Request) {
   const [data, err] = await parseBody(req, Profile);
   if (err) return err;
-  await setSetting("profile", data);
+  await setProfile(data);
   return NextResponse.json(data);
 }

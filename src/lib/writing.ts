@@ -6,6 +6,7 @@ import { chat, generateImage, parseJsonReply, type ChatOptions } from "@/lib/ai/
 import type { ImageSetting } from "@/lib/ai/tasks";
 import { imageUrl, saveImage, sniff } from "@/lib/images";
 import { getSetting } from "@/lib/settings";
+import { myId } from "@/lib/owner";
 import { getProfile } from "@/lib/profile";
 import { wordCount } from "@/lib/text/clean";
 
@@ -19,27 +20,31 @@ export const Override = z.object({ providerId: z.number().int().positive(), mode
 export type Grade = { overall: number; criteria: { key: string; band: number }[]; feedback: string };
 
 /** Writings made on the Writing page (not tied to a lesson), newest first. */
-export function listWritings() {
+export async function listWritings() {
+  const uid = await myId();
   return getDb()
     .select({ id: w.id, kind: w.kind, prompt: w.prompt, wordCount: w.wordCount, bandOverall: w.bandOverall, updatedAt: w.updatedAt })
     .from(w)
-    .where(isNull(w.lessonId))
+    .where(and(eq(w.userId, uid), isNull(w.lessonId)))
     .orderBy(desc(w.updatedAt))
     .limit(200);
 }
 
 export async function getWriting(id: number) {
-  const [row] = await getDb().select().from(w).where(eq(w.id, id));
+  const [row] = await getDb().select().from(w).where(and(eq(w.id, id), eq(w.userId, await myId())));
   return row && !row.lessonId ? row : undefined;
 }
 
 export async function saveWriting(id: number | null, data: z.infer<typeof WritingInput>) {
   const values = { kind: data.kind, prompt: data.prompt, body: data.body, wordCount: wordCount(data.body) };
+  const uid = await myId();
   if (id) {
+    const [own] = await getDb().select({ id: w.id }).from(w).where(and(eq(w.id, id), eq(w.userId, uid)));
+    if (!own) throw new Error("not_found");
     await getDb().update(w).set(values).where(eq(w.id, id));
     return id;
   }
-  const [{ id: newId }] = await getDb().insert(w).values({ lessonId: null, ...values }).$returningId();
+  const [{ id: newId }] = await getDb().insert(w).values({ userId: uid, lessonId: null, ...values }).$returningId();
   return newId;
 }
 
@@ -80,7 +85,7 @@ async function variety(kind: WritingKind) {
   const recent = await getDb()
     .select({ prompt: w.prompt })
     .from(w)
-    .where(and(isNull(w.lessonId), eq(w.kind, kind)))
+    .where(and(eq(w.userId, await myId()), isNull(w.lessonId), eq(w.kind, kind)))
     .orderBy(desc(w.id))
     .limit(6);
   const forms = FORMS[kind];

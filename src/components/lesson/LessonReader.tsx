@@ -93,7 +93,7 @@ export default function LessonReader({ data }: { data: LessonData }) {
       if (!r.ok) return null;
       const { id } = await r.json();
       const now = new Date();
-      setAnnotations((xs) => [...xs, { ...body, kind: a.kind ?? "highlight", note: a.note ?? null, id, lessonId: lesson.id, createdAt: now, updatedAt: now }]);
+      setAnnotations((xs) => [...xs, { ...body, kind: a.kind ?? "highlight", note: a.note ?? null, id, userId: null, lessonId: lesson.id, createdAt: now, updatedAt: now }]);
       return id as number;
     },
     [lesson.id, plain],
@@ -230,9 +230,11 @@ export default function LessonReader({ data }: { data: LessonData }) {
         <h1 className="mt-1.5 font-serif text-2xl font-bold leading-snug text-balance md:text-[2rem]">{lesson.title}</h1>
         {lesson.titleVi && <p className="mt-1 text-[15px] text-muted">{lesson.titleVi}</p>}
         <div className="-ml-3 mt-2 flex flex-wrap gap-1">
-          <button onClick={() => setEditing(true)} className="btn btn-sm btn-ghost">
-            <I.IconEdit /> {t("edit.open")}
-          </button>
+          {data.canEdit && (
+            <button onClick={() => setEditing(true)} className="btn btn-sm btn-ghost">
+              <I.IconEdit /> {t("edit.open")}
+            </button>
+          )}
           <Link href={`/assistant?lesson=${lesson.id}`} className="btn btn-sm btn-ghost">
             <I.IconChat /> {t("askAssistant")}
           </Link>

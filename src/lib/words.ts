@@ -2,11 +2,12 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { addXp, bumpActivity, XP } from "./activity";
 import { chat } from "./ai/client";
 import { CARD_RULES } from "./ai/prompts";
 
-const { words, lessonVocab, lessons, documentLabels, wordLabels } = schema;
+const { words, lessonVocab, lessons, documents, documentLabels, wordLabels } = schema;
 
 export const WordInput = z.union([
   z.object({ lessonVocabId: z.number().int().positive() }),
@@ -27,11 +28,12 @@ export const WordInput = z.union([
 /** Create a word card. Words from a lesson inherit the categories of its text. */
 export async function addWord(input: z.infer<typeof WordInput>): Promise<number> {
   const db = getDb();
+  const uid = await myId();
   let values: typeof words.$inferInsert;
   if ("lessonVocabId" in input) {
     const [v] = await db.select().from(lessonVocab).where(eq(lessonVocab.id, input.lessonVocabId));
     if (!v) throw new Error("not_found");
-    const [existing] = await db.select({ id: words.id }).from(words).where(eq(words.lessonVocabId, v.id));
+    const [existing] = await db.select({ id: words.id }).from(words).where(and(eq(words.userId, uid), eq(words.lessonVocabId, v.id)));
     if (existing) return existing.id;
     values = {
       term: v.headword,
@@ -47,19 +49,23 @@ export async function addWord(input: z.infer<typeof WordInput>): Promise<number>
     };
   } else {
     if (input.lessonId) {
-      const [dup] = await db.select({ id: words.id }).from(words).where(and(eq(words.term, input.term), eq(words.lessonId, input.lessonId)));
+      const [dup] = await db.select({ id: words.id }).from(words).where(and(eq(words.userId, uid), eq(words.term, input.term), eq(words.lessonId, input.lessonId)));
       if (dup) return dup.id;
     }
     if (input.listenSourceId) {
-      const [dup] = await db.select({ id: words.id }).from(words).where(and(eq(words.term, input.term), eq(words.listenSourceId, input.listenSourceId)));
+      const [dup] = await db.select({ id: words.id }).from(words).where(and(eq(words.userId, uid), eq(words.term, input.term), eq(words.listenSourceId, input.listenSourceId)));
       if (dup) return dup.id;
     }
     values = { term: input.term, ipa: input.ipa || null, pos: input.pos || null, meaningVi: input.meaningVi || null, definitionEn: input.definitionEn || null, example: input.example || null, context: input.context || null, note: input.note || null, lessonId: input.lessonId ?? null, listenSourceId: input.listenSourceId ?? null };
   }
-  const [{ id }] = await db.insert(words).values(values).$returningId();
+  const [{ id }] = await db.insert(words).values({ ...values, userId: uid }).$returningId();
   if (values.lessonId) {
-    const [l] = await db.select({ documentId: lessons.documentId }).from(lessons).where(eq(lessons.id, values.lessonId));
-    if (l) {
+    const [l] = await db
+      .select({ documentId: lessons.documentId, ownerId: documents.userId })
+      .from(lessons)
+      .innerJoin(documents, eq(documents.id, lessons.documentId))
+      .where(eq(lessons.id, values.lessonId));
+    if (l && l.ownerId === uid) { // a shared text's labels are its owner's
       const labels = await db.select({ labelId: documentLabels.labelId }).from(documentLabels).where(eq(documentLabels.documentId, l.documentId));
       if (labels.length) await db.insert(wordLabels).values(labels.map((x) => ({ wordId: id, labelId: x.labelId })));
     }
@@ -70,7 +76,7 @@ export async function addWord(input: z.infer<typeof WordInput>): Promise<number>
 }
 
 export async function removeWord(id: number) {
-  await getDb().delete(words).where(eq(words.id, id));
+  await getDb().delete(words).where(and(eq(words.id, id), eq(words.userId, await myId())));
 }
 
 export const WordPatch = z.object({
@@ -90,7 +96,7 @@ export async function updateWord(id: number, patch: z.infer<typeof WordPatch>) {
   const set: Partial<typeof words.$inferInsert> = Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, v === "" ? null : v]));
   if (term) set.term = term;
   if (!Object.keys(set).length) return;
-  await getDb().update(words).set(set).where(eq(words.id, id));
+  await getDb().update(words).set(set).where(and(eq(words.id, id), eq(words.userId, await myId())));
 }
 
 /**
@@ -98,7 +104,7 @@ export async function updateWord(id: number, patch: z.infer<typeof WordPatch>) {
  * saves them too when `save` is set. Term, IPA and the sentence it came from are kept.
  */
 export async function shortenWord(id: number, save: boolean) {
-  const [w] = await getDb().select().from(words).where(eq(words.id, id));
+  const [w] = await getDb().select().from(words).where(and(eq(words.id, id), eq(words.userId, await myId())));
   if (!w) return null;
   const r = await chat({
     task: "reader_quick",

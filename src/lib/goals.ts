@@ -1,6 +1,7 @@
 /** Daily / weekly goals and achievement badges. */
-import { count, eq, gte, sql } from "drizzle-orm";
+import { and, count, eq, gte, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { today } from "./activity";
 
 const { goals, activity, achievements, reviewLogs } = schema;
@@ -10,7 +11,7 @@ export type GoalKind = (typeof GOAL_KINDS)[number];
 export const DEFAULT_GOALS: Record<GoalKind, number> = { daily_minutes: 15, daily_reviews: 20, weekly_lessons: 3, weekly_words: 30 };
 
 export async function getGoals(): Promise<Record<GoalKind, number>> {
-  const rows = await getDb().select().from(goals).where(eq(goals.active, true));
+  const rows = await getDb().select().from(goals).where(and(eq(goals.userId, await myId()), eq(goals.active, true)));
   const out = { ...DEFAULT_GOALS };
   for (const r of rows) if ((GOAL_KINDS as readonly string[]).includes(r.kind)) out[r.kind as GoalKind] = r.target;
   return out;
@@ -19,9 +20,10 @@ export async function getGoals(): Promise<Record<GoalKind, number>> {
 /** Replace the targets (0 turns a goal off). */
 export async function setGoals(targets: Partial<Record<GoalKind, number>>) {
   const db = getDb();
+  const uid = await myId();
   for (const [kind, target] of Object.entries(targets) as [GoalKind, number][]) {
-    await db.delete(goals).where(eq(goals.kind, kind));
-    await db.insert(goals).values({ kind, target, active: target > 0 });
+    await db.delete(goals).where(and(eq(goals.userId, uid), eq(goals.kind, kind)));
+    await db.insert(goals).values({ userId: uid, kind, target, active: target > 0 });
   }
 }
 
@@ -34,13 +36,14 @@ function weekStart() {
 /** Current value vs target for every active goal. */
 export async function goalProgress() {
   const db = getDb();
+  const uid = await myId();
   const [targets, [day], [week]] = await Promise.all([
     getGoals(),
-    db.select().from(activity).where(eq(activity.day, today())),
+    db.select().from(activity).where(and(eq(activity.userId, uid), eq(activity.day, today()))),
     db
       .select({ lessons: sql<number>`coalesce(sum(${activity.lessonsDone}), 0)`, words: sql<number>`coalesce(sum(${activity.wordsAdded}), 0)` })
       .from(activity)
-      .where(gte(activity.day, weekStart())),
+      .where(and(eq(activity.userId, uid), gte(activity.day, weekStart()))),
   ]);
   const value: Record<GoalKind, number> = {
     daily_minutes: day?.minutes ?? 0,
@@ -73,7 +76,8 @@ export const ACHIEVEMENTS: { code: string; metric: Metric; target: number; icon:
 /** Store progress and unlock dates (an unlocked badge stays unlocked), then return everything for display. */
 export async function syncAchievements(m: Omit<Record<Metric, number>, "reviews">) {
   const db = getDb();
-  const [[r], rows] = await Promise.all([db.select({ n: count() }).from(reviewLogs), db.select().from(achievements)]);
+  const uid = await myId();
+  const [[r], rows] = await Promise.all([db.select({ n: count() }).from(reviewLogs).where(eq(reviewLogs.userId, uid)), db.select().from(achievements).where(eq(achievements.userId, uid))]);
   const values: Record<Metric, number> = { ...m, reviews: r.n };
   const saved = new Map(rows.map((x) => [x.code, x]));
   const now = new Date();
@@ -82,7 +86,7 @@ export async function syncAchievements(m: Omit<Record<Metric, number>, "reviews"
     const progress = Math.min(values[a.metric], a.target);
     const unlockedAt = saved.get(a.code)?.unlockedAt ?? (progress >= a.target ? now : null);
     if (saved.get(a.code)?.progress !== progress || (unlockedAt && !saved.get(a.code)?.unlockedAt)) {
-      await db.insert(achievements).values({ code: a.code, progress, unlockedAt }).onDuplicateKeyUpdate({ set: { progress, unlockedAt } });
+      await db.insert(achievements).values({ userId: uid, code: a.code, progress, unlockedAt }).onDuplicateKeyUpdate({ set: { progress, unlockedAt } });
     }
     out.push({ ...a, progress, unlockedAt });
   }

@@ -17,6 +17,7 @@ const Input = z.object({
   disabled: z.boolean().optional(),
   password: z.string().min(8).max(200).optional(),
   logoutAll: z.boolean().optional(),
+  groupIds: z.array(z.number().int().positive()).max(200).optional(),
 });
 
 /** Role, feature switches, lock, new password. A new password or a lock ends the user's sessions. */
@@ -28,8 +29,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const [d, err] = await parseBody(req, Input);
   if (err) return err;
   if (id === me.id && ((d.role && d.role !== "admin") || d.disabled)) return bad("not_yourself"); // never lock out the last way in
-  const { password, logoutAll, ...rest } = d;
-  const res = await getDb()
+  const { password, logoutAll, groupIds, ...rest } = d;
+  const db = getDb();
+  if (groupIds)
+    await db.transaction(async (tx) => {
+      await tx.delete(schema.userGroups).where(eq(schema.userGroups.userId, id));
+      if (groupIds.length) await tx.insert(schema.userGroups).values([...new Set(groupIds)].map((groupId) => ({ userId: id, groupId })));
+    });
+  const res = await db
     .update(schema.users)
     .set({
       ...rest,

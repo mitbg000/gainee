@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { count, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { blocked, clientIp, failed, loggedIn, passed } from "@/lib/auth";
+import { claimOrphans } from "@/lib/owner";
 import { hashPassword, safeEqual, verifyPassword } from "@/lib/password";
 
 export const runtime = "nodejs";
@@ -34,5 +35,6 @@ export async function POST(req: NextRequest) {
   if (u.disabled) return NextResponse.json({ error: "locked" }, { status: 403 });
   passed(ip);
   await db.update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, u.id));
+  if (u.role === "admin") await claimOrphans(u.id); // once: the one-user data becomes the first admin's
   return loggedIn(req, u);
 }

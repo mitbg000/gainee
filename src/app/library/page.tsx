@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import Shell from "@/components/Shell";
 import LibraryFilters from "@/components/library/LibraryFilters";
 import LibraryList from "@/components/library/LibraryList";
@@ -18,6 +19,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
     getDb()
       .select({ id: schema.labels.id, kind: schema.labels.kind, name: schema.labels.name, emoji: schema.labels.emoji, color: schema.labels.color })
       .from(schema.labels)
+      .where(eq(schema.labels.userId, await myId()))
       .orderBy(asc(schema.labels.kind), asc(schema.labels.position), asc(schema.labels.name)),
   ]);
 

@@ -378,7 +378,8 @@
       "cannot_read_file": "Không đọc được file này.",
       "no_text_in_pdf": "Không tìm thấy chữ – có thể PDF là ảnh scan.",
       "unknown": "Có lỗi xảy ra, hãy thử lại."
-    }
+    },
+    "notAllowed": "Tài khoản của bạn chưa được tự thêm bài đọc. Bạn vẫn học được các bài chung trong Thư viện; hãy liên hệ quản trị viên nếu cần thêm bài riêng."
   },
   "library": {
     "kicker": "Thư viện",
@@ -415,6 +416,12 @@
     "view": {
       "grid": "Dạng thẻ",
       "list": "Dạng danh sách"
+    },
+    "shared": {
+      "private": "Riêng tư",
+      "public": "Công khai",
+      "groups": "Theo nhóm",
+      "fromTeacher": "Bài chung"
     }
   },
   "document": {
@@ -454,7 +461,20 @@
     "fLessons": "Tên các phần (tiếng Anh / tiếng Việt)",
     "fLessonTitle": "Tên phần {n}",
     "fLessonTitleVi": "Tên tiếng Việt phần {n}",
-    "saving": "Đang lưu…"
+    "saving": "Đang lưu…",
+    "share": {
+      "title": "Ai được xem:",
+      "private": "Chỉ mình tôi",
+      "public": "Mọi học viên",
+      "groups": "Nhóm được chọn",
+      "privateHint": "Chỉ bạn thấy bài này.",
+      "publicHint": "Mọi học viên thấy và học bài này; tiến độ, ghi chú, điểm là của riêng từng người.",
+      "groupsHint": "Chỉ học viên trong các nhóm được chọn thấy bài này.",
+      "noGroups": "Chưa có nhóm nào. Tạo nhóm ở Quản trị → Nhóm.",
+      "saving": "Đang lưu…",
+      "saved": "Đã lưu",
+      "error": "Không lưu được"
+    }
   },
   "lesson": {
     "part": "Phần {n}/{total}",
@@ -1838,7 +1858,8 @@
       "users": "Người dùng",
       "topups": "Yêu cầu nạp",
       "pricing": "Giá credit",
-      "usage": "Dùng AI"
+      "usage": "Dùng AI",
+      "groups": "Nhóm"
     },
     "user": "Người dùng",
     "role": "Vai trò",
@@ -1883,14 +1904,15 @@
     "newPassword": "Đặt mật khẩu mới",
     "newPasswordHint": "Để trống nếu không đổi",
     "features": "Tính năng AI",
-    "featuresHint": "Bỏ chọn để tắt riêng cho người này.",
+    "featuresHint": "Mặc định theo nhóm của người này, rồi tới vai trò. Chọn Bật/Tắt để đặt riêng.",
     "feature": {
       "lesson_generate": "Tạo bài học từ bài đọc",
       "reader_quick": "Hỏi nhanh khi đọc, tra từ",
       "writing_grade": "Chấm Writing, Speaking",
       "chat": "Trợ lý chat",
       "ielts_import": "Đọc sách IELTS bằng AI",
-      "images": "Tạo ảnh AI"
+      "images": "Tạo ảnh AI",
+      "add_documents": "Tự thêm bài đọc"
     },
     "save": "Lưu",
     "saved": "Đã lưu",
@@ -1922,6 +1944,27 @@
       "payInfoHint": "Ví dụ: Chuyển khoản tới Vietcombank 0123456789 – Nguyễn Văn A, nội dung ghi mã yêu cầu.",
       "saving": "Đang lưu…",
       "save": "Lưu",
+      "saved": "Đã lưu",
+      "error": "Không lưu được"
+    },
+    "byDefault": "Mặc định",
+    "on": "Bật",
+    "off": "Tắt",
+    "groupsTitle": "Nhóm",
+    "noGroupsYet": "Chưa có nhóm nào.",
+    "groups": {
+      "hint": "Nhóm quyết định học viên thấy bài đọc chung nào (đặt ở trang của bài đọc) và có thể bật/tắt tính năng cho cả nhóm. Người ở nhiều nhóm: chỉ cần một nhóm bật là được dùng. Quyền đặt riêng cho từng người được ưu tiên.",
+      "newName": "Tên nhóm mới, ví dụ: Lớp IELTS 6.5 tối T3",
+      "create": "Tạo nhóm",
+      "none": "Chưa có nhóm nào",
+      "members": "{n} thành viên",
+      "name": "Tên nhóm",
+      "features": "Tính năng cho cả nhóm",
+      "membersTitle": "Thành viên ({n})",
+      "search": "Tìm theo tên hoặc email",
+      "save": "Lưu nhóm",
+      "delete": "Xoá nhóm",
+      "deleteConfirm": "Xoá nhóm \"{name}\"? Học viên không bị xoá, chỉ rời nhóm.",
       "saved": "Đã lưu",
       "error": "Không lưu được"
     }

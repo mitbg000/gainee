@@ -2,6 +2,7 @@
 import { and, asc, eq, gt, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { regenerate } from "@/lib/documents/queries";
+import { canEditDoc } from "@/lib/owner";
 import { wordCount } from "@/lib/text/clean";
 import { toPlain } from "@/lib/text/rich";
 import { locateQuote } from "@/components/lesson/marks";
@@ -26,7 +27,7 @@ async function relocateAnnotations(tx: Pick<ReturnType<typeof getDb>, "select" |
 export async function editLessonText(lessonId: number, parts: string[][], regen: boolean) {
   const db = getDb();
   const [lesson] = await db.select().from(lessons).where(eq(lessons.id, lessonId));
-  if (!lesson || !parts.length) return null;
+  if (!lesson || !parts.length || !(await canEditDoc(lesson.documentId))) return null;
   const extra = parts.length - 1;
   const newIds: number[] = [];
 
@@ -59,7 +60,7 @@ export async function editLessonText(lessonId: number, parts: string[][], regen:
 export async function mergeWithNext(lessonId: number) {
   const db = getDb();
   const [lesson] = await db.select().from(lessons).where(eq(lessons.id, lessonId));
-  if (!lesson) return null;
+  if (!lesson || !(await canEditDoc(lesson.documentId))) return null;
   const [next] = await db.select().from(lessons).where(and(eq(lessons.documentId, lesson.documentId), eq(lessons.position, lesson.position + 1)));
   if (!next) return null;
   const merged = [...lesson.paragraphs, ...next.paragraphs];

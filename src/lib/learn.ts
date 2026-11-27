@@ -5,6 +5,7 @@
 import { and, asc, eq, gt, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { chat } from "./ai/client";
 import { getProfile } from "./profile";
 import { gradeWord } from "./review";
@@ -21,7 +22,7 @@ export type SentenceResult = z.infer<typeof SentenceResult>;
 
 /** Grade a learner's sentence using `wordId`; the score is also a review (2 → Good, 1 → Hard, 0 → Again). */
 export async function checkSentence(wordId: number, sentence: string): Promise<SentenceResult | null> {
-  const [w] = await getDb().select().from(words).where(eq(words.id, wordId));
+  const [w] = await getDb().select().from(words).where(and(eq(words.id, wordId), eq(words.userId, await myId())));
   if (!w) return null;
   const p = await getProfile();
   const r = await chat({
@@ -50,11 +51,12 @@ JSON: {"score": 2 if correct and natural, 1 if the word's meaning is right but t
 /** Words for a review passage: due now first, then due within 3 days, then the most forgotten; only words already studied. */
 export async function passageWords(n = 8) {
   const db = getDb();
+  const uid = await myId();
   const soon = new Date(Date.now() + 3 * 86400_000);
   const cols = { id: words.id, term: words.term, meaningVi: words.meaningVi, definitionEn: words.definitionEn };
-  const due = await db.select(cols).from(words).where(and(eq(words.suspended, false), gt(words.reps, 0), lte(words.due, soon))).orderBy(asc(words.due)).limit(n);
+  const due = await db.select(cols).from(words).where(and(eq(words.userId, uid), eq(words.suspended, false), gt(words.reps, 0), lte(words.due, soon))).orderBy(asc(words.due)).limit(n);
   if (due.length >= 4) return due;
-  const more = await db.select(cols).from(words).where(eq(words.suspended, false)).orderBy(asc(words.stability)).limit(n * 2);
+  const more = await db.select(cols).from(words).where(and(eq(words.userId, uid), eq(words.suspended, false))).orderBy(asc(words.stability)).limit(n * 2);
   return [...due, ...more.filter((m) => !due.some((d) => d.id === m.id))].slice(0, n);
 }
 
@@ -96,7 +98,7 @@ JSON: {"title": "", "passage": "", "questions": [{"q": "", "answer": "T"|"F"|"NG
 export async function finishPassage(remembered: number[], forgot: number[]) {
   const db = getDb();
   const ids = [...remembered, ...forgot];
-  const exist = ids.length ? new Set((await db.select({ id: words.id }).from(words).where(inArray(words.id, ids))).map((w) => w.id)) : new Set<number>();
+  const exist = ids.length ? new Set((await db.select({ id: words.id }).from(words).where(and(eq(words.userId, await myId()), inArray(words.id, ids)))).map((w) => w.id)) : new Set<number>();
   for (const id of remembered) if (exist.has(id)) await gradeWord(id, 3, "passage");
   for (const id of forgot) if (exist.has(id)) await gradeWord(id, 1, "passage");
 }

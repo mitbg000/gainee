@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { bad, idParam, parseBody } from "@/lib/api";
+import { myId, readableLesson } from "@/lib/owner";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -24,6 +25,8 @@ export async function POST(req: Request, { params }: Ctx) {
   const [data, err] = await parseBody(req, Input);
   if (err) return err;
   if (data.endOffset <= data.startOffset) return bad("invalid");
-  const [{ id }] = await getDb().insert(schema.annotations).values({ lessonId, ...data, note: data.note || null }).$returningId();
+  const userId = await myId();
+  if (!(await readableLesson(lessonId, userId))) return bad("not_found", 404);
+  const [{ id }] = await getDb().insert(schema.annotations).values({ userId, lessonId, ...data, note: data.note || null }).$returningId();
   return NextResponse.json({ id }, { status: 201 });
 }

@@ -17,7 +17,8 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (data.text !== undefined && !(await requireRole("editor"))) return bad("forbidden", 403); // learners only report it
   const db = getDb();
   await db.update(schema.listenItems).set(data).where(eq(schema.listenItems.id, id));
-  if (data.hidden) {
+  // an editor's report sends the recording back to review; a learner's report only hides the sentence (editors see it)
+  if (data.hidden && (await requireRole("editor"))) {
     const [it] = await db.select({ sourceId: schema.listenItems.sourceId }).from(schema.listenItems).where(eq(schema.listenItems.id, id));
     if (it) await db.update(schema.listenSources).set({ reviewed: false }).where(eq(schema.listenSources.id, it.sourceId));
   }

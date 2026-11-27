@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { addXp, bumpActivity, XP } from "@/lib/activity";
 import { enqueue } from "@/lib/jobs";
+import { myId } from "@/lib/owner";
 import { saveWriting } from "@/lib/writing";
 import { thinPassage } from "./coverage";
 import { band, markSection, type Answers } from "./score";
@@ -277,6 +278,7 @@ export async function saveAttempt(input: z.infer<typeof AttemptInput>) {
   const [{ id }] = await getDb()
     .insert(attempts)
     .values({
+      userId: await myId(),
       testId: input.testId,
       sectionId: input.sectionId ?? null,
       mode: input.mode,
@@ -310,7 +312,7 @@ export type AttemptDetail = {
 export const AiNote = z.object({ n: z.number().int().min(1).max(60).nullable(), question: z.string().max(2000), answer: z.string().min(1).max(20000) });
 /** Keep an AI explanation with the try it belongs to (history). */
 export async function addAiNote(id: number, note: z.infer<typeof AiNote>) {
-  const [a] = await getDb().select({ detail: attempts.detail }).from(attempts).where(eq(attempts.id, id));
+  const [a] = await getDb().select({ detail: attempts.detail }).from(attempts).where(and(eq(attempts.id, id), eq(attempts.userId, await myId())));
   if (!a) return false;
   const d = a.detail as unknown as AttemptDetail;
   d.ai = [...(d.ai ?? []), { ...note, at: new Date().toISOString() }].slice(-50);
@@ -318,19 +320,20 @@ export async function addAiNote(id: number, note: z.infer<typeof AiNote>) {
   return true;
 }
 /** Store the Writing / overall band once the AI grades are in, so the history list shows it. */
-export const setAttemptBand = (id: number, band: number) => getDb().update(attempts).set({ band }).where(eq(attempts.id, id));
+export const setAttemptBand = async (id: number, band: number) => getDb().update(attempts).set({ band }).where(and(eq(attempts.id, id), eq(attempts.userId, await myId())));
 
 export async function getAttempt(id: number) {
-  const [a] = await getDb().select().from(attempts).where(eq(attempts.id, id));
+  const uid = await myId();
+  const [a] = await getDb().select().from(attempts).where(and(eq(attempts.id, id), eq(attempts.userId, uid)));
   if (!a) return null;
   const detail = a.detail as unknown as AttemptDetail;
-  const ws = detail.writing?.length ? await getDb().select().from(writings).where(inArray(writings.id, detail.writing.map((w) => w.writingId))) : [];
+  const ws = detail.writing?.length ? await getDb().select().from(writings).where(and(eq(writings.userId, uid), inArray(writings.id, detail.writing.map((w) => w.writingId)))) : [];
   return { ...a, detail, writings: ws, test: (await getTest(a.testId))! };
 }
 
 export async function recentAttempts(limit = 30) {
   const db = getDb();
-  const rows = await db.select({ id: attempts.id, testId: attempts.testId, sectionId: attempts.sectionId, mode: attempts.mode, skill: attempts.skill, score: attempts.score, total: attempts.total, band: attempts.band, seconds: attempts.seconds, createdAt: attempts.createdAt, detail: attempts.detail }).from(attempts).orderBy(desc(attempts.id)).limit(limit);
+  const rows = await db.select({ id: attempts.id, testId: attempts.testId, sectionId: attempts.sectionId, mode: attempts.mode, skill: attempts.skill, score: attempts.score, total: attempts.total, band: attempts.band, seconds: attempts.seconds, createdAt: attempts.createdAt, detail: attempts.detail }).from(attempts).where(eq(attempts.userId, await myId())).orderBy(desc(attempts.id)).limit(limit);
   return rows.map(({ detail, ...r }) => {
     const d = detail as unknown as AttemptDetail;
     return { ...r, scores: d.scores ?? {}, group: d.group, aiNotes: d.ai?.length ?? 0, writing: d.writing?.length ?? 0 };
@@ -343,7 +346,7 @@ export async function recentAttempts(limit = 30) {
  */
 export async function mistakes() {
   const db = getDb();
-  const rows = await db.select({ id: attempts.id, detail: attempts.detail, answers: attempts.answers, createdAt: attempts.createdAt }).from(attempts).orderBy(asc(attempts.id));
+  const rows = await db.select({ id: attempts.id, detail: attempts.detail, answers: attempts.answers, createdAt: attempts.createdAt }).from(attempts).where(eq(attempts.userId, await myId())).orderBy(asc(attempts.id));
   const last = new Map<string, { right: boolean; given: string; at: Date }>();
   const tries = new Map<string, number>();
   for (const r of rows) {

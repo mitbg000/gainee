@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { getSetting } from "./settings";
+import { myId } from "./owner";
+import { getSetting, setSetting } from "./settings";
 
 /** Learner profile – used to tune AI prompts (vocabulary level, explanation language). */
 export const Profile = z.object({
@@ -11,5 +12,9 @@ export const Profile = z.object({
 export type Profile = z.infer<typeof Profile>;
 
 export async function getProfile(): Promise<Profile> {
-  return Profile.parse((await getSetting<Partial<Profile>>("profile")) ?? {});
+  return Profile.parse((await getSetting<Partial<Profile>>(`profile.${await myId()}`)) ?? {});
+}
+
+export async function setProfile(p: Profile) {
+  await setSetting(`profile.${await myId()}`, p);
 }

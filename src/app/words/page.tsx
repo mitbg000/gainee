@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq, like, or } from "drizzle-orm";
+import { and, desc, eq, like, or } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import AddWord from "@/components/AddWord";
 import ExportWords, { type ExportGroup } from "@/components/ExportWords";
@@ -7,6 +7,7 @@ import ShortenWords from "@/components/ShortenWords";
 import Shell from "@/components/Shell";
 import WordCard from "@/components/WordCard";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { imagesForWords } from "@/lib/images";
 import { listSets, textSets } from "@/lib/sets";
 import * as I from "@/components/icons";
@@ -42,7 +43,7 @@ export default async function WordsPage({ searchParams }: { searchParams: Promis
     .from(words)
     .leftJoin(lessons, eq(words.lessonId, lessons.id))
     .leftJoin(documents, eq(lessons.documentId, documents.id))
-    .where(q ? or(like(words.term, like_), like(words.meaningVi, like_), like(words.context, like_)) : undefined)
+    .where(and(eq(words.userId, await myId()), q ? or(like(words.term, like_), like(words.meaningVi, like_), like(words.context, like_)) : undefined))
     .orderBy(desc(words.id))
     .limit(2000);
 

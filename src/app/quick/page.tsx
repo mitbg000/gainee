@@ -1,8 +1,9 @@
-import { desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import QuickSession from "@/components/learn/QuickSession";
 import Shell from "@/components/Shell";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { today } from "@/lib/activity";
 import { masteredByWeek, streak } from "@/lib/stats";
 
@@ -13,16 +14,17 @@ const { words, activity } = schema;
 export default async function QuickPage() {
   const t = await getTranslations("learn.quick");
   const db = getDb();
+  const uid = await myId();
   const [pool, s, [act], m] = await Promise.all([
     // words being learnt (studied at least once) first, newest first; they are the ones worth using in a sentence
     db
       .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, context: words.context })
       .from(words)
-      .where(isNotNull(words.meaningVi))
+      .where(and(eq(words.userId, uid), isNotNull(words.meaningVi)))
       .orderBy(desc(sql`${words.reps} > 0`), desc(words.lastReview), desc(words.id))
       .limit(40),
     streak(),
-    db.select({ xp: activity.xp, minutes: activity.minutes }).from(activity).where(eq(activity.day, today())),
+    db.select({ xp: activity.xp, minutes: activity.minutes }).from(activity).where(and(eq(activity.userId, uid), eq(activity.day, today()))),
     masteredByWeek(),
   ]);
   return (

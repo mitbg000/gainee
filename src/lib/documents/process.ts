@@ -22,7 +22,7 @@ export async function processDocument(job: Job) {
   if (!doc.meta?.summary && !only) {
     await setProgress(job.id, "overview");
     try {
-      const topics = (await db.select({ name: labels.name }).from(labels).where(eq(labels.kind, "topic"))).map((t) => t.name);
+      const topics = (await db.select({ name: labels.name }).from(labels).where(and(eq(labels.userId, doc.userId ?? 0), eq(labels.kind, "topic")))).map((t) => t.name);
       const meta = await generateMeta(doc.rawText.slice(0, 9000), topics, profile);
       await db
         .update(documents)

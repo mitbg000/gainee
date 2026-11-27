@@ -1,7 +1,8 @@
 /** Study sets ("học phần"): named, ordered groups of saved words, edited like Quizlet sets. */
-import { asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { imagesForWords } from "./images";
 import { addWord, updateWord } from "./words";
 
@@ -14,6 +15,7 @@ export async function listSets() {
   return getDb()
     .select({ id: wordSets.id, title: wordSets.title, description: wordSets.description, updatedAt: wordSets.updatedAt, n: sql<number>`(select count(*) from ${wordSetItems} i where i.set_id = \`word_sets\`.\`id\`)` })
     .from(wordSets)
+    .where(eq(wordSets.userId, await myId()))
     .orderBy(desc(wordSets.updatedAt))
     .then((r) => r.map((s) => ({ ...s, n: Number(s.n) })));
 }
@@ -25,6 +27,7 @@ export async function textSets() {
     .from(words)
     .innerJoin(lessons, eq(words.lessonId, lessons.id))
     .innerJoin(documents, eq(lessons.documentId, documents.id))
+    .where(eq(words.userId, await myId()))
     .groupBy(documents.id, documents.title)
     .orderBy(desc(sql`max(${words.id})`));
 }
@@ -36,7 +39,7 @@ async function withImages<T extends { id: number }>(cards: T[]) {
 
 export async function getSet(id: number) {
   const db = getDb();
-  const [set] = await db.select().from(wordSets).where(eq(wordSets.id, id));
+  const [set] = await db.select().from(wordSets).where(and(eq(wordSets.id, id), eq(wordSets.userId, await myId())));
   if (!set) return null;
   const cards = await db.select(CARD_FIELDS).from(wordSetItems).innerJoin(words, eq(words.id, wordSetItems.wordId)).where(eq(wordSetItems.setId, id)).orderBy(asc(wordSetItems.position));
   return { ...set, cards: await withImages(cards) };
@@ -46,7 +49,7 @@ export async function getTextSet(documentId: number) {
   const db = getDb();
   const [doc] = await db.select({ id: documents.id, title: documents.title }).from(documents).where(eq(documents.id, documentId));
   if (!doc) return null;
-  const cards = await db.select(CARD_FIELDS).from(words).innerJoin(lessons, eq(words.lessonId, lessons.id)).where(eq(lessons.documentId, documentId)).orderBy(asc(lessons.position), asc(words.id));
+  const cards = await db.select(CARD_FIELDS).from(words).innerJoin(lessons, eq(words.lessonId, lessons.id)).where(and(eq(words.userId, await myId()), eq(lessons.documentId, documentId))).orderBy(asc(lessons.position), asc(words.id));
   return { ...doc, cards: await withImages(cards) };
 }
 
@@ -84,15 +87,19 @@ async function upsertCards(cards: z.infer<typeof SetCard>[], lessonId?: number) 
  *  Returns the set id and the word id of each card (same order), so the editor can attach images to new cards. */
 export async function saveSet(id: number | null, input: z.infer<typeof SetInput>) {
   const db = getDb();
+  const uid = await myId();
   const meta = { title: input.title, description: input.description || null };
   let setId = id;
-  if (setId) await db.update(wordSets).set(meta).where(eq(wordSets.id, setId));
-  else [{ id: setId }] = await db.insert(wordSets).values(meta).$returningId();
+  if (setId) {
+    const [own] = await db.select({ id: wordSets.id }).from(wordSets).where(and(eq(wordSets.id, setId), eq(wordSets.userId, uid)));
+    if (!own) throw new Error("not_found");
+    await db.update(wordSets).set(meta).where(eq(wordSets.id, setId));
+  } else [{ id: setId }] = await db.insert(wordSets).values({ ...meta, userId: uid }).$returningId();
 
   const ids = input.cards ? await upsertCards(input.cards) : input.wordIds;
   if (ids) {
     const unique = [...new Set(ids)];
-    const existing = unique.length ? (await db.select({ id: words.id }).from(words).where(inArray(words.id, unique))).map((w) => w.id) : [];
+    const existing = unique.length ? (await db.select({ id: words.id }).from(words).where(and(eq(words.userId, uid), inArray(words.id, unique)))).map((w) => w.id) : [];
     await db.transaction(async (tx) => {
       await tx.delete(wordSetItems).where(eq(wordSetItems.setId, setId!));
       const rows = unique.filter((w) => existing.includes(w)).map((wordId, position) => ({ setId: setId!, wordId, position }));
@@ -110,18 +117,19 @@ export const TextSetInput = z.object({ cards: z.array(SetCard).max(1000) });
  */
 export async function saveTextSet(documentId: number, cards: z.infer<typeof SetCard>[]) {
   const db = getDb();
+  const uid = await myId();
   const parts = await db.select({ id: lessons.id }).from(lessons).where(eq(lessons.documentId, documentId)).orderBy(asc(lessons.position));
   if (!parts.length) return null;
-  const before = (await db.select({ id: words.id }).from(words).where(inArray(words.lessonId, parts.map((l) => l.id)))).map((w) => w.id);
+  const before = (await db.select({ id: words.id }).from(words).where(and(eq(words.userId, uid), inArray(words.lessonId, parts.map((l) => l.id))))).map((w) => w.id);
   const ids = await upsertCards(cards, parts[0].id);
   const moveIn = ids.filter((id) => !before.includes(id));
   const moveOut = before.filter((id) => !ids.includes(id));
-  if (moveIn.length) await db.update(words).set({ lessonId: parts[0].id }).where(inArray(words.id, moveIn));
-  if (moveOut.length) await db.update(words).set({ lessonId: null }).where(inArray(words.id, moveOut));
+  if (moveIn.length) await db.update(words).set({ lessonId: parts[0].id }).where(and(eq(words.userId, uid), inArray(words.id, moveIn)));
+  if (moveOut.length) await db.update(words).set({ lessonId: null }).where(and(eq(words.userId, uid), inArray(words.id, moveOut)));
   return { id: documentId, wordIds: ids };
 }
 
-export const deleteSet = (id: number) => getDb().delete(wordSets).where(eq(wordSets.id, id));
+export const deleteSet = async (id: number) => getDb().delete(wordSets).where(and(eq(wordSets.id, id), eq(wordSets.userId, await myId())));
 
 /** Every saved word, light, for the "add saved words" picker and quiz distractors. */
-export const allWordsLight = () => getDb().select({ id: words.id, term: words.term, meaningVi: words.meaningVi, definitionEn: words.definitionEn }).from(words).orderBy(desc(words.id)).limit(5000);
+export const allWordsLight = async () => getDb().select({ id: words.id, term: words.term, meaningVi: words.meaningVi, definitionEn: words.definitionEn }).from(words).where(eq(words.userId, await myId())).orderBy(desc(words.id)).limit(5000);

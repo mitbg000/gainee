@@ -378,7 +378,8 @@
       "cannot_read_file": "This file could not be read.",
       "no_text_in_pdf": "No text found – the PDF may be a scanned image.",
       "unknown": "Something went wrong. Please try again."
-    }
+    },
+    "notAllowed": "Your account cannot add its own texts yet. You can still study the shared texts in the Library; ask the admin if you need your own."
   },
   "library": {
     "kicker": "Library",
@@ -415,6 +416,12 @@
     "view": {
       "grid": "Cards",
       "list": "List"
+    },
+    "shared": {
+      "private": "Private",
+      "public": "Public",
+      "groups": "Groups",
+      "fromTeacher": "Shared"
     }
   },
   "document": {
@@ -454,7 +461,20 @@
     "fLessons": "Part titles (English / Vietnamese)",
     "fLessonTitle": "Title of part {n}",
     "fLessonTitleVi": "Vietnamese title of part {n}",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "share": {
+      "title": "Who sees it:",
+      "private": "Only me",
+      "public": "All learners",
+      "groups": "Chosen groups",
+      "privateHint": "Only you see this text.",
+      "publicHint": "Every learner sees and studies this text; progress, notes and scores stay each learner's own.",
+      "groupsHint": "Only learners in the chosen groups see this text.",
+      "noGroups": "No groups yet. Create one under Admin → Groups.",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Could not save"
+    }
   },
   "lesson": {
     "part": "Part {n} of {total}",
@@ -1838,7 +1858,8 @@
       "users": "Users",
       "topups": "Top-ups",
       "pricing": "Credit prices",
-      "usage": "AI usage"
+      "usage": "AI usage",
+      "groups": "Groups"
     },
     "user": "User",
     "role": "Role",
@@ -1883,14 +1904,15 @@
     "newPassword": "New password",
     "newPasswordHint": "Leave empty to keep it",
     "features": "AI features",
-    "featuresHint": "Untick to switch one off for this user.",
+    "featuresHint": "By default from this user's groups, then the role. Choose On/Off to set it for this user.",
     "feature": {
       "lesson_generate": "Lessons from a text",
       "reader_quick": "Reader questions, look-up",
       "writing_grade": "Writing and speaking feedback",
       "chat": "Chat assistant",
       "ielts_import": "Read IELTS books with AI",
-      "images": "AI pictures"
+      "images": "AI pictures",
+      "add_documents": "Add own reading texts"
     },
     "save": "Save",
     "saved": "Saved",
@@ -1922,6 +1944,27 @@
       "payInfoHint": "e.g. Bank transfer to … with the request code in the note.",
       "saving": "Saving…",
       "save": "Save",
+      "saved": "Saved",
+      "error": "Could not save"
+    },
+    "byDefault": "Default",
+    "on": "On",
+    "off": "Off",
+    "groupsTitle": "Groups",
+    "noGroupsYet": "No groups yet.",
+    "groups": {
+      "hint": "Groups decide which shared texts learners see (set on the text's page) and can switch features for all members. In several groups, one group allowing a feature is enough. A user's own switch wins.",
+      "newName": "New group name, e.g. IELTS 6.5 Tuesday class",
+      "create": "Create group",
+      "none": "No groups yet",
+      "members": "{n} members",
+      "name": "Group name",
+      "features": "Features for the whole group",
+      "membersTitle": "Members ({n})",
+      "search": "Search by name or email",
+      "save": "Save group",
+      "delete": "Delete group",
+      "deleteConfirm": "Delete the group \"{name}\"? Its learners are kept, they only leave it.",
       "saved": "Saved",
       "error": "Could not save"
     }

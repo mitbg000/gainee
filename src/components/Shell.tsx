@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
 import { dueCount } from "@/lib/review";
 import { streak } from "@/lib/stats";
-import { currentUser } from "@/lib/users";
+import { currentUser, mayUse } from "@/lib/users";
 import { getTheme } from "@/theme/server";
 import ChatBubble from "./ChatBubble";
 import CollapsibleSidebar from "./CollapsibleSidebar";
@@ -23,6 +23,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
   const [t, tree, due, theme, days, me] = await Promise.all([getTranslations(), sidebarTree().catch(() => []), dueCount().catch(() => 0), getTheme(), streak().catch(() => 0), currentUser()]);
   if (!me) redirect("/login"); // account locked or session ended (password changed)
   const admin = me.role === "admin";
+  const hidden = (await mayUse("add_documents")) ? [] : ["/import"];
 
   return (
     <div className="min-h-dvh md:flex">
@@ -33,7 +34,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
           <span className="hidden text-center group-data-[collapsed=true]/sb:block">{t("app.name").charAt(0)}</span>
         </Link>
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
-        <SidebarNav tree={tree} admin={admin} />
+        <SidebarNav tree={tree} admin={admin} hidden={hidden} />
       </CollapsibleSidebar>
 
       {/* Mobile top bar */}
@@ -59,7 +60,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
 
       <ChatBubble docs={tree} />
 
-      <MobileTabBar admin={admin}>
+      <MobileTabBar admin={admin} hidden={hidden}>
         <div className="flex flex-col gap-4">
           <InstallApp />
           <LogoutButton />

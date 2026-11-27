@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
+import GroupEditor from "@/components/admin/GroupEditor";
 import PricingEditor from "@/components/admin/PricingEditor";
 import TopupActions from "@/components/admin/TopupActions";
 import { getDb, schema } from "@/db";
@@ -10,11 +11,11 @@ import type { AiRouting } from "@/lib/ai/tasks";
 import { getCreditConfig } from "@/lib/credits";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { getSetting } from "@/lib/settings";
-import { requireRole } from "@/lib/users";
+import { FEATURES, requireRole } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
-const TABS = ["users", "topups", "pricing", "usage"] as const;
+const TABS = ["users", "groups", "topups", "pricing", "usage"] as const;
 const DAYS = 30;
 
 /** Admin: accounts, top-up requests, credit prices and what the AI was used for. */
@@ -78,6 +79,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           </tbody>
         </table>
       </div>
+    );
+  } else if (tab === "groups") {
+    const [gs, links, us] = await Promise.all([
+      db.select().from(schema.groups).orderBy(schema.groups.name),
+      db.select().from(schema.userGroups),
+      db.select({ id: schema.users.id, email: schema.users.email, name: schema.users.name }).from(schema.users).orderBy(schema.users.email),
+    ]);
+    body = (
+      <GroupEditor
+        groups={gs.map((g) => ({ id: g.id, name: g.name, features: g.features, members: links.filter((l) => l.groupId === g.id).map((l) => l.userId) }))}
+        users={us.map((u) => ({ id: u.id, label: u.name ? `${u.name} · ${u.email}` : u.email }))}
+        features={FEATURES}
+      />
     );
   } else if (tab === "topups") {
     const rows = await db

@@ -1,12 +1,15 @@
 import { and, asc, count, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { docVisible, myId } from "@/lib/owner";
 import { today } from "./activity";
 
-const { activity, documents, lessons, words } = schema;
+const { activity, documents, lessons, words, lessonProgress } = schema;
+
+const lessonsDone = (uid: number) => getDb().select({ n: count() }).from(lessonProgress).where(and(eq(lessonProgress.userId, uid), isNotNull(lessonProgress.completedAt)));
 
 /** Consecutive days with any activity, ending today (or yesterday if today is still empty). */
 export async function streak(): Promise<number> {
-  const rows = await getDb().select({ day: activity.day }).from(activity).where(sql`${activity.xp} > 0 or ${activity.minutes} > 0`).orderBy(desc(activity.day)).limit(400);
+  const rows = await getDb().select({ day: activity.day }).from(activity).where(and(eq(activity.userId, await myId()), sql`(${activity.xp} > 0 or ${activity.minutes} > 0)`)).orderBy(desc(activity.day)).limit(400);
   const days = new Set(rows.map((r) => r.day));
   const d = new Date(`${today()}T00:00:00Z`);
   if (!days.has(today())) d.setUTCDate(d.getUTCDate() - 1);
@@ -20,11 +23,12 @@ export async function streak(): Promise<number> {
 
 export async function dashboardStats() {
   const db = getDb();
+  const uid = await myId();
   const [[docs], [done], [w], [act], s] = await Promise.all([
-    db.select({ n: count() }).from(documents),
-    db.select({ n: count() }).from(lessons).where(isNotNull(lessons.completedAt)),
-    db.select({ n: count() }).from(words),
-    db.select().from(activity).where(eq(activity.day, today())),
+    db.select({ n: count() }).from(documents).where(docVisible(uid)),
+    lessonsDone(uid),
+    db.select({ n: count() }).from(words).where(eq(words.userId, uid)),
+    db.select().from(activity).where(and(eq(activity.userId, uid), eq(activity.day, today()))),
     streak(),
   ]);
   return { documents: docs.n, lessonsDone: done.n, words: w.n, xpToday: act?.xp ?? 0, minutesToday: act?.minutes ?? 0, streak: s };
@@ -32,11 +36,13 @@ export async function dashboardStats() {
 
 /** The next lesson to read: first ready, unfinished lesson of the most recent text that has one. */
 export async function nextLesson() {
+  const uid = await myId();
   const [row] = await getDb()
     .select({ id: lessons.id, position: lessons.position, title: lessons.title, documentTitle: documents.title, documentId: documents.id })
     .from(lessons)
     .innerJoin(documents, eq(documents.id, lessons.documentId))
-    .where(and(eq(lessons.status, "ready"), isNull(lessons.completedAt)))
+    .leftJoin(lessonProgress, and(eq(lessonProgress.lessonId, lessons.id), eq(lessonProgress.userId, uid)))
+    .where(and(eq(lessons.status, "ready"), isNull(lessonProgress.completedAt), docVisible(uid)))
     .orderBy(desc(documents.updatedAt), asc(lessons.position))
     .limit(1);
   return row ?? null;
@@ -45,22 +51,25 @@ export async function nextLesson() {
 /** Everything the Progress page shows. */
 export async function progressData() {
   const db = getDb();
-  const { readingSessions, answerLogs } = schema;
+  const uid = await myId();
+  const { readingSessions, answerLogs, attempts } = schema;
   const since = new Date(`${today()}T00:00:00Z`);
   since.setUTCDate(since.getUTCDate() - 7 * 26);
   const [days, [w], mastered, [done], sessions, acc, s] = await Promise.all([
-    db.select().from(activity).where(sql`${activity.day} >= ${since.toISOString().slice(0, 10)}`).orderBy(asc(activity.day)),
-    db.select({ n: count() }).from(words),
+    db.select().from(activity).where(and(eq(activity.userId, uid), sql`${activity.day} >= ${since.toISOString().slice(0, 10)}`)).orderBy(asc(activity.day)),
+    db.select({ n: count() }).from(words).where(eq(words.userId, uid)),
     masteredByWeek(), // one definition of "known" everywhere: remembered 3 times
-    db.select({ n: count() }).from(lessons).where(isNotNull(lessons.completedAt)),
-    db.select({ at: readingSessions.createdAt, wpm: readingSessions.wpm, words: readingSessions.words, lookups: readingSessions.lookups }).from(readingSessions).orderBy(desc(readingSessions.id)).limit(20),
+    lessonsDone(uid),
+    db.select({ at: readingSessions.createdAt, wpm: readingSessions.wpm, words: readingSessions.words, lookups: readingSessions.lookups }).from(readingSessions).where(eq(readingSessions.userId, uid)).orderBy(desc(readingSessions.id)).limit(20),
     db
       .select({ qtype: answerLogs.qtype, total: count(), correct: sql<number>`sum(${answerLogs.correct})` })
       .from(answerLogs)
+      .innerJoin(attempts, eq(attempts.id, answerLogs.attemptId))
+      .where(eq(attempts.userId, uid))
       .groupBy(answerLogs.qtype),
     streak(),
   ]);
-  const [{ xp }] = await db.select({ xp: sql<number>`coalesce(sum(${activity.xp}), 0)` }).from(activity);
+  const [{ xp }] = await db.select({ xp: sql<number>`coalesce(sum(${activity.xp}), 0)` }).from(activity).where(eq(activity.userId, uid));
   const read = sessions.reverse();
   const totalWords = read.reduce((a, r) => a + r.words, 0);
   return {
@@ -77,16 +86,17 @@ export async function progressData() {
 /** Scores over the attempts of each practice part, oldest first (for the line charts on the Progress page). */
 export async function scoreHistory() {
   const db = getDb();
+  const uid = await myId();
   const { attempts, writings, assessments } = schema;
   const [reading, writing, practice] = await Promise.all([
-    db.select({ score: attempts.score, total: attempts.total, at: attempts.createdAt }).from(attempts).orderBy(desc(attempts.id)).limit(30),
+    db.select({ score: attempts.score, total: attempts.total, at: attempts.createdAt }).from(attempts).where(eq(attempts.userId, uid)).orderBy(desc(attempts.id)).limit(30),
     db
       .select({ kind: writings.kind, band: writings.bandOverall, at: writings.updatedAt })
       .from(writings)
-      .where(and(isNull(writings.lessonId), isNotNull(writings.bandOverall)))
+      .where(and(eq(writings.userId, uid), isNull(writings.lessonId), isNotNull(writings.bandOverall)))
       .orderBy(desc(writings.id))
       .limit(200),
-    db.select({ score: assessments.score, max: assessments.maxScore, at: assessments.createdAt }).from(assessments).where(eq(assessments.kind, "word_practice")).orderBy(desc(assessments.id)).limit(30),
+    db.select({ score: assessments.score, max: assessments.maxScore, at: assessments.createdAt }).from(assessments).where(and(eq(assessments.userId, uid), eq(assessments.kind, "word_practice"))).orderBy(desc(assessments.id)).limit(30),
   ]);
   const pct = (a: number, b: number | null) => (b ? Math.round((a / b) * 100) : 0);
   const byKind = new Map<string, { band: number; at: Date }[]>();
@@ -107,11 +117,12 @@ export const MASTER_AFTER = 3;
  */
 export async function masteredByWeek(weeks = 12) {
   const { reviewLogs } = schema;
+  const uid = await myId();
   const rows = await getDb()
     .select({ wordId: reviewLogs.wordId, at: reviewLogs.createdAt })
     .from(reviewLogs)
     .innerJoin(words, eq(words.id, reviewLogs.wordId))
-    .where(sql`${reviewLogs.rating} >= 3`)
+    .where(and(eq(words.userId, uid), sql`${reviewLogs.rating} >= 3`))
     .orderBy(asc(reviewLogs.id));
   // the moment each word reached its 3rd good review
   const seen = new Map<number, number>();
@@ -144,6 +155,6 @@ export async function masteredByWeek(weeks = 12) {
       if (i >= 0) out[i].added++;
     }
   }
-  const [learning] = await getDb().select({ n: count() }).from(words).where(sql`${words.reps} > 0`);
+  const [learning] = await getDb().select({ n: count() }).from(words).where(and(eq(words.userId, uid), sql`${words.reps} > 0`));
   return { weeks: out, known: knownAt.length, studied: learning?.n ?? 0, thisWeek: out[weeks - 1].added };
 }

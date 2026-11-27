@@ -7,7 +7,7 @@ import UserEditor from "@/components/admin/UserEditor";
 import { getDb, schema } from "@/db";
 import { creditHistory } from "@/lib/credits";
 import { fmtCredits } from "@/lib/fmtCredits";
-import { canUse, FEATURES, getUser, requireRole } from "@/lib/users";
+import { canUse, FEATURES, getUser, groupSwitches, requireRole } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,14 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
   if (!u) notFound();
   const t = await getTranslations("admin");
   const f = await getFormatter();
-  const [logs, calls] = await Promise.all([creditHistory(u.id, 50), getDb().select().from(schema.aiCalls).where(eq(schema.aiCalls.userId, u.id)).orderBy(desc(schema.aiCalls.id)).limit(30)]);
+  const db = getDb();
+  const [logs, calls, groups, mine, sw] = await Promise.all([
+    creditHistory(u.id, 50),
+    db.select().from(schema.aiCalls).where(eq(schema.aiCalls.userId, u.id)).orderBy(desc(schema.aiCalls.id)).limit(30),
+    db.select({ id: schema.groups.id, name: schema.groups.name }).from(schema.groups).orderBy(schema.groups.name),
+    db.select({ id: schema.userGroups.groupId }).from(schema.userGroups).where(eq(schema.userGroups.userId, u.id)),
+    groupSwitches(u.id),
+  ]);
   const when = (d: Date) => f.dateTime(d, { dateStyle: "short", timeStyle: "short" });
 
   return (
@@ -32,7 +39,10 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
       </p>
       <UserEditor
         user={{ id: u.id, name: u.name ?? "", role: u.role, disabled: u.disabled, credits: u.credits, features: u.features ?? null }}
-        effective={Object.fromEntries(FEATURES.map((x) => [x, canUse(u, x)]))}
+        defaults={Object.fromEntries(FEATURES.map((x) => [x, canUse({ ...u, features: null }, x, sw)]))}
+        features={FEATURES}
+        groups={groups}
+        groupIds={mine.map((g) => g.id)}
         self={u.id === me.id}
       />
 

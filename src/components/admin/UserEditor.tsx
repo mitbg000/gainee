@@ -4,16 +4,18 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { fmtCredits } from "@/lib/fmtCredits";
+import Switches from "./Switches";
 
 type U = { id: number; name: string; role: "student" | "editor" | "admin"; disabled: boolean; credits: number; features: Record<string, boolean> | null };
 const json = (method: string, body: unknown) => ({ method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
 /** One account: role, which AI features it may use, lock, new password, credits by hand. */
-export default function UserEditor({ user, effective, self }: { user: U; effective: Record<string, boolean>; self: boolean }) {
+export default function UserEditor({ user, defaults, features, groups, groupIds, self }: { user: U; /** without the user's own switches: groups, then role */ defaults: Record<string, boolean>; features: readonly string[]; groups: { id: number; name: string }[]; groupIds: number[]; self: boolean }) {
   const t = useTranslations("admin");
   const router = useRouter();
   const [u, setU] = useState(user);
-  const [feat, setFeat] = useState(effective);
+  const [feat, setFeat] = useState<Record<string, boolean>>(user.features ?? {});
+  const [inGroups, setInGroups] = useState(groupIds);
   const [password, setPassword] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -27,7 +29,7 @@ export default function UserEditor({ user, effective, self }: { user: U; effecti
     if (!e) router.refresh();
     return !e;
   }
-  const save = () => send(`/api/admin/users/${u.id}`, json("PATCH", { name: u.name, role: u.role, disabled: u.disabled, features: feat, ...(password ? { password } : {}) }), t("saved")).then((ok) => ok && setPassword(""));
+  const save = () => send(`/api/admin/users/${u.id}`, json("PATCH", { name: u.name, role: u.role, disabled: u.disabled, features: Object.keys(feat).length ? feat : null, groupIds: inGroups, ...(password ? { password } : {}) }), t("saved")).then((ok) => ok && setPassword(""));
   const give = async () => {
     const n = Number(amount);
     if (!n) return;
@@ -69,14 +71,22 @@ export default function UserEditor({ user, effective, self }: { user: U; effecti
       <div className={box}>
         <p className="text-sm font-semibold">{t("features")}</p>
         <p className="text-xs text-muted">{t("featuresHint")}</p>
-        <div className="mt-2 space-y-1.5">
-          {Object.keys(feat).map((k) => (
-            <label key={k} className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={feat[k]} onChange={(e) => setFeat({ ...feat, [k]: e.target.checked })} />
-              {t(`feature.${k}`)}
-            </label>
-          ))}
+        <div className="mt-2">
+          <Switches value={feat} onChange={setFeat} keys={features} defaults={defaults} />
         </div>
+        <p className="mt-4 text-sm font-semibold">{t("groupsTitle")}</p>
+        {groups.length ? (
+          <div className="mt-1 flex flex-wrap gap-3">
+            {groups.map((g) => (
+              <label key={g.id} className="flex items-center gap-1.5 text-sm">
+                <input type="checkbox" checked={inGroups.includes(g.id)} onChange={(e) => setInGroups(e.target.checked ? [...inGroups, g.id] : inGroups.filter((x) => x !== g.id))} />
+                {g.name}
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted">{t("noGroupsYet")}</p>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-3 md:col-span-2">

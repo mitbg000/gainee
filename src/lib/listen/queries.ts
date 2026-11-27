@@ -5,30 +5,57 @@
 import { and, asc, eq, inArray, isNotNull, lte, sql, type SQL } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { addXp, bumpActivity, XP } from "@/lib/activity";
+import { myId } from "@/lib/owner";
 import { rate, type Clip } from "./segment";
 
-const { listenSources: src, listenItems: items, ieltsSections, ieltsTests, ieltsBooks, words } = schema;
+const { listenSources: src, listenItems: items, listenProgress: prog, listenPositions, ieltsSections, ieltsTests, ieltsBooks, words } = schema;
+
+/** A sentence with this learner's practice of it (the sentences are shared, the practice is per user). */
+const COLS = {
+  id: items.id,
+  sourceId: items.sourceId,
+  idx: items.idx,
+  start: items.start,
+  end: items.end,
+  text: items.text,
+  speaker: items.speaker,
+  confidence: items.confidence,
+  rate: items.rate,
+  hidden: items.hidden,
+  round: sql<number>`coalesce(${prog.round}, 0)`.mapWith(Number),
+  seenAt: prog.seenAt,
+  tries: sql<number>`coalesce(${prog.tries}, 0)`.mapWith(Number),
+  clean: sql<number>`coalesce(${prog.clean}, 0)`.mapWith(Number),
+  due: prog.due,
+  interval: sql<number>`coalesce(${prog.interval}, 0)`.mapWith(Number),
+  lapses: sql<number>`coalesce(${prog.lapses}, 0)`.mapWith(Number),
+  misses: prog.misses,
+};
+const withProgress = (uid: number) => getDb().select(COLS).from(items).leftJoin(prog, and(eq(prog.itemId, items.id), eq(prog.userId, uid)));
+const ROUND = sql`coalesce(${prog.round}, 0)`;
 
 export type Source = typeof src.$inferSelect;
-export type Item = typeof items.$inferSelect;
+export type Item = Awaited<ReturnType<ReturnType<typeof withProgress>["where"]>>[number];
 /** What the player needs to play a sentence of any source. */
 export type PlayItem = Pick<Item, "id" | "sourceId" | "idx" | "start" | "end" | "text" | "speaker" | "due"> & { media: Media };
 export type Media = { kind: "youtube"; youtubeId: string; shift: number } | { kind: "ielts"; audioUrl: string; shift: number };
 
 export async function listSources() {
   const db = getDb();
+  const uid = await myId();
   const [rows, counts] = await Promise.all([
     db.select().from(src).orderBy(sql`${src.id} desc`),
     db
       .select({
         sourceId: items.sourceId,
         n: sql<number>`count(*)`,
-        seen: sql<number>`sum(${items.tries} > 0)`,
-        due: sql<number>`sum(${items.due} is not null and ${items.due} <= now(3))`,
+        seen: sql<number>`sum(coalesce(${prog.tries}, 0) > 0)`,
+        due: sql<number>`sum(${prog.due} is not null and ${prog.due} <= now(3))`,
         hidden: sql<number>`sum(${items.hidden})`,
         low: sql<number>`sum(${items.confidence} < 0.7)`,
       })
       .from(items)
+      .leftJoin(prog, and(eq(prog.itemId, items.id), eq(prog.userId, uid)))
       .groupBy(items.sourceId),
   ]);
   const by = new Map(counts.map((c) => [c.sourceId, c]));
@@ -56,11 +83,14 @@ const play = (rows: Item[], media: Map<number, Media>): PlayItem[] =>
 
 export async function getSource(id: number) {
   const db = getDb();
-  const [s] = await db.select().from(src).where(eq(src.id, id));
-  if (!s) return null;
-  const rows = await db.select().from(items).where(eq(items.sourceId, id)).orderBy(asc(items.idx));
+  const uid = await myId();
+  const [row] = await db.select().from(src).where(eq(src.id, id));
+  if (!row) return null;
+  const [pos] = await db.select({ position: listenPositions.position }).from(listenPositions).where(and(eq(listenPositions.userId, uid), eq(listenPositions.sourceId, id)));
+  const s = { ...row, position: pos?.position ?? 0 }; // this learner's place in "dictate the whole video"
+  const rows = await withProgress(uid).where(eq(items.sourceId, id)).orderBy(asc(items.idx));
   const media = await mediaOf([s]);
-  const saved = await db.select({ id: words.id, term: words.term }).from(words).where(eq(words.listenSourceId, id));
+  const saved = await db.select({ id: words.id, term: words.term }).from(words).where(and(eq(words.userId, uid), eq(words.listenSourceId, id)));
   return { source: s, items: rows, play: play(rows, media), media: media.get(s.id) ?? null, saved };
 }
 
@@ -99,23 +129,26 @@ export function interleave<T extends { sourceId: number }>(xs: T[]): T[] {
  */
 export async function pickSession(mode: "review" | "random" | "mix", scope: string, n: number) {
   const db = getDb();
+  const uid = await myId();
   const where = scopeWhere(scope);
-  const mixed = !scope.startsWith("src:") ? [sql`${items.sourceId} in (select id from listen_sources where kind = 'ielts')`] : [];
-  const dueRows = mode === "random" ? [] : await db.select().from(items).where(and(...where, ...mixed, isNotNull(items.due), lte(items.due, sql`now(3)`))).orderBy(asc(items.due)).limit(mode === "review" ? n : Math.ceil(n * 0.3));
-  const fresh = and(...where, ...mixed, sql`(${items.due} is null or ${items.due} > now(3))`);
+  // learners practise checked recordings only
+  const mixed = [sql`${items.sourceId} in (select id from listen_sources where reviewed = 1${scope.startsWith("src:") ? sql`` : sql` and kind = 'ielts'`})`];
+  const dueRows = mode === "random" ? [] : await withProgress(uid).where(and(...where, ...mixed, isNotNull(prog.due), lte(prog.due, sql`now(3)`))).orderBy(asc(prog.due)).limit(mode === "review" ? n : Math.ceil(n * 0.3));
+  const fresh = and(...where, ...mixed, sql`(${prog.due} is null or ${prog.due} > now(3))`);
   let newRows: Item[] = [];
   if (mode !== "review") {
     const want = n - dueRows.length;
     // least-shown first, random inside a round; a few extra so interleaving has choice
-    newRows = await db.select().from(items).where(fresh).orderBy(asc(items.round), sql`rand()`).limit(want * 2);
+    newRows = await withProgress(uid).where(fresh).orderBy(asc(ROUND), sql`rand()`).limit(want * 2);
     newRows = interleave(newRows).slice(0, want);
   }
-  const [{ total, minRound }] = await db.select({ total: sql<number>`count(*)`, minRound: sql<number>`coalesce(min(${items.round}), 0)` }).from(items).where(fresh);
-  const [{ doneInRound }] = await db.select({ doneInRound: sql<number>`count(*)` }).from(items).where(and(fresh, sql`${items.round} > ${minRound}`));
+  const counted = (c: Record<string, SQL>) => db.select(c).from(items).leftJoin(prog, and(eq(prog.itemId, items.id), eq(prog.userId, uid)));
+  const [{ total, minRound }] = await counted({ total: sql<number>`count(*)`, minRound: sql<number>`coalesce(min(${ROUND}), 0)` }).where(fresh);
+  const [{ doneInRound }] = await counted({ doneInRound: sql<number>`count(*)` }).where(and(fresh, sql`${ROUND} > ${minRound}`));
   const all = mode === "mix" ? interleave([...dueRows, ...newRows].sort(() => Math.random() - 0.5)) : [...dueRows, ...newRows];
   const srcIds = [...new Set(all.map((r) => r.sourceId))];
   const sources = srcIds.length ? await db.select().from(src).where(inArray(src.id, srcIds)) : [];
-  const saved = srcIds.length ? await db.select({ id: words.id, term: words.term, sourceId: words.listenSourceId }).from(words).where(inArray(words.listenSourceId, srcIds)) : [];
+  const saved = srcIds.length ? await db.select({ id: words.id, term: words.term, sourceId: words.listenSourceId }).from(words).where(and(eq(words.userId, uid), inArray(words.listenSourceId, srcIds))) : [];
   return {
     items: play(all, await mediaOf(sources)),
     titles: Object.fromEntries(sources.map((s) => [s.id, s.title])),
@@ -128,14 +161,15 @@ export async function pickSession(mode: "review" | "random" | "mix", scope: stri
 export async function dueCount() {
   const [{ n }] = await getDb()
     .select({ n: sql<number>`count(*)` })
-    .from(items)
-    .where(and(eq(items.hidden, false), isNotNull(items.due), lte(items.due, sql`now(3)`), sql`${items.sourceId} in (select id from listen_sources where kind = 'ielts')`));
+    .from(prog)
+    .innerJoin(items, eq(items.id, prog.itemId))
+    .where(and(eq(prog.userId, await myId()), eq(items.hidden, false), isNotNull(prog.due), lte(prog.due, sql`now(3)`), sql`${items.sourceId} in (select id from listen_sources where kind = 'ielts' and reviewed = 1)`));
   return Number(n);
 }
 
 /** Missed words by kind over the whole bank. */
 export async function missTotals() {
-  const rows = await getDb().select({ misses: items.misses }).from(items).where(isNotNull(items.misses));
+  const rows = await getDb().select({ misses: prog.misses }).from(prog).where(and(eq(prog.userId, await myId()), isNotNull(prog.misses)));
   const out: Record<string, number> = {};
   for (const r of rows) for (const [k, v] of Object.entries(r.misses ?? {})) out[k] = (out[k] ?? 0) + v;
   return out;
@@ -151,7 +185,8 @@ export type Result = { first: boolean; hinted: boolean; misses: Record<string, n
  */
 export async function recordResult(id: number, r: Result) {
   const db = getDb();
-  const [it] = await db.select().from(items).where(eq(items.id, id));
+  const uid = await myId();
+  const [it] = await withProgress(uid).where(eq(items.id, id));
   if (!it) return null;
   const now = Date.now();
   let { due, interval, lapses } = it;
@@ -171,19 +206,17 @@ export async function recordResult(id: number, r: Result) {
   }
   const misses = { ...(it.misses ?? {}) };
   for (const [k, v] of Object.entries(r.misses)) misses[k] = (misses[k] ?? 0) + v;
-  await db
-    .update(items)
-    .set({
-      tries: it.tries + 1,
-      clean: it.clean + (r.first && !r.hinted ? 1 : 0),
-      round: r.mode === "review" ? it.round : it.round + 1,
-      seenAt: new Date(now),
-      due,
-      interval,
-      lapses,
-      misses: Object.keys(misses).length ? misses : null,
-    })
-    .where(eq(items.id, id));
+  const v = {
+    tries: it.tries + 1,
+    clean: it.clean + (r.first && !r.hinted ? 1 : 0),
+    round: r.mode === "review" ? it.round : it.round + 1,
+    seenAt: new Date(now),
+    due,
+    interval,
+    lapses,
+    misses: Object.keys(misses).length ? misses : null,
+  };
+  await db.insert(prog).values({ userId: uid, itemId: id, ...v }).onDuplicateKeyUpdate({ set: v });
   if (r.minutes) await bumpActivity({ minutes: Math.min(30, r.minutes) });
   await addXp("listen", r.first && !r.hinted ? XP.correctAnswer : 2, { type: "listen_item", id });
   return { due };
@@ -196,7 +229,8 @@ export async function saveSource(s: Omit<typeof src.$inferInsert, "id">, clips: 
   const [old] = s.sectionId ? await db.select({ id: src.id }).from(src).where(eq(src.sectionId, s.sectionId)) : [];
   if (old) {
     id = old.id;
-    await db.update(src).set({ ...s, reviewed: false, position: 0 }).where(eq(src.id, id));
+    await db.update(src).set({ ...s, reviewed: false }).where(eq(src.id, id));
+    await db.delete(listenPositions).where(eq(listenPositions.sourceId, id));
     await db.delete(items).where(eq(items.sourceId, id));
   } else [{ id }] = await db.insert(src).values(s).$returningId();
   if (clips.length) await db.insert(items).values(clips.map((c, idx) => ({ sourceId: id, idx, start: c.start, end: c.end, text: c.text.slice(0, 5000), speaker: c.speaker?.slice(0, 64) ?? null, confidence: c.confidence, rate: rate(c) })));
@@ -238,4 +272,10 @@ export async function heardWords(sectionId: number | null) {
   if (!sectionId) return null;
   const [r] = await getDb().select({ heard: schema.listenSpeech.heard }).from(schema.listenSpeech).where(eq(schema.listenSpeech.sectionId, sectionId));
   return r?.heard ?? null;
+}
+
+/** This learner's next sentence of "dictate the whole video". */
+export async function setPosition(sourceId: number, position: number) {
+  const userId = await myId();
+  await getDb().insert(listenPositions).values({ userId, sourceId, position }).onDuplicateKeyUpdate({ set: { position } });
 }

@@ -2,6 +2,7 @@
 import { and, asc, count, eq, gt, lte, sql } from "drizzle-orm";
 import { fsrs, type Card, type Grade } from "ts-fsrs";
 import { getDb, schema } from "@/db";
+import { myId } from "@/lib/owner";
 import { addXp, bumpActivity } from "./activity";
 import { imagesForWords } from "./images";
 
@@ -35,8 +36,8 @@ function preview(c: Card, now = new Date()) {
   return ([1, 2, 3, 4] as Grade[]).map((g) => r[g].card.due.getTime() - now.getTime());
 }
 
-const dueFilter = (documentId?: number) =>
-  and(eq(words.suspended, false), lte(words.due, new Date()), documentId ? eq(lessons.documentId, documentId) : undefined);
+const dueFilter = (uid: number, documentId?: number) =>
+  and(eq(words.userId, uid), eq(words.suspended, false), lte(words.due, new Date()), documentId ? eq(lessons.documentId, documentId) : undefined);
 
 /** Words due now (oldest first), optionally only from one text. */
 export async function dueWords(documentId?: number, limit = 50) {
@@ -44,7 +45,7 @@ export async function dueWords(documentId?: number, limit = 50) {
     .select({ w: words })
     .from(words)
     .leftJoin(lessons, eq(words.lessonId, lessons.id))
-    .where(dueFilter(documentId))
+    .where(dueFilter(await myId(), documentId))
     .orderBy(asc(words.due))
     .limit(limit);
   const images = await imagesForWords(rows.map((r) => r.w.id));
@@ -70,7 +71,7 @@ export async function dueSoon() {
   const [r] = await getDb()
     .select({ n: count() })
     .from(words)
-    .where(and(eq(words.suspended, false), gt(words.due, new Date()), lte(words.due, new Date(Date.now() + 24 * 3600_000))));
+    .where(and(eq(words.userId, await myId()), eq(words.suspended, false), gt(words.due, new Date()), lte(words.due, new Date(Date.now() + 24 * 3600_000))));
   return r?.n ?? 0;
 }
 
@@ -81,7 +82,7 @@ export async function dueByDocument() {
     .from(words)
     .leftJoin(lessons, eq(words.lessonId, lessons.id))
     .leftJoin(documents, eq(lessons.documentId, documents.id))
-    .where(dueFilter())
+    .where(dueFilter(await myId()))
     .groupBy(documents.id, documents.title)
     .orderBy(sql`count(*) desc`);
 }
@@ -89,7 +90,8 @@ export async function dueByDocument() {
 /** Apply a rating (1 Again … 4 Easy), log it, and return the next due date. */
 export async function gradeWord(id: number, rating: Grade, mode: LogMode, durationMs?: number) {
   const db = getDb();
-  const [w] = await db.select().from(words).where(eq(words.id, id));
+  const uid = await myId();
+  const [w] = await db.select().from(words).where(and(eq(words.id, id), eq(words.userId, uid)));
   if (!w) return null;
   const now = new Date();
   const { card } = scheduler.next(toCard(w), now, rating);
@@ -107,7 +109,7 @@ export async function gradeWord(id: number, rating: Grade, mode: LogMode, durati
       lastReview: now,
     })
     .where(eq(words.id, id));
-  await db.insert(reviewLogs).values({ wordId: id, rating, mode, stateBefore: w.state, durationMs: durationMs ?? null });
+  await db.insert(reviewLogs).values({ userId: uid, wordId: id, rating, mode, stateBefore: w.state, durationMs: durationMs ?? null });
   await bumpActivity({ reviews: 1 });
   await addXp("review", 1, { type: "word", id });
   return { due: card.due, state: card.state, next: preview(card, now) };
@@ -115,6 +117,6 @@ export async function gradeWord(id: number, rating: Grade, mode: LogMode, durati
 
 /** Number of words due now (badge in the top bar). */
 export async function dueCount() {
-  const [r] = await getDb().select({ n: count() }).from(words).where(and(eq(words.suspended, false), lte(words.due, new Date())));
+  const [r] = await getDb().select({ n: count() }).from(words).where(and(eq(words.userId, await myId()), eq(words.suspended, false), lte(words.due, new Date())));
   return r?.n ?? 0;
 }

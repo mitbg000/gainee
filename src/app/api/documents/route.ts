@@ -1,3 +1,4 @@
+import { mayUse } from "@/lib/users";
 import { NextResponse, type NextRequest } from "next/server";
 import { createDocument, ImportError, parseImportForm } from "@/lib/documents/create";
 import { listDocuments } from "@/lib/documents/queries";
@@ -13,6 +14,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // adding one's own texts can be switched off per learner or group (they then read the shared ones)
+  if (!(await mayUse("add_documents"))) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   try {
     const input = await parseImportForm(await req.formData());
     return NextResponse.json({ id: await createDocument(input) }, { status: 201 });

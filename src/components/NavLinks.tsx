@@ -19,9 +19,9 @@ function isActive(path: string, href: string) {
 }
 
 /** Desktop sidebar list. */
-const shown = (admin: boolean) => NAV.filter((n) => admin || !n.admin);
+const shown = (admin: boolean, hidden: string[] = []) => NAV.filter((n) => (admin || !n.admin) && !hidden.includes(n.href));
 
-export function SidebarNav({ tree, admin = false }: { tree: TreeDoc[]; admin?: boolean }) {
+export function SidebarNav({ tree, admin = false, hidden }: { tree: TreeDoc[]; admin?: boolean; hidden?: string[] }) {
   const t = useTranslations("nav");
   const path = usePathname();
   // Every page renders its own Shell, so the choice is kept in localStorage to survive navigation.
@@ -41,7 +41,7 @@ export function SidebarNav({ tree, admin = false }: { tree: TreeDoc[]; admin?: b
   const open = libOpen ?? true;
   return (
     <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar">
-      {shown(admin).map((n) => {
+      {shown(admin, hidden).map((n) => {
         const item = <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} />;
         if (n.href !== "/library" || !tree.length) return item;
         return (
@@ -83,7 +83,7 @@ function Item({ n, active, label, soon, onClick }: { n: NavItem; active: boolean
  * Mobile: fixed bottom tab bar (4 main sections + "More").
  * "More" opens a bottom sheet with the full menu and the extra controls passed as children.
  */
-export function MobileTabBar({ children, admin = false }: { children: React.ReactNode; admin?: boolean }) {
+export function MobileTabBar({ children, admin = false, hidden }: { children: React.ReactNode; admin?: boolean; hidden?: string[] }) {
   const t = useTranslations("nav");
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -138,7 +138,7 @@ export function MobileTabBar({ children, admin = false }: { children: React.Reac
           >
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-line" />
             <div className="flex flex-col gap-0.5">
-              {shown(admin).filter((n) => !n.mobileTab).map((n) => (
+              {shown(admin, hidden).filter((n) => !n.mobileTab).map((n) => (
                 <Item
                   key={n.key}
                   n={n}

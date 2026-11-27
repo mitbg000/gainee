@@ -7,7 +7,7 @@ export type AiMsg = LessonData["aiMessages"][number];
 export type Vocab = LessonData["vocab"][number];
 export type HlColor = Annotation["color"];
 /** What the reader sends to create a highlight, note or summary. */
-export type NewAnnotation = Omit<Annotation, "id" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix" | "kind"> & { kind?: Annotation["kind"] };
+export type NewAnnotation = Omit<Annotation, "id" | "userId" | "lessonId" | "createdAt" | "updatedAt" | "prefix" | "suffix" | "kind"> & { kind?: Annotation["kind"] };
 export const HL_COLORS: HlColor[] = ["yellow", "green", "blue", "pink", "purple"];
 export const HL_DOT: Record<HlColor, string> = {
   yellow: "bg-yellow-300",

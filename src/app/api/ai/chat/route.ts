@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { parseBody } from "@/lib/api";
 import { AiError, chatStream } from "@/lib/ai/client";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { docVisible, myId } from "@/lib/owner";
 import { getProfile } from "@/lib/profile";
 import { toPlain } from "@/lib/text/rich";
 
@@ -23,7 +24,7 @@ async function lessonContext(lessonId?: number | null) {
     .select({ title: schema.lessons.title, paragraphs: schema.lessons.paragraphs, doc: schema.documents.title })
     .from(schema.lessons)
     .innerJoin(schema.documents, eq(schema.documents.id, schema.lessons.documentId))
-    .where(eq(schema.lessons.id, lessonId));
+    .where(and(eq(schema.lessons.id, lessonId), docVisible(await myId())));
   if (!l) return "";
   const text = l.paragraphs.map(toPlain).filter(Boolean).join("\n\n").slice(0, 12000);
   return `\n\nThe learner is studying this text ("${l.doc}" – ${l.title}). Use it when they ask about "the text", its words or ideas:\n<text>\n${text}\n</text>`;
