@@ -75,6 +75,12 @@ npm run dev           # http://localhost:3000
 npm run dev:worker    # second terminal
 ```
 
+No MySQL on your machine? Start one in Docker (offline afterwards) and point `.env` at it:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d      # DATABASE_URL=mysql://root:devroot@127.0.0.1:3307/gainee
+```
+
 After you change `src/db/schema.ts`, run `npm run db:generate` to create a new migration file, then commit it.
 
 ### Trying it without an AI key

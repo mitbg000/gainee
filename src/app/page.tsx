@@ -20,7 +20,9 @@ async function loadStats() {
 }
 
 export default async function DashboardPage() {
-  if (!(await currentUser())) return <Landing />; // visitors (the middleware lets "/" through without a session)
+  const me = await currentUser();
+  if (!me) return <Landing />; // visitors (the middleware lets "/" through without a session)
+  const admin = me.role === "admin"; // server state and test tools are for the admin
   const t = await getTranslations("dashboard");
   let stats: Awaited<ReturnType<typeof loadStats>> | null = null;
   let dbError = "";
@@ -87,6 +89,7 @@ export default async function DashboardPage() {
         </section>
       )}
 
+      {admin && (
       <section className="mt-6 rounded-2xl border border-line bg-card p-5">
         <h2 className="font-serif text-xl font-bold">{t("system.title")}</h2>
         <ul className="mt-3 space-y-1.5 text-sm">
@@ -102,7 +105,9 @@ export default async function DashboardPage() {
           </li>
         </ul>
       </section>
+      )}
 
+      {admin && (
       <details className="mt-6">
         <summary className="cursor-pointer text-sm text-muted">{t("advanced")}</summary>
         <JobsPanel />
@@ -110,6 +115,7 @@ export default async function DashboardPage() {
           {t("tryReader")}
         </Link>
       </details>
+      )}
     </Shell>
   );
 }

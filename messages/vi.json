@@ -41,7 +41,14 @@
     "ielts": "Luyện thi IELTS",
     "listen": "Luyện nghe",
     "credits": "Credit",
-    "admin": "Quản trị"
+    "admin": "Quản trị",
+    "profile": "Hồ sơ của tôi",
+    "group": {
+      "read": "Đọc",
+      "words": "Từ vựng",
+      "skills": "Kỹ năng",
+      "me": "Của tôi"
+    }
   },
   "login": {
     "username": "Email hoặc tên đăng nhập",
@@ -2208,6 +2215,36 @@
       "text": "10–15 phút đọc, nghe và ôn từ; Gainee nhắc bạn phần đến hạn."
     },
     "endTitle": "Sẵn sàng học bài đầu tiên?",
-    "endText": "Chỉ mất một phút để bắt đầu."
+    "endText": "Chỉ mất một phút để bắt đầu.",
+    "menu": "Menu trang",
+    "navFeatures": "Tính năng",
+    "navSteps": "Cách bắt đầu"
+  },
+  "profile": {
+    "edit": "Sửa hồ sơ",
+    "joined": "tham gia {date}",
+    "aiTitle": "AI & credit",
+    "balance": "Credit còn lại",
+    "tokensLeft": "≈ {n} token còn dùng được (theo giá mặc định)",
+    "free": "AI không tính phí",
+    "topup": "Nạp credit",
+    "tokensUsed": "Token đã dùng",
+    "calls": "{n} lượt gọi AI",
+    "creditsUsed": "Credit đã dùng",
+    "last24": "{n} trong 24 giờ qua",
+    "dailyLimit": "Còn trong 24 giờ",
+    "dailyOf": "trên giới hạn {n} credit",
+    "chartTitle": "Token dùng mỗi ngày ({n} ngày)",
+    "today": "Hôm nay",
+    "byTask": "Theo tính năng (30 ngày)",
+    "noAi": "Chưa dùng AI trong 30 ngày qua.",
+    "learnTitle": "Học tập",
+    "allProgress": "Xem tiến độ chi tiết",
+    "streak": "ngày liên tiếp",
+    "xp": "XP",
+    "words": "từ đã lưu",
+    "mastered": "từ đã thuộc",
+    "lessons": "phần đã học xong",
+    "minutes": "phút học"
   }
 }

@@ -47,6 +47,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 export async function DELETE(_req: Request, { params }: Ctx) {
   const id = idParam((await params).id);
   if (!id) return bad("invalid");
+  if (!(await canEditDoc(id))) return bad("forbidden", 403);
   await deleteDocument(id);
   return NextResponse.json({ ok: true });
 }

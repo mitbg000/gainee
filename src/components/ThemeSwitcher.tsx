@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { THEME_COOKIE, themes, type Theme } from "@/theme/config";
+import Dropdown, { Segmented } from "./Dropdown";
 import { IconMonitor, IconMoon, IconSun } from "./icons";
 
 const ICON = { light: IconSun, dark: IconMoon, system: IconMonitor } satisfies Record<Theme, unknown>;
@@ -12,7 +13,8 @@ function apply(theme: Theme) {
   document.documentElement.classList.toggle("dark", dark);
 }
 
-export default function ThemeSwitcher({ initial, className = "" }: { initial: Theme; className?: string }) {
+/** `menu`: one icon button with Light / Dark / System (page headers); `segmented`: inline choice (menus, settings). */
+export default function ThemeSwitcher({ initial, variant = "segmented" }: { initial: Theme; variant?: "segmented" | "menu" }) {
   const t = useTranslations("theme");
   const [theme, setTheme] = useState<Theme>(initial);
 
@@ -31,24 +33,29 @@ export default function ThemeSwitcher({ initial, className = "" }: { initial: Th
     apply(next);
   }
 
+  const Current = ICON[theme];
+  if (variant === "menu")
+    return (
+      <Dropdown
+        label={t("label")}
+        value={theme}
+        onPick={choose}
+        items={themes.map((th) => {
+          const Icon = ICON[th];
+          return { value: th, label: t(th), icon: <Icon className="h-4 w-4" /> };
+        })}
+        trigger={<Current className="h-[18px] w-[18px]" />}
+      />
+    );
   return (
-    <div role="group" aria-label={t("label")} className={`inline-flex rounded-lg border border-line bg-card p-0.5 text-xs ${className}`}>
-      {themes.map((th) => {
+    <Segmented
+      label={t("label")}
+      value={theme}
+      onPick={choose}
+      items={themes.map((th) => {
         const Icon = ICON[th];
-        return (
-        <button
-          key={th}
-          type="button"
-          title={t(th)}
-          aria-label={t(th)}
-          aria-pressed={th === theme}
-          onClick={() => choose(th)}
-          className={`rounded-md px-2 py-1.5 leading-none transition ${th === theme ? "bg-ink text-paper" : "text-muted hover:text-ink"}`}
-        >
-          <Icon className="h-4 w-4" />
-        </button>
-        );
+        return { value: th, label: t(th), content: <Icon className="h-4 w-4" /> };
       })}
-    </div>
+    />
   );
 }

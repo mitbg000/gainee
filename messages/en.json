@@ -41,7 +41,14 @@
     "ielts": "IELTS practice",
     "listen": "Listening",
     "credits": "Credits",
-    "admin": "Admin"
+    "admin": "Admin",
+    "profile": "My profile",
+    "group": {
+      "read": "Reading",
+      "words": "Vocabulary",
+      "skills": "Skills",
+      "me": "Me"
+    }
   },
   "login": {
     "username": "Email or username",
@@ -2208,6 +2215,36 @@
       "text": "10–15 minutes of reading, listening and review; Gainee shows what is due."
     },
     "endTitle": "Ready for your first lesson?",
-    "endText": "It takes a minute to start."
+    "endText": "It takes a minute to start.",
+    "menu": "Site menu",
+    "navFeatures": "Features",
+    "navSteps": "How it works"
+  },
+  "profile": {
+    "edit": "Edit profile",
+    "joined": "joined {date}",
+    "aiTitle": "AI & credits",
+    "balance": "Credits left",
+    "tokensLeft": "≈ {n} tokens left (at the default price)",
+    "free": "AI is free",
+    "topup": "Top up",
+    "tokensUsed": "Tokens used",
+    "calls": "{n} AI calls",
+    "creditsUsed": "Credits used",
+    "last24": "{n} in the last 24 hours",
+    "dailyLimit": "Left in 24 hours",
+    "dailyOf": "of the {n} credit limit",
+    "chartTitle": "Tokens per day ({n} days)",
+    "today": "Today",
+    "byTask": "By feature (30 days)",
+    "noAi": "No AI use in the last 30 days.",
+    "learnTitle": "Learning",
+    "allProgress": "Full progress",
+    "streak": "days in a row",
+    "xp": "XP",
+    "words": "words saved",
+    "mastered": "words known",
+    "lessons": "parts finished",
+    "minutes": "minutes studied"
   }
 }

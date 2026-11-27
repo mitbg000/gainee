@@ -50,6 +50,9 @@ export default function UserMenu({ theme, me }: { theme: Theme; me: { avatar: st
       {open && (
         <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-line bg-card p-2 shadow-xl">
           <p className="truncate px-3 pb-2 pt-1 text-sm font-semibold">{me.name}</p>
+          <Link role="menuitem" href="/profile" className={row}>
+            <I.IconUser className="h-4 w-4 text-muted" /> {tn("profile")}
+          </Link>
           <Link role="menuitem" href="/settings" className={row}>
             <I.IconGear className="h-4 w-4 text-muted" /> {tn("settings")}
           </Link>

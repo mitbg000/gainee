@@ -13,7 +13,9 @@ import InstallApp from "./InstallApp";
 import LogoutButton from "./LogoutButton";
 import { MobileTabBar, SidebarNav } from "./NavLinks";
 import TopBar from "./TopBar";
-import { IconGear } from "./icons";
+import { IconCoin } from "./icons";
+import UserMenu from "./UserMenu";
+import { fmtCredits } from "@/lib/fmtCredits";
 
 /**
  * App frame.
@@ -43,10 +45,16 @@ export default async function Shell({ children, wide = false, full = false }: { 
         className="chrome sticky top-0 z-30 flex items-center justify-between border-b border-line bg-card/95 px-4 backdrop-blur md:hidden"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
-        <Link href="/" className="flex h-12 items-center font-serif text-xl font-bold">{t("app.name")}</Link>
-        <Link href="/settings" className="icon-btn" aria-label={t("nav.settings")} title={t("nav.settings")}>
-          <IconGear />
-        </Link>
+        <Link href="/" className="flex h-14 items-center font-serif text-xl font-bold">{t("app.name")}</Link>
+        <div className="flex items-center gap-2">
+          {!admin && (
+            <Link href="/credits" className={`flex h-8 items-center gap-1 rounded-full bg-ink/5 px-2.5 text-sm font-semibold tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`} aria-label={t("topbar.credits")}>
+              <IconCoin className="h-4 w-4" />
+              {fmtCredits(me.credits)}
+            </Link>
+          )}
+          <UserMenu theme={theme} me={{ avatar: me.avatar ? imageUrl(me.avatar) : null, name: me.name || me.email }} />
+        </div>
       </header>
 
       <div className="min-w-0 flex-1 md:flex md:flex-col">

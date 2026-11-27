@@ -25,16 +25,25 @@ export default async function Landing() {
 
   return (
     <div className="min-h-dvh bg-paper" style={{ paddingTop: "env(safe-area-inset-top)" }}>
-      <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 md:px-6">
-          <Link href="/" className="mr-auto font-serif text-2xl font-bold">
+      <header className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-1 px-4 md:px-6">
+          <Link href="/" className="font-serif text-2xl font-bold">
             {ta("name")}
           </Link>
-          <div className="hidden items-center gap-2 sm:flex">
-            <LanguageSwitcher />
-            <ThemeSwitcher initial={await getTheme()} />
+          <nav aria-label={t("menu")} className="ml-8 hidden items-center gap-1 text-sm md:flex">
+            <a href="#features" className="rounded-full px-3 py-2 text-muted transition-colors hover:bg-ink/5 hover:text-ink">
+              {t("navFeatures")}
+            </a>
+            <a href="#steps" className="rounded-full px-3 py-2 text-muted transition-colors hover:bg-ink/5 hover:text-ink">
+              {t("navSteps")}
+            </a>
+          </nav>
+          <div className="ml-auto flex items-center">
+            <LanguageSwitcher variant="menu" />
+            <ThemeSwitcher variant="menu" initial={await getTheme()} />
           </div>
-          <Link href="/login" className="btn btn-sm btn-ghost">
+          <span aria-hidden className="mx-2 hidden h-6 w-px bg-line sm:block" />
+          <Link href="/login" className={`btn btn-sm ${signup ? "btn-ghost hidden sm:inline-flex" : "btn-primary"}`}>
             {t("login")}
           </Link>
           {signup && (
@@ -94,7 +103,7 @@ export default async function Landing() {
         </section>
 
         {/* features */}
-        <section id="features" className="border-y border-line bg-card">
+        <section id="features" className="scroll-mt-16 border-y border-line bg-card">
           <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
             <h2 className="font-serif text-3xl font-bold">{t("featuresTitle")}</h2>
             <p className="mt-2 max-w-2xl text-muted">{t("featuresLead")}</p>
@@ -113,7 +122,7 @@ export default async function Landing() {
         </section>
 
         {/* how it works */}
-        <section className="mx-auto max-w-6xl px-4 py-14 md:px-6">
+        <section id="steps" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 md:px-6">
           <h2 className="font-serif text-3xl font-bold">{t("stepsTitle")}</h2>
           <ol className="mt-8 grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((n) => (
@@ -146,10 +155,9 @@ export default async function Landing() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-6 text-sm text-muted md:px-6" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}>
           <span className="font-serif font-bold text-ink">{ta("name")}</span>
           <span>© {new Date().getFullYear()}</span>
-          <span className="ml-auto flex items-center gap-2 sm:hidden">
-            <LanguageSwitcher />
-            <ThemeSwitcher initial={await getTheme()} />
-          </span>
+          <Link href="/login" className="ml-auto hover:text-ink">
+            {t("login")}
+          </Link>
         </div>
       </footer>
     </div>

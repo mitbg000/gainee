@@ -11,7 +11,7 @@ import * as I from "./icons";
 
 const ICONS: Record<string, (p: { className?: string }) => React.ReactElement> = {
   home: I.IconHome, book: I.IconBook, plus: I.IconPlus, dict: I.IconDict, words: I.IconWords,
-  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag, target: I.IconTarget, pen: I.IconPen, bolt: I.IconBolt, exam: I.IconClipboard, headphones: I.IconHeadphones, coin: I.IconCoin, shield: I.IconShield,
+  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag, target: I.IconTarget, pen: I.IconPen, bolt: I.IconBolt, exam: I.IconClipboard, headphones: I.IconHeadphones, coin: I.IconCoin, shield: I.IconShield, user: I.IconUser,
 };
 
 function isActive(path: string, href: string) {
@@ -19,7 +19,9 @@ function isActive(path: string, href: string) {
 }
 
 /** Desktop sidebar list. */
-const shown = (admin: boolean, hidden: string[] = []) => NAV.filter((n) => (admin || !n.admin) && !hidden.includes(n.href));
+const shown = (admin: boolean, hidden: string[] = []) => NAV.filter((n) => !n.hidden && (admin || !n.admin) && !hidden.includes(n.href));
+/** Group heading before the first item of each group (a thin line when the sidebar is an icon rail). */
+const groupStart = (list: NavItem[], i: number) => (list[i].group && list[i].group !== list[i - 1]?.group ? list[i].group : null);
 
 export function SidebarNav({ tree, admin = false, hidden }: { tree: TreeDoc[]; admin?: boolean; hidden?: string[] }) {
   const t = useTranslations("nav");
@@ -41,10 +43,13 @@ export function SidebarNav({ tree, admin = false, hidden }: { tree: TreeDoc[]; a
   const open = libOpen ?? true;
   return (
     <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar">
-      {shown(admin, hidden).map((n) => {
+      {shown(admin, hidden).map((n, i, list) => {
+        const g = groupStart(list, i);
+        const head = g && <GroupHead key={`g-${g}`} label={t(`group.${g}`)} />;
         const item = <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} />;
-        if (n.href !== "/library" || !tree.length) return item;
-        return (
+        if (n.href !== "/library" || !tree.length) return head ? [head, item] : item;
+        return [
+          head,
           <div key={n.key}>
             <div className="relative">
               {item}
@@ -58,10 +63,19 @@ export function SidebarNav({ tree, admin = false, hidden }: { tree: TreeDoc[]; a
               </button>
             </div>
             {open && <LessonTree docs={tree} />}
-          </div>
-        );
+          </div>,
+        ];
       })}
     </nav>
+  );
+}
+
+function GroupHead({ label }: { label: string }) {
+  return (
+    <>
+      <p className="mt-4 px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted group-data-[collapsed=true]/sb:hidden">{label}</p>
+      <hr className="mx-2 my-2 hidden border-line group-data-[collapsed=true]/sb:block" />
+    </>
   );
 }
 
@@ -138,7 +152,8 @@ export function MobileTabBar({ children, admin = false, hidden }: { children: Re
           >
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-line" />
             <div className="flex flex-col gap-0.5">
-              {shown(admin, hidden).filter((n) => !n.mobileTab).map((n) => (
+              {shown(admin, hidden).filter((n) => !n.mobileTab).map((n, i, list) => [
+                groupStart(list, i) && <GroupHead key={`g-${n.group}`} label={t(`group.${n.group}`)} />,
                 <Item
                   key={n.key}
                   n={n}
@@ -146,8 +161,8 @@ export function MobileTabBar({ children, admin = false, hidden }: { children: Re
                   label={t(n.key)}
                   soon={n.phase ? t("phase", { n: n.phase }) : undefined}
                   onClick={() => setOpen(false)}
-                />
-              ))}
+                />,
+              ])}
             </div>
             <div className="mt-4 border-t border-line pt-4">{children}</div>
           </div>

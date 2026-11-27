@@ -15,13 +15,13 @@ export default async function AuthShell({ children }: { children: React.ReactNod
   ];
   return (
     <main className="flex min-h-dvh flex-col bg-paper" style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
-      <header className="flex items-center justify-between px-4 py-3 md:px-8">
+      <header className="flex h-16 items-center px-4 md:px-8">
         <Link href="/" className="font-serif text-2xl font-bold">
           {t("app.name")}
         </Link>
-        <div className="flex items-center gap-2">
-          <LanguageSwitcher />
-          <ThemeSwitcher initial={await getTheme()} />
+        <div className="ml-auto flex items-center">
+          <LanguageSwitcher variant="menu" />
+          <ThemeSwitcher variant="menu" initial={await getTheme()} />
         </div>
       </header>
       <div className="flex flex-1 items-center justify-center px-4 pb-10 pt-2">
