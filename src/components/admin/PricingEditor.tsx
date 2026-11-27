@@ -6,6 +6,38 @@ import type { CreditConfig } from "@/lib/credits";
 
 type Price = { in: number; out: number };
 
+/**
+ * A number box that keeps what is typed ("0.", "0,5") and passes on the number once it reads as one: a plain
+ * controlled number input turns "0." into 0 at once, so decimals could not be typed.
+ */
+function NumField({ value, onChange, min = 0, className, ...rest }: { value: number; onChange: (n: number) => void; min?: number; className?: string; "aria-label"?: string }) {
+  const [text, setText] = useState(String(value));
+  const [shown, setShown] = useState(value);
+  if (shown !== value) {
+    // changed from outside (another row removed…): show the new value
+    setShown(value);
+    setText(String(value));
+  }
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={text}
+      onChange={(e) => {
+        const v = e.target.value.replace(",", ".");
+        if (!/^\d*\.?\d*$/.test(v)) return;
+        setText(v);
+        const n = Math.max(min, Number(v) || 0);
+        setShown(n);
+        onChange(n);
+      }}
+      onBlur={() => setText(String(shown))}
+      className={className}
+      {...rest}
+    />
+  );
+}
+
 /** Credit prices (per 1 million tokens, per model), sign-up, welcome credits and the top-up packages. */
 export default function PricingEditor({ initial, models }: { initial: CreditConfig; models: string[] }) {
   const t = useTranslations("admin.pricing");
@@ -32,8 +64,8 @@ export default function PricingEditor({ initial, models }: { initial: CreditConf
   const box = "rounded-2xl border border-line bg-card p-4";
   const priceInputs = (p: Price, on: (p: Price) => void) => (
     <>
-      <input type="number" min={0} step="any" value={p.in} onChange={(e) => on({ ...p, in: num(e.target.value) })} className="field w-24 text-right tabular-nums" aria-label={t("in")} />
-      <input type="number" min={0} step="any" value={p.out} onChange={(e) => on({ ...p, out: num(e.target.value) })} className="field w-24 text-right tabular-nums" aria-label={t("out")} />
+      <NumField value={p.in} onChange={(n) => on({ ...p, in: n })} className="field w-24 text-right tabular-nums" aria-label={t("in")} />
+      <NumField value={p.out} onChange={(n) => on({ ...p, out: n })} className="field w-24 text-right tabular-nums" aria-label={t("out")} />
     </>
   );
 
@@ -47,7 +79,7 @@ export default function PricingEditor({ initial, models }: { initial: CreditConf
         </label>
         <label className="mt-2 flex items-center gap-2 text-sm">
           {t("bonus")}
-          <input type="number" min={0} step="any" value={c.signupBonus} onChange={(e) => set({ signupBonus: num(e.target.value) })} className="field w-28 text-right tabular-nums" />
+          <NumField value={c.signupBonus} onChange={(n) => set({ signupBonus: n })} className="field w-28 text-right tabular-nums" />
         </label>
       </div>
 
@@ -90,7 +122,7 @@ export default function PricingEditor({ initial, models }: { initial: CreditConf
         </div>
         <label className="mt-4 flex items-center gap-2 text-sm">
           {t("image")}
-          <input type="number" min={0} step="any" value={c.image} onChange={(e) => set({ image: num(e.target.value) })} className="field w-24 text-right tabular-nums" />
+          <NumField value={c.image} onChange={(n) => set({ image: n })} className="field w-24 text-right tabular-nums" />
         </label>
       </div>
 
@@ -100,7 +132,7 @@ export default function PricingEditor({ initial, models }: { initial: CreditConf
         <div className="mt-3 space-y-2">
           {c.packages.map((p, i) => (
             <div key={i} className="flex flex-wrap items-center gap-2 text-sm">
-              <input type="number" min={1} step="any" value={p.credits} onChange={(e) => set({ packages: c.packages.map((x, k) => (k === i ? { ...x, credits: num(e.target.value) } : x)) })} className="field w-28 text-right tabular-nums" aria-label="credit" />
+              <NumField value={p.credits} onChange={(n) => set({ packages: c.packages.map((x, k) => (k === i ? { ...x, credits: n } : x)) })} className="field w-28 text-right tabular-nums" aria-label="credit" />
               <span className="text-muted">credit =</span>
               <input type="number" min={0} step={1000} value={p.price} onChange={(e) => set({ packages: c.packages.map((x, k) => (k === i ? { ...x, price: Math.round(num(e.target.value)) } : x)) })} className="field w-32 text-right tabular-nums" aria-label="VND" />
               <span className="text-muted">₫</span>
@@ -127,7 +159,7 @@ export default function PricingEditor({ initial, models }: { initial: CreditConf
               </label>
               <label className="flex items-center gap-2">
                 {t("customRate")}
-                <input type="number" min={1} step="any" value={c.customPerCredit} onChange={(e) => set({ customPerCredit: Math.max(1, num(e.target.value)) })} className="field w-28 text-right tabular-nums" />
+                <NumField value={c.customPerCredit} min={1} onChange={(n) => set({ customPerCredit: n })} className="field w-28 text-right tabular-nums" />
                 <span className="text-muted">₫ / credit</span>
               </label>
               <span className="w-full text-xs text-muted">{t("customHint", { credits: Math.floor((c.customMin / c.customPerCredit) * 100) / 100, min: c.customMin.toLocaleString("vi-VN") })}</span>

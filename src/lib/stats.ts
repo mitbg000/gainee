@@ -7,9 +7,9 @@ const { activity, documents, lessons, words, lessonProgress } = schema;
 
 const lessonsDone = (uid: number) => getDb().select({ n: count() }).from(lessonProgress).where(and(eq(lessonProgress.userId, uid), isNotNull(lessonProgress.completedAt)));
 
-/** Consecutive days with any activity, ending today (or yesterday if today is still empty). */
-export async function streak(): Promise<number> {
-  const rows = await getDb().select({ day: activity.day }).from(activity).where(and(eq(activity.userId, await myId()), sql`(${activity.xp} > 0 or ${activity.minutes} > 0)`)).orderBy(desc(activity.day)).limit(400);
+/** Consecutive days with any activity, ending today (or yesterday if today is still empty); of `uid`, else of me. */
+export async function streak(uid?: number): Promise<number> {
+  const rows = await getDb().select({ day: activity.day }).from(activity).where(and(eq(activity.userId, uid ?? (await myId())), sql`(${activity.xp} > 0 or ${activity.minutes} > 0)`)).orderBy(desc(activity.day)).limit(400);
   const days = new Set(rows.map((r) => r.day));
   const d = new Date(`${today()}T00:00:00Z`);
   if (!days.has(today())) d.setUTCDate(d.getUTCDate() - 1);

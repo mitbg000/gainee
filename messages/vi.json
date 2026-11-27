@@ -2233,7 +2233,16 @@
       "expireHours": "Tự huỷ yêu cầu sau (giờ)",
       "expireHint": "0 = không tự huỷ. Tiền tới muộn sau khi hết hạn vẫn được cộng."
     },
-    "editUser": "Sửa quyền & tài khoản"
+    "editUser": "Sửa quyền & tài khoản",
+    "learner": {
+      "docs": "Bài đọc đã thêm",
+      "words": "Từ đã lưu",
+      "xp": "Tổng XP",
+      "streak": "Chuỗi ngày học",
+      "days": "{n} ngày",
+      "docList": "Bài đọc của học viên ({n})",
+      "docWords": "{n} chữ"
+    }
   },
   "auth": {
     "headline": "Đọc thứ bạn thích, giỏi tiếng Anh lên mỗi ngày.",

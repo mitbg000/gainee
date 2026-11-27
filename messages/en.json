@@ -2233,7 +2233,16 @@
       "expireHours": "Cancel requests after (hours)",
       "expireHint": "0 = never. Money arriving after that is still credited."
     },
-    "editUser": "Edit rights & account"
+    "editUser": "Edit rights & account",
+    "learner": {
+      "docs": "Readings added",
+      "words": "Saved words",
+      "xp": "Total XP",
+      "streak": "Streak",
+      "days": "{n, plural, one {# day} other {# days}}",
+      "docList": "Their readings ({n})",
+      "docWords": "{n} words"
+    }
   },
   "auth": {
     "headline": "Read what you like, get better at English every day.",
