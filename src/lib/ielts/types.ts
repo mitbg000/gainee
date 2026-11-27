@@ -15,7 +15,7 @@ export type Group = {
   to: number;
   /** "Complete the notes below. Write ONE WORD ONLY for each answer." */
   instructions: string;
-  /** gap: notes / table / summary / form with blanks written [[7]]. Lines: "# heading", "- bullet", "| a | b |" table rows (one per row, "<br>" between the lines inside a cell). */
+  /** gap: notes / table / summary / form with blanks written [[7]]. Lines: "# heading", "- bullet" ("  - " sub-bullet, "- Label: text"), "Label: text", "| a | b |" table rows (one per row, "<br>" between the lines inside a cell). */
   text?: string;
   /** match: the shared list (features, headings, sentence endings, letters on a map). */
   options?: Option[];
@@ -188,3 +188,30 @@ export function parseTable(lines: string[]): string[][][] {
     ),
   );
 }
+
+/** A "Label: text" line of notes or a form (no blank inside the label). */
+export const NOTE_LABEL = /^\s*([A-Za-z][^:[\]]{0,40}):\s*(.*)$/;
+export type Bullet = { level: number; label: string | null; text: string };
+
+/**
+ * A run of bullet lines "- text", sub-bullets indented by two spaces ("  - text", level 1). "- Label: text" keeps its
+ * label apart, so labelled bullets can line up in two columns like the book. An indented line without a marker
+ * continues the bullet above (a line the AI broke in the middle of a sentence).
+ */
+export function parseBullets(lines: string[]): Bullet[] {
+  const out: Bullet[] = [];
+  for (const raw of lines) {
+    const indent = (raw.match(/^[ \t]*/)?.[0] ?? "").replace(/\t/g, "  ").length;
+    const m = raw.trim().match(/^[-•–▪]\s+(.*)$/);
+    if (!m) {
+      if (out.length && raw.trim()) out[out.length - 1].text += ` ${raw.trim()}`;
+      continue;
+    }
+    const l = m[1].match(NOTE_LABEL);
+    out.push({ level: Math.min(2, Math.floor(indent / 2)), label: l ? l[1].trim() : null, text: l ? l[2] : m[1] });
+  }
+  return out;
+}
+
+/** Labelled bullets with something after the label all through, on one level: shown as columns (• label | text). */
+export const bulletColumns = (b: Bullet[]) => b.length > 1 && b.every((x) => x.level === 0 && x.label && x.text.trim());

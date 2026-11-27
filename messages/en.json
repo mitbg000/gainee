@@ -1495,7 +1495,7 @@
       },
       "removeGroup": "Delete this question group?",
       "instructions": "Instructions, e.g. Write ONE WORD ONLY for each answer.",
-      "gapHint": "Blanks are [[7]]. “# ” is a heading, “- ” a bullet, “| a | b |” a table row, “Label: text” a notes entry; a line indented with 2 spaces continues the entry above.",
+      "gapHint": "Blanks are written [[7]]. “# ” is a heading, “- ” a bullet, a sub-bullet indented two spaces “  - ”, “- Label: text” a labelled bullet (shown in two columns), “| a | b |” a table row, “Label: text” a notes item; a line indented two spaces continues the item above.",
       "optionsTitle": "List title (e.g. List of Headings)",
       "optionsHint": "One option per line: A text",
       "itemsHintChoice": "Each question starts with its number (choose two: “21-22 …”); the following lines are options “A …”.",

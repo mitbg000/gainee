@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import { numbersOfGroup, parseTable, splitBlanks, type Group, type Item, type SectionContent } from "@/lib/ielts/types";
+import { bulletColumns, NOTE_LABEL, numbersOfGroup, parseBullets, parseTable, splitBlanks, type Group, type Item, type SectionContent } from "@/lib/ielts/types";
 import * as I from "@/components/icons";
 
 export type QProps = {
@@ -62,8 +62,8 @@ function Blank({ n, p, numbered = true }: { n: number; p: QProps; numbered?: boo
   );
 }
 
-/** "Rent: from [[2]] a month" – a notes or form label (no blank inside the label). */
-const LABEL = /^\s*([A-Za-z][^:[\]]{0,40}):\s*(.*)$/;
+const LABEL = NOTE_LABEL;
+const BULLET = /^[-•–▪]\s/;
 
 /** Notes / form / table / summary with [[n]] blanks. */
 function GapText({ text, p }: { text: string; p: QProps }) {
@@ -84,7 +84,8 @@ function GapText({ text, p }: { text: string; p: QProps }) {
         const raw = lines[i];
         const m = raw.match(LABEL);
         if (m && !/^\s/.test(raw)) rows.push([m[1].trim(), m[2]]);
-        else if (/^\s+\S/.test(raw) && rows.length) rows.push(["", raw.trim().replace(/^[-•–]\s*/, "")]);
+        // lines under the label: a sub-bullet keeps its dash, like the book
+        else if (/^\s+\S/.test(raw) && rows.length) rows.push(["", BULLET.test(raw.trim()) ? `– ${raw.trim().replace(/^[-•–▪]\s*/, "")}` : raw.trim()]);
         else if (raw.trim()) break;
         i++;
       }
@@ -138,12 +139,39 @@ function GapText({ text, p }: { text: string; p: QProps }) {
         </div>,
       );
     } else if (line.startsWith("#")) out.push(<p key={i} className="mt-3 font-bold">{inline(line.replace(/^#+\s*/, ""))}</p>);
-    else if (/^[-•–]\s/.test(line))
+    else if (BULLET.test(line)) {
+      // a run of bullets: sub-bullets indented, lines continuing a bullet (indented, no marker) joined to it
+      const block: string[] = [];
+      while (i < lines.length && lines[i].trim() && (BULLET.test(lines[i].trim()) || (block.length && /^\s+\S/.test(lines[i]) && !lines[i].trim().startsWith("|")))) block.push(lines[i++]);
+      i--;
+      const items = parseBullets(block);
       out.push(
-        <p key={i} className="ml-5 list-item list-disc leading-10">
-          {inline(line.replace(/^[-•–]\s*/, ""))}
-        </p>,
+        bulletColumns(items) ? (
+          // "• Name of ferry company:   [[1]] Ferries" – label and answer in two columns, like the book
+          <div key={i} className="my-2 grid grid-cols-[auto_1fr] gap-x-2 sm:grid-cols-[auto_minmax(0,auto)_1fr] sm:gap-x-4">
+            {items.map((b, bi) => (
+              <Fragment key={bi}>
+                <span aria-hidden className="leading-10">•</span>
+                <span className="leading-10 sm:font-normal">{b.label}:</span>
+                <span className="col-start-2 pl-0 leading-10 sm:col-start-auto">{inline(b.text)}</span>
+              </Fragment>
+            ))}
+          </div>
+        ) : (
+          <div key={i} className="my-1">
+            {items.map((b, bi) => (
+              <div key={bi} className="flex gap-2 leading-10" style={{ paddingLeft: `${b.level * 1.75}rem` }}>
+                <span aria-hidden className="w-3 shrink-0 text-center">{b.level ? "–" : "•"}</span>
+                <span className="min-w-0">
+                  {b.label !== null && `${b.label}: `}
+                  {inline(b.text)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ),
       );
+    }
     else out.push(<p key={i} className="leading-10">{inline(line)}</p>);
   }
   return <div>{out}</div>;
