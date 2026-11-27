@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
-import Avatar from "@/components/Avatar";
 import GoalBars from "@/components/GoalBars";
 import Shell from "@/components/Shell";
 import ProfileEdit from "@/components/settings/ProfileEdit";
 import { getDb, schema } from "@/db";
+import { getCreditConfig } from "@/lib/credits";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { goalProgress } from "@/lib/goals";
 import { imageUrl } from "@/lib/images";
@@ -20,21 +20,24 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
   const me = (await currentUser())!; // Shell sends the logged-out to /login
   const t = await getTranslations("profile");
-  const tp = await getTranslations("settings.profile");
   const ta = await getTranslations("admin");
   const f = await getFormatter();
   const db = getDb();
   const c = schema.aiCalls;
 
-  const [stats, mastered, [xp], goals, profile, groups, [used]] = await Promise.all([
+  const tokens = sql<number>`coalesce(sum(coalesce(${c.promptTokens}, 0) + coalesce(${c.completionTokens}, 0)), 0)`;
+  const [stats, mastered, [xp], goals, profile, groups, [used], cfg] = await Promise.all([
     dashboardStats(),
     masteredByWeek(),
     db.select({ n: sql<number>`coalesce(sum(${schema.activity.xp}), 0)`, minutes: sql<number>`coalesce(sum(${schema.activity.minutes}), 0)` }).from(schema.activity).where(eq(schema.activity.userId, me.id)),
     goalProgress(),
     getProfile(),
     db.select({ name: schema.groups.name }).from(schema.userGroups).innerJoin(schema.groups, eq(schema.groups.id, schema.userGroups.groupId)).where(eq(schema.userGroups.userId, me.id)),
-    db.select({ n: sql<number>`coalesce(sum(${c.credits}), 0)` }).from(c).where(and(eq(c.userId, me.id), gte(c.createdAt, new Date(Date.now() - 30 * 86_400_000)))),
+    db.select({ credits: sql<number>`coalesce(sum(${c.credits}), 0)`, tokens }).from(c).where(and(eq(c.userId, me.id), gte(c.createdAt, new Date(Date.now() - 30 * 86_400_000)))),
+    getCreditConfig(),
   ]);
+  // shortcut: tokens left at the default price, half reading half writing; models with their own price differ
+  const perToken = (cfg.default.in + cfg.default.out) / 2 / 1e6;
   const admin = me.role === "admin";
   const num = (n: number) => f.number(Number(n), { notation: Number(n) >= 100_000 ? "compact" : "standard", maximumFractionDigits: 1 });
   const avatar = me.avatar ? imageUrl(me.avatar) : null;
@@ -47,35 +50,11 @@ export default async function ProfilePage() {
     { label: t("words"), value: num(stats.words), icon: I.IconWords, tone: "text-accent" },
     { label: t("mastered"), value: num(mastered.known), icon: I.IconStar, tone: "text-green-700 dark:text-green-400" },
   ];
-  const facts = [
-    `${tp("levelShort")} ${profile.level}`,
-    `${tp("bandShort")} ${profile.targetBand}`,
-    `${tp("explainShort")} ${profile.explainIn === "vi" ? "Tiếng Việt" : "English"}`,
-    tp("wordsShort", { n: profile.lessonWords }),
-  ];
 
   return (
     <Shell wide>
-      {/* who, in short; Edit opens the forms */}
-      <ProfileEdit account={{ avatar, name: me.name ?? "", email: me.email }}>
-        <div className="flex items-center gap-4">
-          <Avatar url={avatar} name={me.name || me.email} className="size-16 text-2xl" />
-          <div className="min-w-0">
-            <h1 className="break-words font-serif text-2xl font-bold md:text-3xl">{me.name || me.email}</h1>
-            <p className="break-words text-sm text-muted">
-              {me.email} · {ta(`roles.${me.role}`)}
-              {groups.length > 0 && ` · ${groups.map((g) => g.name).join(", ")}`}
-            </p>
-          </div>
-        </div>
-        <ul className="mt-3 flex flex-wrap gap-1.5 text-xs">
-          {facts.map((x) => (
-            <li key={x} className="rounded-full bg-paper px-2.5 py-1 text-muted">
-              {x}
-            </li>
-          ))}
-        </ul>
-      </ProfileEdit>
+      {/* who, in short; Edit opens one form */}
+      <ProfileEdit avatar={avatar} name={me.name ?? ""} email={me.email} sub={[me.email, ta(`roles.${me.role}`), ...groups.map((g) => g.name)].join(" · ")} profile={profile} />
 
       {/* learning: the heart of the page */}
       <div className="mt-8 flex items-baseline gap-3">
@@ -100,19 +79,30 @@ export default async function ProfilePage() {
         </section>
       )}
 
-      {/* credits, one line */}
-      <section className={`${tile} mt-8 flex flex-wrap items-center gap-x-6 gap-y-2`}>
-        <I.IconCoin className="h-5 w-5 text-accent" />
-        <p className="text-sm">
-          <span className="text-muted">{t("balance")}</span>{" "}
-          <span className={`font-semibold tabular-nums ${!admin && me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`}>{admin ? "∞" : `${fmtCredits(me.credits)} credit`}</span>
-        </p>
-        <p className="text-sm text-muted">{t("used30", { n: fmtCredits(Number(used.n)) })}</p>
-        {!admin && (
-          <Link href="/credits" className="btn btn-sm btn-secondary ml-auto">
-            {t("topup")}
-          </Link>
-        )}
+      {/* AI and credits, in short */}
+      <section className={`${tile} mt-8 p-5`}>
+        <div className="flex items-center gap-2">
+          <I.IconSpark className="h-5 w-5 text-accent" />
+          <h2 className="font-semibold">{t("aiTitle")}</h2>
+          {!admin && (
+            <Link href="/credits" className="btn btn-sm btn-primary ml-auto">
+              <I.IconCoin className="h-4 w-4" /> {t("topup")}
+            </Link>
+          )}
+        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {[
+            [t("balance"), admin ? "∞" : fmtCredits(me.credits), !admin && me.credits <= 0],
+            [t("tokensLeftShort"), admin || perToken <= 0 ? "∞" : `≈ ${num(Math.floor(Math.max(0, me.credits) / perToken))}`, false],
+            [t("tokensUsed30"), num(Number(used.tokens)), false],
+            [t("creditsUsed30"), fmtCredits(Number(used.credits)), false],
+          ].map(([label, value, low]) => (
+            <div key={String(label)}>
+              <dt className="text-xs text-muted">{label}</dt>
+              <dd className={`mt-0.5 font-serif text-2xl font-bold tabular-nums ${low ? "text-red-600 dark:text-red-400" : ""}`}>{value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </Shell>
   );

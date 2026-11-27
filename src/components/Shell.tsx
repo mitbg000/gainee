@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
 import { dueCount } from "@/lib/review";
 import { streak } from "@/lib/stats";
+import { getCreditConfig } from "@/lib/credits";
 import { imageUrl } from "@/lib/images";
 import { currentUser, mayUse } from "@/lib/users";
 import { getTheme } from "@/theme/server";
@@ -28,7 +29,10 @@ export default async function Shell({ children, wide = false, full = false }: { 
   if (!me) redirect("/login"); // account locked or session ended (password changed)
   const admin = me.role === "admin";
   const hidden = (await mayUse("add_documents")) ? [] : ["/import"];
-  const who = { avatar: me.avatar ? imageUrl(me.avatar) : null, name: me.name || me.email, email: me.email, credits: admin ? null : me.credits, admin };
+  const cfg = await getCreditConfig().catch(() => null);
+  const perToken = cfg ? (cfg.default.in + cfg.default.out) / 2 / 1e6 : 0; // default price, half reading half writing
+  const tokens = admin || perToken <= 0 ? null : Math.floor(Math.max(0, me.credits) / perToken);
+  const who = { avatar: me.avatar ? imageUrl(me.avatar) : null, name: me.name || me.email, email: me.email, credits: admin ? null : me.credits, tokens, admin };
 
   return (
     <div className="min-h-dvh md:flex">
@@ -40,7 +44,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
         </Link>
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
         <SidebarNav tree={tree} admin={admin} hidden={hidden} badges={{ "/review": due }} />
-        <SidebarAccount name={me.name || me.email} avatar={me.avatar ? imageUrl(me.avatar) : null} credits={admin ? null : me.credits} />
+        <SidebarAccount name={who.name} avatar={who.avatar} credits={who.credits} tokens={tokens} />
       </CollapsibleSidebar>
 
       {/* Mobile top bar */}

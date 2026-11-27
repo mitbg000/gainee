@@ -2330,6 +2330,13 @@
     "minutes": "minutes studied",
     "done": "Done",
     "goalsTitle": "Goals today and this week",
-    "used30": "{n} credits used in 30 days"
+    "used30": "{n} credits used in 30 days",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saveError": "Could not save, please try again",
+    "tokensLeftShort": "Tokens left",
+    "tokensUsed30": "Tokens used (30 days)",
+    "creditsUsed30": "Credits used (30 days)"
   }
 }

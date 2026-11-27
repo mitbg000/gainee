@@ -2330,6 +2330,13 @@
     "minutes": "phút học",
     "done": "Xong",
     "goalsTitle": "Mục tiêu hôm nay và tuần này",
-    "used30": "đã dùng {n} credit trong 30 ngày"
+    "used30": "đã dùng {n} credit trong 30 ngày",
+    "save": "Lưu thay đổi",
+    "saving": "Đang lưu…",
+    "cancel": "Huỷ",
+    "saveError": "Không lưu được, hãy thử lại",
+    "tokensLeftShort": "Token còn dùng được",
+    "tokensUsed30": "Token đã dùng (30 ngày)",
+    "creditsUsed30": "Credit đã dùng (30 ngày)"
   }
 }
