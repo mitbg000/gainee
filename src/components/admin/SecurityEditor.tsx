@@ -27,6 +27,7 @@ export default function SecurityEditor({ initial, hasSecret, hasSmtpPass }: { in
   const [secret, setSecret] = useState("");
   const [smtpPass, setSmtpPass] = useState("");
   const [test, setTest] = useState("");
+  const [testTo, setTestTo] = useState("");
   const [state, setState] = useState<"" | "saving" | "saved" | "error">("");
   const set = (p: Partial<C>) => {
     setC({ ...c, ...p });
@@ -54,7 +55,7 @@ export default function SecurityEditor({ initial, hasSecret, hasSmtpPass }: { in
   );
   async function sendTest() {
     setTest(t("testing"));
-    const r = await fetch("/api/admin/security/test-mail", { method: "POST" }).catch(() => null);
+    const r = await fetch("/api/admin/security/test-mail", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ to: testTo.trim() || undefined }) }).catch(() => null);
     setTest(r?.ok ? t("testSent") : t("testFailed", { error: (await r?.json().catch(() => ({})))?.error ?? "network" }));
   }
   const text = (k: keyof C, label: string, ph = "", type = "text") => (
@@ -118,6 +119,7 @@ export default function SecurityEditor({ initial, hasSecret, hasSmtpPass }: { in
           </label>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
+          <input type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder={t("testTo")} className="field-sm w-64 max-w-full" aria-label={t("testTo")} />
           <button onClick={sendTest} className="btn btn-sm btn-secondary">
             {t("testMail")}
           </button>

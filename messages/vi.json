@@ -2109,7 +2109,8 @@
       "testMail": "Gửi email thử tới tôi",
       "testing": "Đang gửi…",
       "testSent": "Đã gửi, hãy kiểm tra hộp thư",
-      "testFailed": "Không gửi được: {error}"
+      "testFailed": "Không gửi được: {error}",
+      "testTo": "Gửi tới email (để trống: email của bạn)"
     }
   },
   "auth": {

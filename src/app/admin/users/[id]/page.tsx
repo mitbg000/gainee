@@ -38,7 +38,7 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
         {u.email} · {t("joined", { date: when(u.createdAt) })}
       </p>
       <UserEditor
-        user={{ id: u.id, name: u.name ?? "", role: u.role, disabled: u.disabled, credits: u.credits, features: u.features ?? null }}
+        user={{ id: u.id, email: u.email, name: u.name ?? "", role: u.role, disabled: u.disabled, credits: u.credits, features: u.features ?? null }}
         defaults={Object.fromEntries(FEATURES.map((x) => [x, canUse({ ...u, features: null }, x, sw)]))}
         features={FEATURES}
         groups={groups}

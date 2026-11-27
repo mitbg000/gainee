@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
 
 const Input = z.object({
+  email: z.string().trim().toLowerCase().email().max(191).optional(),
   name: z.string().trim().max(100).optional(),
   role: z.enum(ROLES).optional(),
   features: z.record(z.enum(FEATURES), z.boolean()).nullable().optional(),
@@ -31,6 +32,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (id === me.id && ((d.role && d.role !== "admin") || d.disabled)) return bad("not_yourself"); // never lock out the last way in
   const { password, logoutAll, groupIds, ...rest } = d;
   const db = getDb();
+  if (d.email) {
+    const [other] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, d.email));
+    if (other && other.id !== id) return bad("email_taken", 409);
+  }
   if (groupIds)
     await db.transaction(async (tx) => {
       await tx.delete(schema.userGroups).where(eq(schema.userGroups.userId, id));

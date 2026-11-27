@@ -6,7 +6,7 @@ import { useState } from "react";
 import { fmtCredits } from "@/lib/fmtCredits";
 import Switches from "./Switches";
 
-type U = { id: number; name: string; role: "student" | "editor" | "admin"; disabled: boolean; credits: number; features: Record<string, boolean> | null };
+type U = { id: number; email: string; name: string; role: "student" | "editor" | "admin"; disabled: boolean; credits: number; features: Record<string, boolean> | null };
 const json = (method: string, body: unknown) => ({ method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
 /** One account: role, which AI features it may use, lock, new password, credits by hand. */
@@ -29,7 +29,7 @@ export default function UserEditor({ user, defaults, features, groups, groupIds,
     if (!e) router.refresh();
     return !e;
   }
-  const save = () => send(`/api/admin/users/${u.id}`, json("PATCH", { name: u.name, role: u.role, disabled: u.disabled, features: Object.keys(feat).length ? feat : null, groupIds: inGroups, ...(password ? { password } : {}) }), t("saved")).then((ok) => ok && setPassword(""));
+  const save = () => send(`/api/admin/users/${u.id}`, json("PATCH", { email: u.email, name: u.name, role: u.role, disabled: u.disabled, features: Object.keys(feat).length ? feat : null, groupIds: inGroups, ...(password ? { password } : {}) }), t("saved")).then((ok) => ok && setPassword(""));
   const give = async () => {
     const n = Number(amount);
     if (!n) return;
@@ -43,6 +43,10 @@ export default function UserEditor({ user, defaults, features, groups, groupIds,
   return (
     <div className="mt-5 grid gap-4 md:grid-cols-2">
       <div className={box}>
+        <label className="mb-3 block text-sm">
+          Email
+          <input type="email" value={u.email} onChange={(e) => setU({ ...u, email: e.target.value })} maxLength={191} className="field mt-1 w-full" />
+        </label>
         <label className="block text-sm">
           {t("name")}
           <input value={u.name} onChange={(e) => setU({ ...u, name: e.target.value })} maxLength={100} className="field mt-1 w-full" />

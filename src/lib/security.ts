@@ -30,8 +30,12 @@ export const getSecurity = async () => SecurityConfig.parse((await getSetting("s
 /** Save; a new secret (plain) replaces the stored one, an empty one keeps it. */
 export async function setSecurity(c: Omit<SecurityConfig, "turnstileSecretEnc" | "smtpPassEnc">, secrets: { turnstile?: string; smtp?: string } = {}) {
   const cur = await getSecurity();
+  const scheme = c.smtpHost.trim().match(/^(smtps?):\/\//i)?.[1]?.toLowerCase();
   await setSetting("security.config", {
     ...c,
+    // "smtps://host" or "smtp://host:465/" pasted from a provider's page → the host name only
+    smtpHost: c.smtpHost.trim().replace(/^smtps?:\/\//i, "").replace(/[:/].*$/, ""),
+    smtpSecure: scheme === "smtps" ? true : c.smtpSecure,
     siteUrl: c.siteUrl.replace(/\/+$/, ""),
     turnstileSecretEnc: secrets.turnstile ? encrypt(secrets.turnstile) : cur.turnstileSecretEnc,
     smtpPassEnc: secrets.smtp ? encrypt(secrets.smtp) : cur.smtpPassEnc,

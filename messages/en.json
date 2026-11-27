@@ -2109,7 +2109,8 @@
       "testMail": "Send a test e-mail to me",
       "testing": "Sending…",
       "testSent": "Sent, check your inbox",
-      "testFailed": "Could not send: {error}"
+      "testFailed": "Could not send: {error}",
+      "testTo": "Send to (empty: your e-mail)"
     }
   },
   "auth": {
