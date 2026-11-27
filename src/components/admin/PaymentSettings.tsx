@@ -59,7 +59,7 @@ export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUr
             className={`field mt-1 w-full font-mono ${badPrefix ? "border-red-500" : ""}`}
             aria-invalid={badPrefix}
           />
-          <span className={`mt-1 block text-xs ${badPrefix ? "text-red-600" : "text-muted"}`}>{badPrefix ? t("prefixBad") : t("prefixExample", { code: `${c.prefix || "GN"}000123` })}</span>
+          <span className={`mt-1 block text-xs ${badPrefix ? "text-red-600" : "text-muted"}`}>{badPrefix ? t("prefixBad") : t("prefixExample", { code: `${c.prefix || "GN"}K7Q2M9XA` })}</span>
         </label>
       </div>
 

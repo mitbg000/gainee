@@ -2186,7 +2186,7 @@
       "step1": "Liên kết tài khoản ngân hàng ở trên với SePay.",
       "step2": "Webhooks → Thêm webhook: sự kiện \"Có tiền vào\", gửi JSON tới",
       "step3": "Bảo mật: chọn HMAC-SHA256 (khuyên dùng) hoặc API Key, rồi dán khoá vào ô bên dưới.",
-      "step4": "Cấu hình Công ty → Cấu trúc mã thanh toán: tiền tố {prefix}, hậu tố là số, dài 6–8 ký tự. Đổi tiền tố thì đổi ở cả hai nơi; khoản đã chuyển với mã cũ sẽ nằm trong mục \"Giao dịch SePay cần xem\".",
+      "step4": "Cấu hình Công ty → Cấu trúc mã thanh toán: tiền tố {prefix}, kiểu hậu tố \"Số và chữ\", độ dài tối thiểu 8 và tối đa 8. Đổi tiền tố thì đổi ở cả hai nơi; khoản đã chuyển với mã cũ sẽ nằm trong mục \"Giao dịch SePay cần xem\".",
       "kept": "Đã lưu (để trống nếu không đổi)",
       "apiKeyHint": "Khoá API của webhook",
       "hmacHint": "Secret key HMAC của webhook",
@@ -2206,7 +2206,7 @@
         "paid": "Đã cộng"
       },
       "prefix": "Tiền tố mã đơn",
-      "prefixExample": "Mã đơn sẽ là {code}",
+      "prefixExample": "Mã đơn dạng {code} (8 ký tự chữ và số ngẫu nhiên)",
       "prefixBad": "2–5 chữ cái A–Z, không dấu"
     }
   },

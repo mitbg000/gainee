@@ -15,7 +15,7 @@ import { getDb, schema } from "@/db";
 import type { AiRouting } from "@/lib/ai/tasks";
 import { getCreditConfig } from "@/lib/credits";
 import { imageUrl } from "@/lib/images";
-import { getSepay, topupCode } from "@/lib/payments";
+import { getSepay } from "@/lib/payments";
 import { captchaOn, getSecurity, mailOn } from "@/lib/security";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { getSetting } from "@/lib/settings";
@@ -188,20 +188,25 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       .innerJoin(schema.users, eq(schema.users.id, schema.topups.userId))
       .orderBy(sql`${schema.topups.status} = 'pending' desc`, desc(schema.topups.id))
       .limit(100);
-    const { prefix } = await getSepay();
     // transfers SePay reported that did not pay a request by themselves: settle them by hand
-    const odd = await db.select().from(schema.payments).where(sql`${schema.payments.status} <> 'paid'`).orderBy(desc(schema.payments.createdAt)).limit(30);
+    const odd = await db
+      .select({ p: schema.payments, code: schema.topups.code })
+      .from(schema.payments)
+      .leftJoin(schema.topups, eq(schema.topups.id, schema.payments.topupId))
+      .where(sql`${schema.payments.status} <> 'paid'`)
+      .orderBy(desc(schema.payments.createdAt))
+      .limit(30);
     const oddList = odd.length > 0 && (
       <section className="mb-6">
         <h2 className="font-semibold">{t("payments.oddTitle")}</h2>
         <p className="text-xs text-muted">{t("payments.oddHint")}</p>
         <ul className="mt-2 divide-y divide-line rounded-2xl border border-line bg-card text-sm">
-          {odd.map((p) => (
+          {odd.map(({ p, code }) => (
             <li key={p.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
               <span className="w-28 text-xs text-muted">{when(p.createdAt)}</span>
               <span className="font-semibold tabular-nums">{vnd(p.amount)}</span>
               <span className="min-w-0 flex-1 truncate text-muted">{p.content}</span>
-              {p.topupId && <span className="font-mono text-xs">{topupCode(p.topupId, prefix)}</span>}
+              {code && <span className="font-mono text-xs">{code}</span>}
               <span className="chip">{t(`payments.status.${p.status}`)}</span>
             </li>
           ))}
@@ -214,7 +219,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <ul className="divide-y divide-line rounded-2xl border border-line bg-card text-sm">
         {rows.map(({ r, email, name }) => (
           <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-            <span className="font-mono text-xs text-muted">{topupCode(r.id, prefix)}</span>
+            <span className="font-mono text-xs text-muted">{r.code}</span>
             <span className="min-w-0 flex-1">
               <Link href={`/admin/users/${r.userId}`} className="font-semibold hover:text-accent">
                 {name || email}
@@ -224,7 +229,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 · {fmtCredits(r.credits)} credit · {vnd(r.price)} · {when(r.createdAt)}
               </span>
             </span>
-            {r.status === "pending" ? <TopupActions id={r.id} code={topupCode(r.id, prefix)} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status}`)}</span>}
+            {r.status === "pending" ? <TopupActions id={r.id} code={r.code} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status}`)}</span>}
           </li>
         ))}
       </ul>

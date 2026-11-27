@@ -4,7 +4,7 @@
  * Docs: developer.sepay.vn → SePay Webhooks (payload, API Key / HMAC-SHA256, answer {"success": true}).
  */
 import crypto from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { addCredits } from "@/lib/credits";
@@ -12,12 +12,29 @@ import { decrypt, encrypt } from "@/lib/crypto";
 import { getSetting, setSetting } from "@/lib/settings";
 
 /**
- * A request's code: the admin's prefix + 6 digits (NAP000123). The same prefix goes in SePay → Cấu trúc mã thanh toán
- * (digits, 6–8 long).
+ * A request's code: the admin's prefix + 8 random letters and digits (NAPK7Q2M9XA), stored with the request; not a
+ * running number, so codes cannot be guessed. The same prefix goes in SePay → Cấu trúc mã thanh toán (letters and
+ * digits, 8 long). Requests made before this kept their old code (GN000123).
  */
 export const DEFAULT_PREFIX = "GN";
-export const topupCode = (id: number, prefix: string) => `${prefix}${String(id).padStart(6, "0")}`;
-const codeRe = (prefix: string) => new RegExp(`${prefix}\\s?(\\d{6,8})`, "i");
+const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I/L: easy to type from the screen
+export const SUFFIX = 8;
+export function newTopupCode(prefix: string) {
+  const bytes = crypto.randomBytes(SUFFIX);
+  return prefix + Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join("");
+}
+/** Codes that may be in a transfer's text: the prefix + 8 letters/digits (new), or + 6 digits (older requests). */
+export function codesIn(text: string, prefix: string) {
+  const up = text.toUpperCase();
+  const re = new RegExp(`${prefix}\\s?([A-Z0-9]{${SUFFIX}}|\\d{6})`, "g");
+  const out = new Set<string>();
+  for (const m of up.matchAll(re)) {
+    out.add(prefix + m[1]); // 8 characters (letters stuck to the next word are cut at 8)
+    const digits = m[1].match(/^\d{6}/);
+    if (digits) out.add(prefix + digits[0]); // an old 6-digit code followed by more text
+  }
+  return [...out];
+}
 
 export const SepayConfig = z.object({
   enabled: z.boolean().default(false),
@@ -108,9 +125,8 @@ export async function takePayment(p: z.infer<typeof Webhook>, raw: Record<string
   if (p.transferType !== "in") return "ignored";
   const db = getDb();
   const text = `${p.code ?? ""} ${p.content} ${p.description ?? ""}`;
-  const m = codeRe(prefix).exec(text);
-  const topupId = m ? Number(m[1]) : null;
-  const [t] = topupId ? await db.select().from(schema.topups).where(eq(schema.topups.id, topupId)) : [];
+  const codes = codesIn(text, prefix);
+  const [t] = codes.length ? await db.select().from(schema.topups).where(inArray(schema.topups.code, codes)).orderBy(sql`${schema.topups.status} = 'pending' desc`).limit(1) : [];
   const status = !t ? "unmatched" : t.status !== "pending" ? "settled" : p.transferAmount < t.price ? "underpaid" : "paid";
   try {
     await db.insert(schema.payments).values({ id: p.id, topupId: t?.id ?? null, amount: p.transferAmount, content: p.content.slice(0, 500), status, raw });
@@ -122,6 +138,6 @@ export async function takePayment(p: z.infer<typeof Webhook>, raw: Record<string
     .update(schema.topups)
     .set({ status: "done", doneAt: new Date(), note: `SePay #${p.id}` })
     .where(and(eq(schema.topups.id, t.id), eq(schema.topups.status, "pending")));
-  if ((res as unknown as [{ affectedRows: number }])[0].affectedRows === 1) await addCredits(t.userId, t.credits, "topup", `${topupCode(t.id, prefix)} · SePay`);
+  if ((res as unknown as [{ affectedRows: number }])[0].affectedRows === 1) await addCredits(t.userId, t.credits, "topup", `${t.code} · SePay`);
   return status;
 }

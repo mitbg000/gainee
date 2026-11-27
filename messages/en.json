@@ -2186,7 +2186,7 @@
       "step1": "Link the bank account above to SePay.",
       "step2": "Webhooks → Add webhook: event \"money in\", send JSON to",
       "step3": "Security: choose HMAC-SHA256 (recommended) or API Key, and paste the key below.",
-      "step4": "Company settings → Payment code structure: prefix {prefix}, digits, 6–8 long. Change the prefix in both places; transfers made with the old code show under \"SePay transfers to check\".",
+      "step4": "Company settings → Payment code structure: prefix {prefix}, suffix type \"letters and digits\", length 8 to 8. Change the prefix in both places; transfers made with an old code show under \"SePay transfers to check\".",
       "kept": "Saved (leave empty to keep it)",
       "apiKeyHint": "The webhook's API key",
       "hmacHint": "The webhook's HMAC secret key",
@@ -2206,7 +2206,7 @@
         "paid": "Added"
       },
       "prefix": "Order code prefix",
-      "prefixExample": "Codes will look like {code}",
+      "prefixExample": "Codes look like {code} (8 random letters and digits)",
       "prefixBad": "2–5 letters A–Z"
     }
   },

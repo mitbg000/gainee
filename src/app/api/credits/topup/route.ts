@@ -5,7 +5,7 @@ import { getDb, schema } from "@/db";
 import { bad, parseBody } from "@/lib/api";
 import { CODE, CouponError, discounted, take, usable } from "@/lib/coupons";
 import { addCredits, customCredits, getCreditConfig } from "@/lib/credits";
-import { getSepay, qrUrl, sepayOn, topupCode } from "@/lib/payments";
+import { getSepay, newTopupCode, qrUrl, sepayOn } from "@/lib/payments";
 import { currentUser } from "@/lib/users";
 
 export const runtime = "nodejs";
@@ -43,14 +43,14 @@ export async function POST(req: Request) {
   const db = getDb();
   const [{ n }] = await db.select({ n: count() }).from(schema.topups).where(and(eq(schema.topups.userId, u.id), eq(schema.topups.status, "pending")));
   if (n >= 3) return bad("too_many_pending", 429);
+  const sepay = await getSepay();
+  const code = newTopupCode(sepay.prefix); // 31^8 codes: a clash is not worth a retry loop
   try {
     const id = await db.transaction(async (tx) => {
       if (k) await take(tx, k, u.id);
-      const [{ id }] = await tx.insert(schema.topups).values({ userId: u.id, credits: pack.credits, price, couponId: k?.id ?? null, discount: pack.price - price }).$returningId();
+      const [{ id }] = await tx.insert(schema.topups).values({ userId: u.id, code, credits: pack.credits, price, couponId: k?.id ?? null, discount: pack.price - price }).$returningId();
       return id;
     });
-    const sepay = await getSepay();
-    const code = topupCode(id, sepay.prefix);
     if (price === 0) {
       // fully discounted: nothing to transfer
       await db.update(schema.topups).set({ status: "done", doneAt: new Date(), note: "100%" }).where(eq(schema.topups.id, id));

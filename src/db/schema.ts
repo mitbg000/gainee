@@ -89,6 +89,8 @@ export const topups = mysqlTable(
   {
     id: pk(),
     userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    /** what the learner writes in the transfer: the admin's prefix + 8 random letters/digits (NAPK7Q2M9XA) */
+    code: varchar("code", { length: 20 }).notNull().unique(),
     credits: double("credits").notNull(),
     price: int("price").notNull(), // VND
     status: mysqlEnum("status", ["pending", "done", "rejected"]).notNull().default("pending"),
