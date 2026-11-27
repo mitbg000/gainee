@@ -221,7 +221,11 @@
       "level": "Current level (CEFR)",
       "targetBand": "Target IELTS band",
       "explainIn": "Explanations in",
-      "lessonWords": "Words per lesson"
+      "lessonWords": "Words per lesson",
+      "levelShort": "Level",
+      "bandShort": "Target band",
+      "explainShort": "Explained in",
+      "wordsShort": "~{n} words a lesson"
     },
     "providers": {
       "title": "AI providers",
@@ -2323,6 +2327,9 @@
     "words": "words saved",
     "mastered": "words known",
     "lessons": "parts finished",
-    "minutes": "minutes studied"
+    "minutes": "minutes studied",
+    "done": "Done",
+    "goalsTitle": "Goals today and this week",
+    "used30": "{n} credits used in 30 days"
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Profile } from "@/lib/profile";
 import * as I from "@/components/icons";
@@ -9,6 +10,7 @@ export default function ProfileSettings() {
   const t = useTranslations("settings.profile");
   const [p, setP] = useState<Profile | null>(null);
   const [saved, setSaved] = useState(false);
+  const router = useRouter();
   useEffect(() => {
     fetch("/api/settings/profile").then(async (r) => setP(await r.json()));
   }, []);
@@ -18,6 +20,7 @@ export default function ProfileSettings() {
     setP(next);
     const r = await fetch("/api/settings/profile", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
     setSaved(r.ok);
+    if (r.ok) router.refresh(); // the summary at the top of the profile page
     setTimeout(() => setSaved(false), 1500);
   }
   const sel = "min-h-10 rounded-lg border border-line bg-paper px-2 text-sm";

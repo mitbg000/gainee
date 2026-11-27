@@ -221,7 +221,11 @@
       "level": "Trình độ hiện tại (CEFR)",
       "targetBand": "Band IELTS mục tiêu",
       "explainIn": "Giải thích bằng",
-      "lessonWords": "Số từ mỗi bài"
+      "lessonWords": "Số từ mỗi bài",
+      "levelShort": "Trình độ",
+      "bandShort": "Mục tiêu band",
+      "explainShort": "Giải thích bằng",
+      "wordsShort": "~{n} từ mỗi bài"
     },
     "providers": {
       "title": "Nhà cung cấp AI",
@@ -2323,6 +2327,9 @@
     "words": "từ đã lưu",
     "mastered": "từ đã thuộc",
     "lessons": "phần đã học xong",
-    "minutes": "phút học"
+    "minutes": "phút học",
+    "done": "Xong",
+    "goalsTitle": "Mục tiêu hôm nay và tuần này",
+    "used30": "đã dùng {n} credit trong 30 ngày"
   }
 }
