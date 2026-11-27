@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
-import AttemptList from "@/components/ielts/AttemptList";
 import { InlineRename } from "@/components/ielts/BookTitle";
-import { listBooks, mistakes, recentAttempts } from "@/lib/ielts/queries";
+import BookFilter from "@/components/ielts/BookFilter";
+import IeltsTabs from "@/components/ielts/IeltsTabs";
+import { listBooks, mistakes } from "@/lib/ielts/queries";
 import { isEditor } from "@/lib/users";
 import * as I from "@/components/icons";
 
@@ -12,11 +13,10 @@ export const dynamic = "force-dynamic";
 /** IELTS hub: uploaded books → tests → mock tests (like the computer exam), practice per part and short lessons per question group. */
 export default async function IeltsPage() {
   const t = await getTranslations("ielts");
-  const [all, attempts, wrong, editor] = await Promise.all([listBooks(), recentAttempts(12), mistakes(), isEditor()]);
+  const [all, wrong, editor] = await Promise.all([listBooks(), mistakes(), isEditor()]);
   const books = editor ? all : all.filter((b) => b.tests.length); // learners see the books that are ready
-  const tests = new Map(books.flatMap((b) => b.tests.map((x) => [x.id, `${b.title} · ${x.title}`] as const)));
-  const sections = new Map(books.flatMap((b) => b.tests.flatMap((x) => x.sections.map((s) => [s.id, `${t(`skill.${s.skill}`)} ${s.part}`] as const))));
-  const ready = books.filter((b) => b.tests.length);
+  // newest book first ("Cambridge 19" before "Cambridge 2")
+  const ready = books.filter((b) => b.tests.length).sort((a, b) => b.title.localeCompare(a.title, undefined, { numeric: true }));
 
   return (
     <Shell wide>
@@ -34,6 +34,7 @@ export default async function IeltsPage() {
           </Link>
         )}
       </div>
+      <IeltsTabs active="books" />
 
       {!books.length && (
         <div className="mt-8 rounded-3xl border border-dashed border-line bg-card p-10 text-center">
@@ -58,24 +59,28 @@ export default async function IeltsPage() {
           </Link>
         ))}
 
-      {ready.map((b) => {
+      {ready.length > 4 && <BookFilter placeholder={t("searchBooks")} />}
+
+      {ready.map((b, i) => {
         const secs = b.tests.flatMap((x) => x.sections);
         const reviewed = secs.filter((s) => s.reviewed).length;
         return (
-          <section key={b.id} className="mt-8">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-serif text-2xl font-bold">{b.title}</h2>
-              <span className={`chip ${reviewed < secs.length ? "" : "chip-on"}`}>{t("reviewed", { n: reviewed, total: secs.length })}</span>
+          <details key={b.id} data-book={b.title} open={i === 0} className="group mt-3 rounded-2xl border border-line bg-card first-of-type:mt-6">
+            <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 p-4 [&::-webkit-details-marker]:hidden">
+              <I.IconChevronRight className="h-4 w-4 flex-none text-muted transition-transform group-open:rotate-90" />
+              <h2 className="font-serif text-xl font-bold md:text-2xl">{b.title}</h2>
+              <span className="text-sm text-muted">{t("testCount", { n: b.tests.length })}</span>
+              {editor && <span className={`chip ${reviewed < secs.length ? "" : "chip-on"}`}>{t("reviewed", { n: reviewed, total: secs.length })}</span>}
               {b.status === "parsing" && <span className="chip">{t("status.parsing")}</span>}
               {editor && (
                 <Link href={`/ielts/books/${b.id}`} className="btn btn-sm btn-ghost ml-auto">
                   <I.IconEdit /> {t("manage")}
                 </Link>
               )}
-            </div>
-            <div className="mt-3 grid gap-4 lg:grid-cols-2">
+            </summary>
+            <div className="grid gap-3 px-4 pb-4 lg:grid-cols-2">
               {b.tests.map((test) => (
-                <div key={test.id} className="rounded-2xl border border-line bg-card p-4">
+                <div key={test.id} className="rounded-xl bg-paper p-3.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="flex min-w-0 flex-1 text-lg font-bold">
                       {editor ? <InlineRename url={`/api/ielts/tests/${test.id}`} title={test.title} /> : test.title}
@@ -98,7 +103,7 @@ export default async function IeltsPage() {
                     <summary className="cursor-pointer text-sm font-semibold text-muted">{t("practiceList")}</summary>
                     <ul className="mt-2 space-y-2">
                       {test.sections.map((s) => (
-                        <li key={s.id} className="rounded-xl bg-paper p-2.5">
+                        <li key={s.id} className="rounded-xl bg-card p-2.5">
                           <div className="flex items-center gap-2 text-sm">
                             {s.skill === "listening" ? <I.IconHeadphones className="h-4 w-4 flex-none" /> : s.skill === "reading" ? <I.IconBook className="h-4 w-4 flex-none" /> : <I.IconPen className="h-4 w-4 flex-none" />}
                             <span className="min-w-0 flex-1 truncate font-semibold">
@@ -118,7 +123,7 @@ export default async function IeltsPage() {
                             <div className="mt-1.5 flex flex-wrap items-center gap-1">
                               <span className="text-xs text-muted">{t("shortLessons")}</span>
                               {s.groups.map((g, gi) => (
-                                <Link key={gi} href={`/ielts/practice/${s.id}?g=${gi}`} className="rounded-md border border-line bg-card px-2 py-0.5 text-xs hover:border-accent/50">
+                                <Link key={gi} href={`/ielts/practice/${s.id}?g=${gi}`} className="rounded-md border border-line bg-paper px-2 py-0.5 text-xs hover:border-accent/50">
                                   {g.from}–{g.to} {t(`types.${g.type}`)}
                                 </Link>
                               ))}
@@ -131,23 +136,10 @@ export default async function IeltsPage() {
                 </div>
               ))}
             </div>
-          </section>
+          </details>
         );
       })}
 
-      {attempts.length > 0 && (
-        <section className="mt-10">
-          <div className="flex items-center gap-2">
-            <h2 className="flex-1 font-serif text-2xl font-bold">{t("history")}</h2>
-            <Link href="/ielts/history" className="btn btn-sm btn-ghost">
-              {t("historyPage.all")} <I.IconChevronRight />
-            </Link>
-          </div>
-          <div className="mt-3">
-            <AttemptList rows={attempts} tests={tests} sections={sections} />
-          </div>
-        </section>
-      )}
     </Shell>
   );
 }

@@ -1612,7 +1612,10 @@
         "failed": "Finding marks failed: {error}",
         "download_stalled": "The audio download stalled for over a minute (network or server). Press again to retry."
       }
-    }
+    },
+    "testCount": "{n, plural, one {# test} other {# tests}}",
+    "searchBooks": "Search test books…",
+    "tabBooks": "Test books"
   },
   "listen": {
     "title": "Listening & dictation",

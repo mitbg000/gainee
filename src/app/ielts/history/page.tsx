@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import AttemptList from "@/components/ielts/AttemptList";
+import IeltsTabs from "@/components/ielts/IeltsTabs";
 import { listBooks, recentAttempts } from "@/lib/ielts/queries";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +17,9 @@ export default async function IeltsHistoryPage({ searchParams }: { searchParams:
   const rows = mode === "mock" || mode === "practice" ? all.filter((a) => a.mode === mode) : all;
   return (
     <Shell wide>
-      <Link href="/ielts" className="text-sm text-muted hover:underline">
-        ← {t("title")}
-      </Link>
-      <h1 className="mt-1 font-serif text-3xl font-bold">{t("historyPage.title")}</h1>
+      <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
       <p className="mt-1 text-sm text-muted">{t("historyPage.intro")}</p>
+      <IeltsTabs active="history" />
       <div className="mt-4 mb-3 flex gap-1.5">
         {[undefined, "mock", "practice"].map((m) => (
           <Link key={m ?? "all"} href={m ? `/ielts/history?mode=${m}` : "/ielts/history"} className={`chip ${mode === m ? "chip-on" : ""}`}>

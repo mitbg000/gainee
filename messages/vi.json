@@ -1612,7 +1612,10 @@
         "failed": "Tìm mốc lỗi: {error}",
         "download_stalled": "Tải file audio bị đứng hơn 1 phút (mạng hoặc server). Bấm lại để thử tiếp."
       }
-    }
+    },
+    "testCount": "{n} đề",
+    "searchBooks": "Tìm bộ đề…",
+    "tabBooks": "Bộ đề"
   },
   "listen": {
     "title": "Luyện nghe & chính tả",
