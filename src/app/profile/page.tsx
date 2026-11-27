@@ -3,6 +3,8 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Avatar from "@/components/Avatar";
 import Shell from "@/components/Shell";
+import AccountSettings from "@/components/settings/AccountSettings";
+import ProfileSettings from "@/components/settings/ProfileSettings";
 import { getDb, schema } from "@/db";
 import { getCreditConfig } from "@/lib/credits";
 import { fmtCredits } from "@/lib/fmtCredits";
@@ -89,9 +91,9 @@ export default async function ProfilePage() {
             {groups.length > 0 && ` · ${groups.map((g) => g.name).join(", ")}`} · {t("joined", { date: f.dateTime(me.createdAt, { dateStyle: "medium" }) })}
           </p>
         </div>
-        <Link href="/settings?tab=profile" className="btn btn-sm btn-secondary">
+        <a href="#me" className="btn btn-sm btn-secondary">
           <I.IconEdit /> {t("edit")}
-        </Link>
+        </a>
       </section>
 
       {/* AI and credits */}
@@ -185,6 +187,12 @@ export default async function ProfilePage() {
           </li>
         ))}
       </ul>
+
+      {/* account and learning profile */}
+      <div id="me" className="mt-10 grid scroll-mt-20 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+        <AccountSettings avatar={me.avatar ? imageUrl(me.avatar) : null} name={me.name ?? ""} email={me.email} />
+        <ProfileSettings />
+      </div>
     </Shell>
   );
 }

@@ -28,6 +28,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
   if (!me) redirect("/login"); // account locked or session ended (password changed)
   const admin = me.role === "admin";
   const hidden = (await mayUse("add_documents")) ? [] : ["/import"];
+  const who = { avatar: me.avatar ? imageUrl(me.avatar) : null, name: me.name || me.email, email: me.email, credits: admin ? null : me.credits, admin };
 
   return (
     <div className="min-h-dvh md:flex">
@@ -55,12 +56,12 @@ export default async function Shell({ children, wide = false, full = false }: { 
               {fmtCredits(me.credits)}
             </Link>
           )}
-          <UserMenu theme={theme} me={{ avatar: me.avatar ? imageUrl(me.avatar) : null, name: me.name || me.email }} />
+          <UserMenu theme={theme} me={who} />
         </div>
       </header>
 
       <div className="min-w-0 flex-1 md:flex md:flex-col">
-        <TopBar tree={tree} due={due} theme={theme} streak={days} credits={admin ? null : me.credits} me={{ avatar: me.avatar ? imageUrl(me.avatar) : null, name: me.name || me.email }} />
+        <TopBar tree={tree} due={due} theme={theme} streak={days} credits={admin ? null : me.credits} me={who} />
         <main
           className={`min-w-0 flex-1 px-4 pt-5 md:py-8 ${full ? "md:px-5" : "md:px-10"}`}
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}

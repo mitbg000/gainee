@@ -9,7 +9,8 @@ import Dropdown, { Segmented } from "./Dropdown";
 import { IconChevronDown, IconGlobe } from "./icons";
 
 /** `menu`: a globe button with a short menu (page headers); `segmented`: inline choice (menus, settings). */
-export default function LanguageSwitcher({ variant = "segmented" }: { variant?: "segmented" | "menu" }) {
+/** `full`: names written out, filling the row (settings page). */
+export default function LanguageSwitcher({ variant = "segmented", full = false }: { variant?: "segmented" | "menu"; full?: boolean }) {
   const t = useTranslations("language");
   const current = useLocale() as (typeof locales)[number];
   const router = useRouter();
@@ -37,5 +38,5 @@ export default function LanguageSwitcher({ variant = "segmented" }: { variant?: 
         }
       />
     );
-  return <Segmented label={t("label")} value={current} onPick={pick} disabled={pending} items={locales.map((l) => ({ value: l, label: t(l), content: <span className="uppercase">{l}</span> }))} />;
+  return <Segmented full={full} label={t("label")} value={current} onPick={pick} disabled={pending} items={locales.map((l) => ({ value: l, label: t(l), content: full ? t(l) : <span className="uppercase">{l}</span> }))} />;
 }

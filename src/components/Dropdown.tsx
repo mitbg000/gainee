@@ -64,9 +64,9 @@ export default function Dropdown<T extends string>({ label, trigger, items, valu
 }
 
 /** Segmented control (inside menus and settings): a light track, the chosen option raised. */
-export function Segmented<T extends string>({ label, items, value, onPick, disabled }: { label: string; items: { value: T; label: string; content: React.ReactNode }[]; value: T; onPick: (v: T) => void; disabled?: boolean }) {
+export function Segmented<T extends string>({ label, items, value, onPick, disabled, full }: { label: string; items: { value: T; label: string; content: React.ReactNode }[]; value: T; onPick: (v: T) => void; disabled?: boolean; /** equal-width options filling the row (settings page) */ full?: boolean }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg bg-ink/5 p-0.5">
+    <div role="radiogroup" aria-label={label} className={`rounded-lg bg-ink/5 p-0.5 ${full ? "grid w-full max-w-md auto-cols-fr grid-flow-col" : "inline-flex"}`}>
       {items.map((it) => (
         <button
           key={it.value}
@@ -77,7 +77,7 @@ export function Segmented<T extends string>({ label, items, value, onPick, disab
           title={it.label}
           disabled={disabled}
           onClick={() => onPick(it.value)}
-          className={`flex h-7 min-w-8 items-center justify-center rounded-md px-2 text-xs font-semibold transition ${
+          className={`flex min-w-8 items-center justify-center gap-1.5 rounded-md px-2 font-semibold transition ${full ? "h-9 text-sm" : "h-7 text-xs"} ${
             it.value === value ? "bg-card text-ink shadow-sm ring-1 ring-line" : "text-muted hover:text-ink"
           }`}
         >

@@ -358,12 +358,16 @@
       "sound": "Âm thanh"
     },
     "avatar": {
-      "title": "Ảnh đại diện",
+      "title": "Tài khoản",
       "change": "Đổi ảnh",
       "remove": "Xoá ảnh",
       "uploading": "Đang tải lên…",
-      "error": "Không tải được ảnh (PNG, JPG, WebP, GIF, tối đa 8 MB)"
-    }
+      "error": "Không tải được ảnh (PNG, JPG, WebP, GIF, tối đa 8 MB)",
+      "name": "Tên hiển thị",
+      "save": "Lưu",
+      "saved": "Đã lưu"
+    },
+    "deviceHint": "Áp dụng cho trình duyệt này: giao diện, ngôn ngữ, cách hiển thị bài đọc và âm thanh."
   },
   "import": {
     "kicker": "Thư viện",
@@ -1935,7 +1939,8 @@
       "usage": "Dùng AI",
       "groups": "Nhóm",
       "coupons": "Mã",
-      "security": "Bảo mật"
+      "security": "Bảo mật",
+      "ai": "AI"
     },
     "user": "Người dùng",
     "role": "Vai trò",

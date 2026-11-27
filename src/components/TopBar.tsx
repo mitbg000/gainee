@@ -8,12 +8,12 @@ import type { TreeDoc } from "@/lib/documents/queries";
 import { fmtCredits } from "@/lib/fmtCredits";
 import type { Theme } from "@/theme/config";
 import { MuteButton } from "./SoundSettings";
-import UserMenu from "./UserMenu";
+import UserMenu, { type Me } from "./UserMenu";
 import { NAV } from "./nav";
 import * as I from "./icons";
 
 /** Desktop top bar, kept minimal: where you are (breadcrumbs), quick look-up, due reviews and the user menu. */
-export default function TopBar({ tree, due, theme, streak, credits, me }: { tree: TreeDoc[]; due: number; theme: Theme; streak: number; /** null: admin, not charged */ credits: number | null; me: { avatar: string | null; name: string } }) {
+export default function TopBar({ tree, due, theme, streak, credits, me }: { tree: TreeDoc[]; due: number; theme: Theme; streak: number; /** null: admin, not charged */ credits: number | null; me: Me }) {
   const t = useTranslations("nav");
   const tt = useTranslations("topbar");
   const path = usePathname();

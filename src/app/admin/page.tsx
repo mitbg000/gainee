@@ -4,6 +4,7 @@ import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import Avatar from "@/components/Avatar";
+import AiSettings from "@/components/settings/AiSettings";
 import CouponEditor from "@/components/admin/CouponEditor";
 import GroupEditor from "@/components/admin/GroupEditor";
 import SecurityEditor from "@/components/admin/SecurityEditor";
@@ -22,7 +23,7 @@ import { FEATURES, requireRole } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
-const TABS = ["users", "groups", "topups", "coupons", "pricing", "usage", "security"] as const;
+const TABS = ["users", "groups", "topups", "coupons", "pricing", "ai", "usage", "security"] as const;
 const DAYS = 30;
 
 /** Admin: accounts, top-up requests, credit prices and what the AI was used for. */
@@ -105,6 +106,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         features={FEATURES}
       />
     );
+  } else if (tab === "ai") {
+    body = <AiSettings />; // providers, a model per task, AI pictures
   } else if (tab === "coupons") {
     const rows = await db.select().from(schema.coupons).orderBy(desc(schema.coupons.id)).limit(500);
     body = <CouponEditor rows={rows.map((r) => ({ ...r, expiresAt: r.expiresAt?.toISOString() ?? null }))} />;

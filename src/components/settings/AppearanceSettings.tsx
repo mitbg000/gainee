@@ -28,12 +28,12 @@ export default function AppearanceSettings({ initial, theme }: { initial: Look; 
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap gap-x-12 gap-y-6">
+      <div className="grid gap-6 sm:grid-cols-2">
         <Section title={t("mode")}>
-          <ThemeSwitcher initial={theme} />
+          <ThemeSwitcher initial={theme} full />
         </Section>
         <Section title={t("language")}>
-          <LanguageSwitcher />
+          <LanguageSwitcher full />
         </Section>
       </div>
 

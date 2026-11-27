@@ -14,7 +14,7 @@ function apply(theme: Theme) {
 }
 
 /** `menu`: one icon button with Light / Dark / System (page headers); `segmented`: inline choice (menus, settings). */
-export default function ThemeSwitcher({ initial, variant = "segmented" }: { initial: Theme; variant?: "segmented" | "menu" }) {
+export default function ThemeSwitcher({ initial, variant = "segmented", full = false }: { initial: Theme; variant?: "segmented" | "menu"; /** icon and name, filling the row (settings page) */ full?: boolean }) {
   const t = useTranslations("theme");
   const [theme, setTheme] = useState<Theme>(initial);
 
@@ -49,12 +49,22 @@ export default function ThemeSwitcher({ initial, variant = "segmented" }: { init
     );
   return (
     <Segmented
+      full={full}
       label={t("label")}
       value={theme}
       onPick={choose}
       items={themes.map((th) => {
         const Icon = ICON[th];
-        return { value: th, label: t(th), content: <Icon className="h-4 w-4" /> };
+        return {
+          value: th,
+          label: t(th),
+          content: (
+            <>
+              <Icon className="h-4 w-4" />
+              {full && t(th)}
+            </>
+          ),
+        };
       })}
     />
   );

@@ -358,12 +358,16 @@
       "sound": "Sound"
     },
     "avatar": {
-      "title": "Profile picture",
+      "title": "Account",
       "change": "Change picture",
       "remove": "Remove",
       "uploading": "Uploading…",
-      "error": "Could not upload (PNG, JPG, WebP, GIF, up to 8 MB)"
-    }
+      "error": "Could not upload (PNG, JPG, WebP, GIF, up to 8 MB)",
+      "name": "Display name",
+      "save": "Save",
+      "saved": "Saved"
+    },
+    "deviceHint": "For this browser: theme, language, how texts look, and sounds."
   },
   "import": {
     "kicker": "Library",
@@ -1935,7 +1939,8 @@
       "usage": "AI usage",
       "groups": "Groups",
       "coupons": "Codes",
-      "security": "Security"
+      "security": "Security",
+      "ai": "AI"
     },
     "user": "User",
     "role": "Role",
