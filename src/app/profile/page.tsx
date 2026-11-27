@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
 import GoalBars from "@/components/GoalBars";
 import Shell from "@/components/Shell";
@@ -23,17 +23,14 @@ export default async function ProfilePage() {
   const ta = await getTranslations("admin");
   const f = await getFormatter();
   const db = getDb();
-  const c = schema.aiCalls;
 
-  const tokens = sql<number>`coalesce(sum(coalesce(${c.promptTokens}, 0) + coalesce(${c.completionTokens}, 0)), 0)`;
-  const [stats, mastered, [xp], goals, profile, groups, [used], cfg] = await Promise.all([
+  const [stats, mastered, [xp], goals, profile, groups, cfg] = await Promise.all([
     dashboardStats(),
     masteredByWeek(),
     db.select({ n: sql<number>`coalesce(sum(${schema.activity.xp}), 0)`, minutes: sql<number>`coalesce(sum(${schema.activity.minutes}), 0)` }).from(schema.activity).where(eq(schema.activity.userId, me.id)),
     goalProgress(),
     getProfile(),
     db.select({ name: schema.groups.name }).from(schema.userGroups).innerJoin(schema.groups, eq(schema.groups.id, schema.userGroups.groupId)).where(eq(schema.userGroups.userId, me.id)),
-    db.select({ credits: sql<number>`coalesce(sum(${c.credits}), 0)`, tokens }).from(c).where(and(eq(c.userId, me.id), gte(c.createdAt, new Date(Date.now() - 30 * 86_400_000)))),
     getCreditConfig(),
   ]);
   // shortcut: tokens left at the default price, half reading half writing; models with their own price differ
@@ -54,7 +51,27 @@ export default async function ProfilePage() {
   return (
     <Shell wide>
       {/* who, in short; Edit opens one form */}
-      <ProfileEdit avatar={avatar} name={me.name ?? ""} email={me.email} sub={[me.email, ta(`roles.${me.role}`), ...groups.map((g) => g.name)].join(" · ")} profile={profile} />
+      <ProfileEdit avatar={avatar} name={me.name ?? ""} email={me.email} sub={[me.email, ta(`roles.${me.role}`), ...groups.map((g) => g.name)].join(" · ")} profile={profile}
+        stats={
+          admin ? undefined : (
+            <Link href="/credits" title={t("topup")} className="flex w-full items-center justify-between gap-4 rounded-xl border border-line px-4 py-2 transition-colors hover:border-accent sm:w-auto sm:justify-start">
+              <span>
+                <span className="block whitespace-nowrap text-xs text-muted">{t("balance")}</span>
+                <span className={`font-serif text-xl font-bold tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`}>{fmtCredits(me.credits)}</span>
+              </span>
+              {perToken > 0 && (
+                <span className="border-l border-line pl-4">
+                  <span className="block whitespace-nowrap text-xs text-muted">{t("tokensLeftShort")}</span>
+                  <span className="font-serif text-xl font-bold tabular-nums">≈{num(Math.floor(Math.max(0, me.credits) / perToken))}</span>
+                </span>
+              )}
+              <span className="flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-accent">
+                <I.IconCoin className="h-5 w-5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">{t("topup")}</span>
+              </span>
+            </Link>
+          )
+        }
+      />
 
       {/* learning: the heart of the page */}
       <div className="mt-8 flex items-baseline gap-3">
@@ -79,31 +96,6 @@ export default async function ProfilePage() {
         </section>
       )}
 
-      {/* AI and credits, in short */}
-      <section className={`${tile} mt-8 p-5`}>
-        <div className="flex items-center gap-2">
-          <I.IconSpark className="h-5 w-5 text-accent" />
-          <h2 className="font-semibold">{t("aiTitle")}</h2>
-          {!admin && (
-            <Link href="/credits" className="btn btn-sm btn-primary ml-auto">
-              <I.IconCoin className="h-4 w-4" /> {t("topup")}
-            </Link>
-          )}
-        </div>
-        <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[
-            [t("balance"), admin ? "∞" : fmtCredits(me.credits), !admin && me.credits <= 0],
-            [t("tokensLeftShort"), admin || perToken <= 0 ? "∞" : `≈ ${num(Math.floor(Math.max(0, me.credits) / perToken))}`, false],
-            [t("tokensUsed30"), num(Number(used.tokens)), false],
-            [t("creditsUsed30"), fmtCredits(Number(used.credits)), false],
-          ].map(([label, value, low]) => (
-            <div key={String(label)}>
-              <dt className="text-xs text-muted">{label}</dt>
-              <dd className={`mt-0.5 font-serif text-2xl font-bold tabular-nums ${low ? "text-red-600 dark:text-red-400" : ""}`}>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
     </Shell>
   );
 }

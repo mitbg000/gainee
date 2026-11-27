@@ -15,7 +15,7 @@ const WORDS = [400, 500, 650, 800, 1000];
  * The top of the profile page: picture (click to change), name and a one-line learning profile.
  * Edit opens one form (display name + learning profile) saved together.
  */
-export default function ProfileEdit({ avatar, name, email, sub, profile }: { avatar: string | null; name: string; email: string; /** role · groups */ sub: string; profile: Profile }) {
+export default function ProfileEdit({ avatar, name, email, sub, profile, stats }: { avatar: string | null; name: string; email: string; /** role · groups */ sub: string; profile: Profile; /** credits and tokens, beside the name */ stats?: React.ReactNode }) {
   const t = useTranslations("profile");
   const tp = useTranslations("settings.profile");
   const ta = useTranslations("settings.avatar");
@@ -99,6 +99,7 @@ export default function ProfileEdit({ avatar, name, email, sub, profile }: { ava
           <p className="break-words text-sm text-muted">{sub}</p>
           {picState === "error" && <p className="text-xs text-red-600">{ta("error")}</p>}
         </div>
+        {stats}
         {!open && (
           <button onClick={() => setOpen(true)} className="btn btn-sm btn-secondary">
             <I.IconEdit /> {t("edit")}
