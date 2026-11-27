@@ -4,9 +4,10 @@
  * Docs: developer.sepay.vn → SePay Webhooks (payload, API Key / HMAC-SHA256, answer {"success": true}).
  */
 import crypto from "node:crypto";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
+import { release } from "@/lib/coupons";
 import { addCredits } from "@/lib/credits";
 import { decrypt, encrypt } from "@/lib/crypto";
 import { getSetting, setSetting } from "@/lib/settings";
@@ -47,6 +48,7 @@ export const SepayConfig = z.object({
   bank: z.string().trim().max(50).default(""), // VietQR bank code, e.g. MBBank, VCB, 970422
   account: z.string().trim().max(40).regex(/^[A-Za-z0-9]*$/).default(""),
   holder: z.string().trim().max(100).default(""),
+  expireHours: z.number().int().min(0).max(720).default(24), // a request not paid by then is cancelled; 0 = never
   apiKeyEnc: z.string().max(1000).default(""),
   hmacEnc: z.string().max(1000).default(""),
 });
@@ -127,7 +129,9 @@ export async function takePayment(p: z.infer<typeof Webhook>, raw: Record<string
   const text = `${p.code ?? ""} ${p.content} ${p.description ?? ""}`;
   const codes = codesIn(text, prefix);
   const [t] = codes.length ? await db.select().from(schema.topups).where(inArray(schema.topups.code, codes)).orderBy(sql`${schema.topups.status} = 'pending' desc`).limit(1) : [];
-  const status = !t ? "unmatched" : t.status !== "pending" ? "settled" : p.transferAmount < t.price ? "underpaid" : "paid";
+  // a request that only ran out of time still takes its payment: the money arrived late, it is not lost
+  const open = !!t && (t.status === "pending" || (t.status === "rejected" && t.note === EXPIRED));
+  const status = !t ? "unmatched" : !open ? "settled" : p.transferAmount < t.price ? "underpaid" : "paid";
   try {
     await db.insert(schema.payments).values({ id: p.id, topupId: t?.id ?? null, amount: p.transferAmount, content: p.content.slice(0, 500), status, raw });
   } catch {
@@ -137,7 +141,34 @@ export async function takePayment(p: z.infer<typeof Webhook>, raw: Record<string
   const res = await db
     .update(schema.topups)
     .set({ status: "done", doneAt: new Date(), note: `SePay #${p.id}` })
-    .where(and(eq(schema.topups.id, t.id), eq(schema.topups.status, "pending")));
+    .where(and(eq(schema.topups.id, t.id), or(eq(schema.topups.status, "pending"), and(eq(schema.topups.status, "rejected"), eq(schema.topups.note, EXPIRED)))));
   if ((res as unknown as [{ affectedRows: number }])[0].affectedRows === 1) await addCredits(t.userId, t.credits, "topup", `${t.code} · SePay`);
   return status;
+}
+
+export const EXPIRED = "expired";
+export const CANCELLED = "cancelled";
+
+/** Close one of a user's waiting requests (their own Cancel, or time ran out); a discount code used on it can be used again. */
+export async function closeTopup(id: number, why: typeof EXPIRED | typeof CANCELLED, userId?: number) {
+  const db = getDb();
+  const t = schema.topups;
+  const [row] = await db.select().from(t).where(userId ? and(eq(t.id, id), eq(t.userId, userId)) : eq(t.id, id));
+  if (!row) return false;
+  const res = await db.update(t).set({ status: "rejected", note: why, doneAt: new Date() }).where(and(eq(t.id, id), eq(t.status, "pending")));
+  if ((res as unknown as [{ affectedRows: number }])[0].affectedRows === 0) return false; // paid or closed meanwhile
+  if (row.couponId) await release(row.couponId, row.userId);
+  return true;
+}
+
+/** Waiting requests older than the admin's limit are cancelled (checked whenever top-ups are shown or made). */
+export async function expireTopups(userId?: number) {
+  const { expireHours } = await getSepay();
+  if (!expireHours) return;
+  const t = schema.topups;
+  const old = await getDb()
+    .select({ id: t.id })
+    .from(t)
+    .where(and(eq(t.status, "pending"), lt(t.createdAt, new Date(Date.now() - expireHours * 3600_000)), userId ? eq(t.userId, userId) : undefined));
+  for (const r of old) await closeTopup(r.id, EXPIRED);
 }

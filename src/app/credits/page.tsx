@@ -7,7 +7,8 @@ import TopUp from "@/components/admin/TopUp";
 import { getDb, schema } from "@/db";
 import { creditHistory, getCreditConfig } from "@/lib/credits";
 import { fmtCredits } from "@/lib/fmtCredits";
-import { getSepay, qrUrl, sepayOn } from "@/lib/payments";
+import { expireTopups, getSepay, qrUrl, sepayOn } from "@/lib/payments";
+import CancelTopup from "@/components/admin/CancelTopup";
 import { currentUser } from "@/lib/users";
 import * as I from "@/components/icons";
 
@@ -18,6 +19,7 @@ export default async function CreditsPage() {
   const t = await getTranslations("credits");
   const f = await getFormatter();
   const me = (await currentUser())!; // Shell sends the logged-out to /login
+  await expireTopups(me.id);
   const [cfg, logs, waiting, sepay] = await Promise.all([
     getCreditConfig(),
     creditHistory(me.id, 50),
@@ -76,8 +78,12 @@ export default async function CreditsPage() {
           <details key={r.id} className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-3 text-sm dark:border-amber-800 dark:bg-amber-950/30">
             <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1">
               <I.IconClock className="h-4 w-4 text-amber-700 dark:text-amber-400" />
-              <span className="flex-1">{t("waitingLine", { code: r.code, credits: fmtCredits(r.credits), price: vnd(r.price) })}</span>
+              <span className="flex-1">
+                {t("waitingLine", { code: r.code, credits: fmtCredits(r.credits), price: vnd(r.price) })}
+                {sepay.expireHours > 0 && <span className="block text-xs text-muted">{t("expiresAt", { time: f.dateTime(new Date(r.createdAt.getTime() + sepay.expireHours * 3600_000), { dateStyle: "short", timeStyle: "short" }) })}</span>}
+              </span>
               {pay && <span className="font-semibold text-accent">{t("payContinue")} →</span>}
+              <CancelTopup id={r.id} code={r.code} />
             </summary>
             {pay ? <PayPanel id={r.id} code={r.code} price={vnd(r.price)} pay={pay} /> : cfg.payInfo && <p className="mt-2 whitespace-pre-line">{cfg.payInfo}</p>}
           </details>

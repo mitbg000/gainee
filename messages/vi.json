@@ -1937,7 +1937,10 @@
     "youPay": "Trả",
     "payNow": "Thanh toán",
     "haveDiscount": "Có mã giảm giá?",
-    "again": "Chọn mức khác"
+    "again": "Chọn mức khác",
+    "cancel": "Huỷ",
+    "cancelConfirm": "Huỷ yêu cầu nạp {code}? Nếu bạn đã chuyển khoản, đừng huỷ: credit sẽ được cộng khi tiền tới.",
+    "expiresAt": "Tự huỷ lúc {time} nếu chưa thanh toán"
   },
   "admin": {
     "title": "Quản trị",
@@ -1965,7 +1968,9 @@
     "calls": "{n} lượt",
     "topupStatus": {
       "done": "Đã cộng",
-      "rejected": "Từ chối"
+      "rejected": "Từ chối",
+      "expired": "Hết hạn",
+      "cancelled": "Người dùng huỷ"
     },
     "noTopups": "Chưa có yêu cầu nạp",
     "usageHint": "{n} ngày qua, theo tác vụ và model. Token: vào / ra.",
@@ -2207,7 +2212,9 @@
       },
       "prefix": "Tiền tố mã đơn",
       "prefixExample": "Mã đơn dạng {code} (8 ký tự chữ và số ngẫu nhiên)",
-      "prefixBad": "2–5 chữ cái A–Z, không dấu"
+      "prefixBad": "2–5 chữ cái A–Z, không dấu",
+      "expireHours": "Tự huỷ yêu cầu sau (giờ)",
+      "expireHint": "0 = không tự huỷ. Tiền tới muộn sau khi hết hạn vẫn được cộng."
     }
   },
   "auth": {

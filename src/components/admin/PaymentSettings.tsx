@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-type C = { enabled: boolean; bank: string; account: string; holder: string; prefix: string };
+type C = { enabled: boolean; bank: string; account: string; holder: string; prefix: string; expireHours: number };
 
 /** SePay: the bank account learners pay to, and the webhook secret SePay signs its calls with. */
 export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUrl }: { initial: C; hasApiKey: boolean; hasHmac: boolean; webhookUrl: string }) {
@@ -60,6 +60,11 @@ export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUr
             aria-invalid={badPrefix}
           />
           <span className={`mt-1 block text-xs ${badPrefix ? "text-red-600" : "text-muted"}`}>{badPrefix ? t("prefixBad") : t("prefixExample", { code: `${c.prefix || "GN"}K7Q2M9XA` })}</span>
+        </label>
+        <label className="block text-sm">
+          {t("expireHours")}
+          <input type="number" min={0} max={720} value={c.expireHours} onChange={(e) => set({ expireHours: Math.max(0, Math.min(720, Math.round(Number(e.target.value) || 0))) })} className="field mt-1 w-full tabular-nums" />
+          <span className="mt-1 block text-xs text-muted">{t("expireHint")}</span>
         </label>
       </div>
 

@@ -5,7 +5,7 @@ import { getDb, schema } from "@/db";
 import { bad, parseBody } from "@/lib/api";
 import { CODE, CouponError, discounted, take, usable } from "@/lib/coupons";
 import { addCredits, customCredits, getCreditConfig } from "@/lib/credits";
-import { getSepay, newTopupCode, qrUrl, sepayOn } from "@/lib/payments";
+import { expireTopups, getSepay, newTopupCode, qrUrl, sepayOn } from "@/lib/payments";
 import { currentUser } from "@/lib/users";
 
 export const runtime = "nodejs";
@@ -41,6 +41,7 @@ export async function POST(req: Request) {
   const price = k ? discounted(pack.price, k) : pack.price;
   if (d.preview) return NextResponse.json({ price, discount: pack.price - price, credits: pack.credits });
   const db = getDb();
+  await expireTopups(u.id); // old waiting requests do not count against the limit of 3
   const [{ n }] = await db.select({ n: count() }).from(schema.topups).where(and(eq(schema.topups.userId, u.id), eq(schema.topups.status, "pending")));
   if (n >= 3) return bad("too_many_pending", 429);
   const sepay = await getSepay();

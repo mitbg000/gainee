@@ -1937,7 +1937,10 @@
     "youPay": "You pay",
     "payNow": "Pay",
     "haveDiscount": "Have a discount code?",
-    "again": "Choose another"
+    "again": "Choose another",
+    "cancel": "Cancel",
+    "cancelConfirm": "Cancel top-up request {code}? If you have already paid, keep it: the credits come when the money arrives.",
+    "expiresAt": "Cancelled at {time} if not paid"
   },
   "admin": {
     "title": "Admin",
@@ -1965,7 +1968,9 @@
     "calls": "{n} calls",
     "topupStatus": {
       "done": "Added",
-      "rejected": "Declined"
+      "rejected": "Declined",
+      "expired": "Expired",
+      "cancelled": "Cancelled by user"
     },
     "noTopups": "No top-up requests yet",
     "usageHint": "Last {n} days, by task and model. Tokens: in / out.",
@@ -2207,7 +2212,9 @@
       },
       "prefix": "Order code prefix",
       "prefixExample": "Codes look like {code} (8 random letters and digits)",
-      "prefixBad": "2–5 letters A–Z"
+      "prefixBad": "2–5 letters A–Z",
+      "expireHours": "Cancel requests after (hours)",
+      "expireHint": "0 = never. Money arriving after that is still credited."
     }
   },
   "auth": {

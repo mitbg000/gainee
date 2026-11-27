@@ -15,7 +15,7 @@ import { getDb, schema } from "@/db";
 import type { AiRouting } from "@/lib/ai/tasks";
 import { getCreditConfig } from "@/lib/credits";
 import { imageUrl } from "@/lib/images";
-import { getSepay } from "@/lib/payments";
+import { expireTopups, getSepay } from "@/lib/payments";
 import { captchaOn, getSecurity, mailOn } from "@/lib/security";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { getSetting } from "@/lib/settings";
@@ -182,6 +182,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       </div>
     );
   } else if (tab === "topups") {
+    await expireTopups();
     const rows = await db
       .select({ r: schema.topups, email: schema.users.email, name: schema.users.name })
       .from(schema.topups)
@@ -229,7 +230,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 · {fmtCredits(r.credits)} credit · {vnd(r.price)} · {when(r.createdAt)}
               </span>
             </span>
-            {r.status === "pending" ? <TopupActions id={r.id} code={r.code} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status}`)}</span>}
+            {r.status === "pending" ? <TopupActions id={r.id} code={r.code} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status === "rejected" && (r.note === "expired" || r.note === "cancelled") ? r.note : r.status}`)}</span>}
           </li>
         ))}
       </ul>
@@ -250,7 +251,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     body = (
       <div className="space-y-6">
         <PaymentSettings
-          initial={{ enabled: sepay.enabled, bank: sepay.bank, account: sepay.account, holder: sepay.holder, prefix: sepay.prefix }}
+          initial={{ enabled: sepay.enabled, bank: sepay.bank, account: sepay.account, holder: sepay.holder, prefix: sepay.prefix, expireHours: sepay.expireHours }}
           hasApiKey={!!sepay.apiKeyEnc}
           hasHmac={!!sepay.hmacEnc}
           webhookUrl={`${sec.siteUrl || "https://<site>"}/api/payments/sepay`}
