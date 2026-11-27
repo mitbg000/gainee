@@ -36,7 +36,6 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted">{t("intro")}</p>
         </div>
       </div>
       {groups.size > 0 && (

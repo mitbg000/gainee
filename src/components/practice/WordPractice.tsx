@@ -8,14 +8,13 @@ import SentencePractice from "@/components/learn/SentencePractice";
 import Flashcards from "./Flashcards";
 import Learn from "./Learn";
 import Match from "./Match";
-import PicturePractice from "./PicturePractice";
 import Quiz from "./Quiz";
 import { MODES, shuffle, type Mode, type PWord } from "./questions";
 import * as I from "@/components/icons";
 
-const ACTIVITIES = ["learn", "cards", "write", "picture", "passage", "test", "match"] as const;
+const ACTIVITIES = ["learn", "cards", "write", "passage", "test", "match"] as const;
 type Activity = (typeof ACTIVITIES)[number];
-const ICON: Record<Activity, React.ReactNode> = { cards: <I.IconCards />, learn: <I.IconTarget />, write: <I.IconPen />, picture: <I.IconImage />, passage: <I.IconBook />, test: <I.IconChecklist />, match: <I.IconSpark /> };
+const ICON: Record<Activity, React.ReactNode> = { cards: <I.IconCards />, learn: <I.IconTarget />, write: <I.IconPen />, passage: <I.IconBook />, test: <I.IconChecklist />, match: <I.IconSpark /> };
 const ORDERS = ["recent", "random", "weak"] as const;
 type Order = (typeof ORDERS)[number];
 
@@ -61,7 +60,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
             [...words].sort((a, b) => (b.lapses ?? 0) - (a.lapses ?? 0) || (a.reps ?? 0) - (b.reps ?? 0))
           : words; // already newest first
     // writing sentences takes longer: at most 10 words a round
-    const usable = activity === "picture" ? list.filter((w) => w.images?.length) : list;
+    const usable = list;
     setRunning(usable.slice(0, activity === "match" ? Math.max(size, 6) : activity === "write" ? Math.min(size || 10, 10) : size || list.length));
   }
   const exit = () => setRunning(null);
@@ -72,7 +71,6 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
     if (activity === "match") return <Match words={running} onExit={exit} />;
     if (activity === "write") return <SentencePractice words={running.filter((w) => w.meaningVi || w.definitionEn)} onExit={exit} />;
     if (activity === "passage") return <ReviewPassage onExit={exit} />;
-    if (activity === "picture") return <PicturePractice words={running} all={all} onExit={exit} />;
     return <Quiz words={shuffle(running)} all={all} mode={mode} onExit={exit} />;
   }
 
@@ -87,9 +85,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
         <span className="flex items-center gap-1.5">
           <b>{t(`activity.${a}`)}</b>
           {a === "learn" && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">{t("recommended")}</span>}
-          {a === "picture" && <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-muted">{t("withImages", { n: words.filter((w) => w.images?.length).length })}</span>}
         </span>
-        <span className="mt-0.5 block text-xs leading-snug text-muted">{t(`activityHint.${a}`)}</span>
       </span>
       <I.IconPlay className="h-4 w-4 flex-none text-muted group-hover:text-accent" />
     </button>
@@ -110,7 +106,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
       <div className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border px-4 py-3 ${due ? "border-accent/40 bg-accent/5" : "border-line bg-card"}`}>
         <span className={due ? "text-accent" : "text-green-600"}>{due ? <I.IconClock /> : <I.IconCheckCircle />}</span>
         <p className="min-w-0 flex-1 text-sm">
-          <b>{due ? t("plan.due", { n: due }) : t("plan.none")}</b> <span className="text-muted">{due ? t("plan.dueShort") : t("plan.noneShort")}</span>
+          <b>{due ? t("plan.due", { n: due }) : t("plan.none")}</b>
         </p>
         {due > 0 && (
           <Link href="/review" className="btn btn-sm btn-primary">
@@ -161,7 +157,7 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-muted">{t("groups.deep")}</h2>
-        <div className="grid gap-3 sm:grid-cols-2">{(["write", "picture", "passage", "match"] as const).map(tile)}</div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{(["write", "passage", "match"] as const).map(tile)}</div>
       </section>
     </div>
   );
