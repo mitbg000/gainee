@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { autoSpeak, speak } from "@/lib/speech";
+import { autoSpeak, speak, scopeAutoRead, setScopeAutoRead, setSpeakScope } from "@/lib/speech";
 import * as I from "@/components/icons";
-import { setSoundPrefs, sfx, soundPrefs } from "@/lib/sound";
+import { sfx } from "@/lib/sound";
 import { norm, shuffle } from "@/components/practice/questions";
 import { answerOk } from "./answer";
 import QuickMix, { type QWord } from "@/components/learn/QuickMix";
@@ -86,7 +86,9 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
   const [autoRead, setAutoRead] = useState(true);
   useEffect(() => {
     setPrefs(loadPrefs());
-    setAutoRead(soundPrefs().autoSpeak);
+    setAutoRead(scopeAutoRead("review"));
+    setSpeakScope("review");
+    return () => setSpeakScope(null);
   }, []);
   const save = (p: Prefs) => {
     setPrefs(p);
@@ -289,7 +291,7 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
             checked={autoRead}
             onChange={(e) => {
               setAutoRead(e.target.checked);
-              setSoundPrefs({ autoSpeak: e.target.checked });
+              setScopeAutoRead("review", e.target.checked);
             }}
             className="size-4"
           />

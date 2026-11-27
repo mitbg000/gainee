@@ -36,12 +36,33 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
   speechSynthesis.addEventListener("voiceschanged", () => (cached = null));
 }
 
-/** Read a word aloud by itself (new card, answer shown) – only when "read words automatically" is on and sound is not muted. */
+/** Pages with their own "read words automatically" switch (review, practice): their words follow that switch too. */
+export type SpeakScope = "review" | "practice";
+let scope: SpeakScope | null = null;
+/** The page that is open; null when it closes. */
+export function setSpeakScope(s: SpeakScope | null) {
+  scope = s;
+}
+export function scopeAutoRead(s: SpeakScope) {
+  try {
+    return localStorage.getItem(`autoread_${s}`) !== "0";
+  } catch {
+    return true;
+  }
+}
+export function setScopeAutoRead(s: SpeakScope, on: boolean) {
+  try {
+    localStorage.setItem(`autoread_${s}`, on ? "1" : "0");
+  } catch {}
+}
+
+/** Read a word aloud by itself (new card, answer shown) – only when "read words automatically" is on, for the whole app and for this page, and sound is not muted. */
 export function autoSpeak(text: string) {
   if (typeof window === "undefined") return;
   try {
     const p = { muted: false, autoSpeak: true, ...JSON.parse(localStorage.getItem("rl_sound") ?? "{}") };
     if (p.muted || !p.autoSpeak) return;
   } catch {}
+  if (scope && !scopeAutoRead(scope)) return;
   speak(text);
 }

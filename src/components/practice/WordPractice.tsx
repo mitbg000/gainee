@@ -11,7 +11,7 @@ import Match from "./Match";
 import Quiz from "./Quiz";
 import { MODES, shuffle, type Mode, type PWord } from "./questions";
 import * as I from "@/components/icons";
-import { setSoundPrefs, soundPrefs } from "@/lib/sound";
+import { scopeAutoRead, setScopeAutoRead, setSpeakScope } from "@/lib/speech";
 
 const ACTIVITIES = ["learn", "cards", "write", "passage", "test", "match"] as const;
 type Activity = (typeof ACTIVITIES)[number];
@@ -47,7 +47,9 @@ export default function WordPractice({ words, all, due, title, children }: { wor
   useEffect(() => {
     setOrder(load("practice_order", ORDERS, "recent"));
     setMode(load("practice_mode", MODES, "mix"));
-    setAutoRead(soundPrefs().autoSpeak);
+    setAutoRead(scopeAutoRead("practice"));
+    setSpeakScope("practice");
+    return () => setSpeakScope(null);
   }, []);
 
   if (words.length === 0)
@@ -173,7 +175,7 @@ export default function WordPractice({ words, all, due, title, children }: { wor
                 checked={autoRead}
                 onChange={(e) => {
                   setAutoRead(e.target.checked);
-                  setSoundPrefs({ autoSpeak: e.target.checked });
+                  setScopeAutoRead("practice", e.target.checked);
                 }}
                 className="size-4"
               />
