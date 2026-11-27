@@ -33,26 +33,20 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
 
   return (
     <Shell>
-      <div className="flex flex-wrap items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-        </div>
-      </div>
-      {groups.size > 0 && (
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          <Link href="/practice" className={chip(!doc)}>
-            {t("all")} · {rows.length}
-          </Link>
-          {[...groups].map(([id, g]) => (
-            <Link key={id} href={`/practice?doc=${id}`} className={chip(doc === id)} title={g.title}>
-              <span className="max-w-[14rem] truncate">{g.title}</span>&nbsp;· {g.n}
+      <WordPractice key={doc ?? 0} title={t("title")} words={pool} all={rows.map((r) => ({ term: r.term, meaning: r.meaningVi || r.definitionEn || "" }))} due={due}>
+        {groups.size > 0 && (
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            <Link href="/practice" className={chip(!doc)}>
+              {t("all")} · {rows.length}
             </Link>
-          ))}
-        </div>
-      )}
-      <div className="mt-6">
-        <WordPractice key={doc ?? 0} words={pool} all={rows.map((r) => ({ term: r.term, meaning: r.meaningVi || r.definitionEn || "" }))} due={due} />
-      </div>
+            {[...groups].map(([id, g]) => (
+              <Link key={id} href={`/practice?doc=${id}`} className={chip(doc === id)} title={g.title}>
+                <span className="max-w-[14rem] truncate">{g.title}</span>&nbsp;· {g.n}
+              </Link>
+            ))}
+          </div>
+        )}
+      </WordPractice>
     </Shell>
   );
 }

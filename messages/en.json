@@ -1066,12 +1066,15 @@
       "retryWrong": "Retry the misses",
       "typingRound": "Typing round"
     },
-    "modeLabelTest": "Test questions:",
+    "modeLabelTest": "Test questions",
     "recommended": "Recommended",
     "groups": {
       "learn": "Learn and test",
       "deep": "Go deeper and games"
-    }
+    },
+    "settings": "Practice settings",
+    "close": "Close",
+    "done": "Done"
   },
   "writing": {
     "title": "Writing practice",

@@ -33,20 +33,28 @@ const keep = (key: string, v: string) => {
 };
 
 /** Study hub in the manner of Quizlet (flashcards, learn, test, match), with a study suggestion from the review schedule. */
-export default function WordPractice({ words, all, due }: { words: PWord[]; all: { term: string; meaning: string }[]; due: number }) {
+export default function WordPractice({ words, all, due, title, children }: { words: PWord[]; all: { term: string; meaning: string }[]; due: number; title: string; children?: React.ReactNode }) {
   const t = useTranslations("practice");
   const [activity, setActivity] = useState<Activity>("learn");
   const [order, setOrder] = useState<Order>("recent");
   const [mode, setMode] = useState<Mode>("mix");
   const [size, setSize] = useState(20);
   const [running, setRunning] = useState<PWord[] | null>(null);
+  const [settings, setSettings] = useState(false);
 
   useEffect(() => {
     setOrder(load("practice_order", ORDERS, "recent"));
     setMode(load("practice_mode", MODES, "mix"));
   }, []);
 
-  if (words.length === 0) return <p className="text-muted">{t("empty")}</p>;
+  if (words.length === 0)
+    return (
+      <div>
+        <h1 className="font-serif text-3xl font-bold md:text-4xl">{title}</h1>
+        {children}
+        <p className="mt-6 text-muted">{t("empty")}</p>
+      </div>
+    );
 
   /** Clicking a way of studying starts it at once, with the settings above. */
   function start(activity: Activity) {
@@ -100,8 +108,68 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
     </div>
   );
 
+  const row = (label: string, body: React.ReactNode) => (
+    <div>
+      <p className="mb-2 text-sm font-semibold">{label}</p>
+      {body}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
+      <div>
+        <div className="flex items-center gap-2">
+          <h1 className="min-w-0 flex-1 font-serif text-3xl font-bold md:text-4xl">{title}</h1>
+          <span className="hidden text-xs text-muted sm:inline">
+            {t(`order.${order}`)} · {size || t("allWords", { n: words.length })}
+          </span>
+          <button onClick={() => setSettings(true)} className="icon-btn" aria-label={t("settings")} title={t("settings")}>
+            <I.IconGear />
+          </button>
+        </div>
+        {children}
+      </div>
+
+      {settings && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center" onClick={() => setSettings(false)}>
+          <div role="dialog" aria-modal="true" aria-label={t("settings")} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl bg-card p-5 shadow-xl">
+            <div className="flex items-center">
+              <h2 className="flex-1 font-bold">{t("settings")}</h2>
+              <button onClick={() => setSettings(false)} className="icon-btn" aria-label={t("close")}>
+                <I.IconX />
+              </button>
+            </div>
+            {row(
+              t("orderLabel"),
+              chips(
+                ORDERS,
+                order,
+                (o) => {
+                  setOrder(o);
+                  keep("practice_order", o);
+                },
+                (o) => t(`order.${o}`),
+              ),
+            )}
+            {row(t("sizeLabel"), chips([10, 20, 50, 0] as const, size as 10 | 20 | 50 | 0, setSize, (n) => (n ? String(n) : t("allWords", { n: words.length }))))}
+            {row(
+              t("modeLabelTest"),
+              chips(
+                MODES,
+                mode,
+                (m) => {
+                  setMode(m);
+                  keep("practice_mode", m);
+                },
+                (m) => t(`mode.${m}`),
+              ),
+            )}
+            <button onClick={() => setSettings(false)} className="btn btn-primary w-full">
+              {t("done")}
+            </button>
+          </div>
+        </div>
+      )}
       {/* what to do first, Anki style: due reviews before new learning */}
       <div className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border px-4 py-3 ${due ? "border-accent/40 bg-accent/5" : "border-line bg-card"}`}>
         <span className={due ? "text-accent" : "text-green-600"}>{due ? <I.IconClock /> : <I.IconCheckCircle />}</span>
@@ -118,41 +186,9 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
         </Link>
       </div>
 
-      {/* which words, how many – applies to every way of studying below */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-line bg-card px-4 py-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-semibold">{t("orderLabel")}</span>
-          {chips(
-            ORDERS,
-            order,
-            (o) => {
-              setOrder(o);
-              keep("practice_order", o);
-            },
-            (o) => t(`order.${o}`),
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-semibold">{t("sizeLabel")}</span>
-          {chips([10, 20, 50, 0] as const, size as 10 | 20 | 50 | 0, setSize, (n) => (n ? String(n) : t("allWords", { n: words.length })))}
-        </div>
-      </div>
-
       <section>
         <h2 className="mb-2 text-sm font-semibold text-muted">{t("groups.learn")}</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{(["learn", "cards", "test"] as const).map(tile)}</div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
-          <span>{t("modeLabelTest")}</span>
-          {chips(
-            MODES,
-            mode,
-            (m) => {
-              setMode(m);
-              keep("practice_mode", m);
-            },
-            (m) => t(`mode.${m}`),
-          )}
-        </div>
       </section>
 
       <section>

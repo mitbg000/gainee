@@ -1066,12 +1066,15 @@
       "retryWrong": "Luyện lại câu sai",
       "typingRound": "Vòng tự gõ"
     },
-    "modeLabelTest": "Dạng câu Kiểm tra:",
+    "modeLabelTest": "Dạng câu Kiểm tra",
     "recommended": "Đề xuất",
     "groups": {
       "learn": "Học và kiểm tra",
       "deep": "Luyện sâu và trò chơi"
-    }
+    },
+    "settings": "Cài đặt luyện tập",
+    "close": "Đóng",
+    "done": "Xong"
   },
   "writing": {
     "title": "Luyện Writing",
