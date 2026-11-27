@@ -2215,7 +2215,8 @@
       "prefixBad": "2–5 chữ cái A–Z, không dấu",
       "expireHours": "Tự huỷ yêu cầu sau (giờ)",
       "expireHint": "0 = không tự huỷ. Tiền tới muộn sau khi hết hạn vẫn được cộng."
-    }
+    },
+    "editUser": "Sửa quyền & tài khoản"
   },
   "auth": {
     "headline": "Đọc thứ bạn thích, giỏi tiếng Anh lên mỗi ngày.",
@@ -2340,6 +2341,25 @@
     "save": "Lưu thay đổi",
     "saving": "Đang lưu…",
     "cancel": "Huỷ",
-    "saveError": "Không lưu được, hãy thử lại"
+    "saveError": "Không lưu được, hãy thử lại",
+    "email": {
+      "none": "Chưa có email (đang đăng nhập bằng “{login}”)",
+      "change": "Đổi email",
+      "add": "Thêm email",
+      "newEmail": "Email mới",
+      "password": "Mật khẩu hiện tại",
+      "hint": "Sau khi lưu, bạn đăng nhập bằng email này và nhận email đặt lại mật khẩu ở đây.",
+      "save": "Lưu email",
+      "saving": "Đang lưu…",
+      "saved": "Đã lưu email",
+      "cancel": "Huỷ",
+      "errors": {
+        "wrong_password": "Mật khẩu chưa đúng",
+        "email_taken": "Email này đã có tài khoản khác",
+        "too_many_attempts": "Thử sai nhiều lần, hãy đợi 15 phút",
+        "invalid": "Email chưa hợp lệ",
+        "failed": "Không lưu được, hãy thử lại"
+      }
+    }
   }
 }

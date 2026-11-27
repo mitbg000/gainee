@@ -53,11 +53,11 @@ export function RefreshWhile({ active }: { active: boolean }) {
  * IELTS Listening part → listening bank. The server's worker does it (ffmpeg + Whisper + matching to the audioscript),
  * so this page can be closed meanwhile.
  */
-export default function IeltsToBank({ sectionId, hasScript, sourceId, job, refresh = true }: { sectionId: number; hasScript: boolean; sourceId: number | null; job: CutJob; /** false in lists: the page refreshes once for all rows */ refresh?: boolean }) {
+export default function IeltsToBank({ sectionId, hasScript, sourceId, job, refresh = true, canCut = true }: { sectionId: number; hasScript: boolean; sourceId: number | null; job: CutJob; /** false in lists: the page refreshes once for all rows */ refresh?: boolean; /** editors and admins cut parts into the bank; learners only open it */ canCut?: boolean }) {
   const t = useTranslations("listen.ielts");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  useRefreshWhile(refresh && !!job);
+  useRefreshWhile(refresh && canCut && !!job);
 
   async function run() {
     if (sourceId && !confirm(t("redoConfirm"))) return;
@@ -67,6 +67,12 @@ export default function IeltsToBank({ sectionId, hasScript, sourceId, job, refre
     router.refresh();
   }
 
+  if (!canCut)
+    return sourceId ? (
+      <Link href={`/listen/${sourceId}`} className="btn btn-sm btn-secondary">
+        <I.IconHeadphones /> {t("open")}
+      </Link>
+    ) : null;
   if (!hasScript) return <span className="text-xs text-muted">{t("noScript")}</span>;
   return (
     <span className="flex flex-wrap items-center gap-2 text-sm">

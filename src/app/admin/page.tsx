@@ -60,6 +60,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               <th className="px-2 py-2 text-right">{t("credits")}</th>
               <th className="px-2 py-2 text-right">{t("used", { n: DAYS })}</th>
               <th className="px-4 py-2">{t("lastLogin")}</th>
+              <th className="px-2 py-2" />
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -87,6 +88,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   {fmtCredits(Number(use.get(u.id)?.credits ?? 0))} · {t("calls", { n: Number(use.get(u.id)?.calls ?? 0) })}
                 </td>
                 <td className="px-4 py-2 text-xs text-muted">{u.lastLoginAt ? when(u.lastLoginAt) : "—"}</td>
+                <td className="px-2 py-2 text-right">
+                  <Link href={`/admin/users/${u.id}`} className="btn btn-sm btn-secondary">
+                    {t("editUser")}
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -2215,7 +2215,8 @@
       "prefixBad": "2–5 letters A–Z",
       "expireHours": "Cancel requests after (hours)",
       "expireHint": "0 = never. Money arriving after that is still credited."
-    }
+    },
+    "editUser": "Edit rights & account"
   },
   "auth": {
     "headline": "Read what you like, get better at English every day.",
@@ -2340,6 +2341,25 @@
     "save": "Save changes",
     "saving": "Saving…",
     "cancel": "Cancel",
-    "saveError": "Could not save, please try again"
+    "saveError": "Could not save, please try again",
+    "email": {
+      "none": "No e-mail yet (you log in as “{login}”)",
+      "change": "Change e-mail",
+      "add": "Add e-mail",
+      "newEmail": "New e-mail",
+      "password": "Current password",
+      "hint": "After saving you log in with this e-mail, and password reset e-mails come here.",
+      "save": "Save e-mail",
+      "saving": "Saving…",
+      "saved": "E-mail saved",
+      "cancel": "Cancel",
+      "errors": {
+        "wrong_password": "Wrong password",
+        "email_taken": "Another account has this e-mail",
+        "too_many_attempts": "Too many tries, wait 15 minutes",
+        "invalid": "Not a valid e-mail",
+        "failed": "Could not save, please try again"
+      }
+    }
   }
 }

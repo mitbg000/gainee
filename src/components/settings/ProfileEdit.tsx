@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import Avatar from "@/components/Avatar";
+import EmailChange from "./EmailChange";
 import type { Profile } from "@/lib/profile";
 import * as I from "@/components/icons";
 
@@ -119,13 +120,7 @@ export default function ProfileEdit({ avatar, name, email, sub, profile, stats }
         <form onSubmit={save} className="mt-5 border-t border-line pt-5">
           <div className="grid gap-4 sm:grid-cols-2">
             {field("name", ta("name"), <input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={100} placeholder={email} className="field w-full" />)}
-            {field(
-              "email",
-              "Email",
-              <p id="email" className="flex min-h-10 items-center text-sm text-muted">
-                {email}
-              </p>,
-            )}
+            <EmailChange email={email} />
             {field("level", tp("level"), select("level", LEVELS))}
             {field("targetBand", tp("targetBand"), select("targetBand", BANDS))}
             {field("explainIn", tp("explainIn"), select("explainIn", ["vi", "en"] as const, (v) => (v === "vi" ? "Tiếng Việt" : "English")))}

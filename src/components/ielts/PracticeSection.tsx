@@ -27,6 +27,8 @@ export type PracticeData = {
   /** this part in the listening bank (dictation), if added */
   listenSourceId?: number | null;
   listenJob?: CutJob;
+  /** editors and admins: may cut the part into the listening bank */
+  canCut?: boolean;
 };
 
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s);
@@ -245,7 +247,7 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
       )}
       {data.skill === "listening" && data.audio && (
         <div className="-mt-2 mb-4">
-          <IeltsToBank sectionId={data.id} hasScript={!!data.transcript?.trim()} sourceId={data.listenSourceId ?? null} job={data.listenJob ?? null} />
+          <IeltsToBank sectionId={data.id} hasScript={!!data.transcript?.trim()} sourceId={data.listenSourceId ?? null} job={data.listenJob ?? null} canCut={!!data.canCut} />
         </div>
       )}
 
