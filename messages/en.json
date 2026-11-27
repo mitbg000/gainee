@@ -1922,7 +1922,6 @@
     "customHelp": "At least {min} ₫ · {rate} ₫ per credit",
     "belowMin": "The minimum is {min} ₫",
     "howTitle": "How are credits counted?",
-    "tokensLeft": "≈ {n} AI tokens",
     "waitingLine": "{code} · {credits} credits · {price} waiting for payment",
     "payContinue": "Pay now",
     "best": "Best value",
@@ -2307,18 +2306,9 @@
     "joined": "joined {date}",
     "aiTitle": "AI & credits",
     "balance": "Credits left",
-    "tokensLeft": "≈ {n} tokens left (at the default price)",
     "free": "AI is free",
     "topup": "Top up",
-    "tokensUsed": "Tokens used",
     "calls": "{n} AI calls",
-    "creditsUsed": "Credits used",
-    "last24": "{n} in the last 24 hours",
-    "dailyLimit": "Left in 24 hours",
-    "dailyOf": "of the {n} credit limit",
-    "chartTitle": "Tokens per day ({n} days)",
-    "today": "Today",
-    "byTask": "By feature (30 days)",
     "noAi": "No AI use in the last 30 days.",
     "learnTitle": "Learning",
     "allProgress": "Full progress",
@@ -2334,9 +2324,6 @@
     "save": "Save changes",
     "saving": "Saving…",
     "cancel": "Cancel",
-    "saveError": "Could not save, please try again",
-    "tokensLeftShort": "Tokens left",
-    "tokensUsed30": "Tokens used (30 days)",
-    "creditsUsed30": "Credits used (30 days)"
+    "saveError": "Could not save, please try again"
   }
 }

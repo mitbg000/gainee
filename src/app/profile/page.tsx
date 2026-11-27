@@ -5,7 +5,6 @@ import GoalBars from "@/components/GoalBars";
 import Shell from "@/components/Shell";
 import ProfileEdit from "@/components/settings/ProfileEdit";
 import { getDb, schema } from "@/db";
-import { getCreditConfig } from "@/lib/credits";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { goalProgress } from "@/lib/goals";
 import { imageUrl } from "@/lib/images";
@@ -24,17 +23,14 @@ export default async function ProfilePage() {
   const f = await getFormatter();
   const db = getDb();
 
-  const [stats, mastered, [xp], goals, profile, groups, cfg] = await Promise.all([
+  const [stats, mastered, [xp], goals, profile, groups] = await Promise.all([
     dashboardStats(),
     masteredByWeek(),
     db.select({ n: sql<number>`coalesce(sum(${schema.activity.xp}), 0)`, minutes: sql<number>`coalesce(sum(${schema.activity.minutes}), 0)` }).from(schema.activity).where(eq(schema.activity.userId, me.id)),
     goalProgress(),
     getProfile(),
     db.select({ name: schema.groups.name }).from(schema.userGroups).innerJoin(schema.groups, eq(schema.groups.id, schema.userGroups.groupId)).where(eq(schema.userGroups.userId, me.id)),
-    getCreditConfig(),
   ]);
-  // shortcut: tokens left at the default price, half reading half writing; models with their own price differ
-  const perToken = (cfg.default.in + cfg.default.out) / 2 / 1e6;
   const admin = me.role === "admin";
   const num = (n: number) => f.number(Number(n), { notation: Number(n) >= 100_000 ? "compact" : "standard", maximumFractionDigits: 1 });
   const avatar = me.avatar ? imageUrl(me.avatar) : null;
@@ -54,20 +50,9 @@ export default async function ProfilePage() {
       <ProfileEdit avatar={avatar} name={me.name ?? ""} email={me.email} sub={[me.email, ta(`roles.${me.role}`), ...groups.map((g) => g.name)].join(" · ")} profile={profile}
         stats={
           admin ? undefined : (
-            <Link href="/credits" title={t("topup")} className="flex w-full items-center justify-between gap-4 rounded-xl border border-line px-4 py-2 transition-colors hover:border-accent sm:w-auto sm:justify-start">
-              <span>
-                <span className="block whitespace-nowrap text-xs text-muted">{t("balance")}</span>
-                <span className={`font-serif text-xl font-bold tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`}>{fmtCredits(me.credits)}</span>
-              </span>
-              {perToken > 0 && (
-                <span className="border-l border-line pl-4">
-                  <span className="block whitespace-nowrap text-xs text-muted">{t("tokensLeftShort")}</span>
-                  <span className="font-serif text-xl font-bold tabular-nums">≈{num(Math.floor(Math.max(0, me.credits) / perToken))}</span>
-                </span>
-              )}
-              <span className="flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-accent">
-                <I.IconCoin className="h-5 w-5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">{t("topup")}</span>
-              </span>
+            <Link href="/credits" title={t("topup")} className={`flex h-9 items-center gap-1.5 rounded-full bg-ink/5 px-3.5 text-sm font-semibold tabular-nums transition-colors hover:bg-accent/10 hover:text-accent ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`}>
+              <I.IconCoin className="h-4 w-4" />
+              {fmtCredits(me.credits)} credit
             </Link>
           )
         }

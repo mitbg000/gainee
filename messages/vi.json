@@ -1922,7 +1922,6 @@
     "customHelp": "Tối thiểu {min} ₫ · {rate} ₫ cho 1 credit",
     "belowMin": "Số tiền tối thiểu là {min} ₫",
     "howTitle": "Credit được tính thế nào?",
-    "tokensLeft": "≈ {n} token AI",
     "waitingLine": "{code} · {credits} credit · {price} đang chờ thanh toán",
     "payContinue": "Thanh toán tiếp",
     "best": "Lợi nhất",
@@ -2307,18 +2306,9 @@
     "joined": "tham gia {date}",
     "aiTitle": "AI & credit",
     "balance": "Credit còn lại",
-    "tokensLeft": "≈ {n} token còn dùng được (theo giá mặc định)",
     "free": "AI không tính phí",
     "topup": "Nạp credit",
-    "tokensUsed": "Token đã dùng",
     "calls": "{n} lượt gọi AI",
-    "creditsUsed": "Credit đã dùng",
-    "last24": "{n} trong 24 giờ qua",
-    "dailyLimit": "Còn trong 24 giờ",
-    "dailyOf": "trên giới hạn {n} credit",
-    "chartTitle": "Token dùng mỗi ngày ({n} ngày)",
-    "today": "Hôm nay",
-    "byTask": "Theo tính năng (30 ngày)",
     "noAi": "Chưa dùng AI trong 30 ngày qua.",
     "learnTitle": "Học tập",
     "allProgress": "Xem tiến độ chi tiết",
@@ -2334,9 +2324,6 @@
     "save": "Lưu thay đổi",
     "saving": "Đang lưu…",
     "cancel": "Huỷ",
-    "saveError": "Không lưu được, hãy thử lại",
-    "tokensLeftShort": "Token còn dùng được",
-    "tokensUsed30": "Token đã dùng (30 ngày)",
-    "creditsUsed30": "Credit đã dùng (30 ngày)"
+    "saveError": "Không lưu được, hãy thử lại"
   }
 }

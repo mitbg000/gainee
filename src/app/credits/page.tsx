@@ -31,7 +31,6 @@ export default async function CreditsPage() {
   const vnd = (n: number) => f.number(n, { style: "currency", currency: "VND", maximumFractionDigits: 0 });
   const admin = me.role === "admin";
   const top = Math.max(0, ...cfg.packages.map((p) => p.price / p.credits)); // dearest rate: what the others save against
-  const perToken = (cfg.default.in + cfg.default.out) / 2 / 1e6;
   const rates = Object.entries(cfg.models);
   const canTopUp = cfg.packages.length > 0 || cfg.customEnabled;
   const box = "rounded-2xl border border-line bg-card p-5";
@@ -52,7 +51,6 @@ export default async function CreditsPage() {
             </p>
           )}
         </div>
-        {!admin && perToken > 0 && <p className="pb-1.5 text-sm text-muted">{t("tokensLeft", { n: f.number(Math.floor(Math.max(0, me.credits) / perToken), { notation: "compact" }) })}</p>}
         <details className="w-full text-xs text-muted">
           <summary className="cursor-pointer select-none">{t("howTitle")}</summary>
           <p className="mt-2">{t("how")}</p>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { logout } from "@/lib/logout";
 import { useEffect, useRef, useState } from "react";
 import type { Theme } from "@/theme/config";
@@ -13,13 +13,12 @@ import * as I from "./icons";
 import Avatar from "./Avatar";
 import { fmtCredits } from "@/lib/fmtCredits";
 
-export type Me = { avatar: string | null; name: string; email: string; /** null: admin, not charged */ credits: number | null; /** ≈ AI tokens the credits buy */ tokens: number | null; admin: boolean };
+export type Me = { avatar: string | null; name: string; email: string; /** null: admin, not charged */ credits: number | null; admin: boolean };
 
 /** The avatar in the top bar: who is logged in, their pages (profile, credits, progress, settings, admin), light/dark, language, log out. */
 export default function UserMenu({ theme, me }: { theme: Theme; me: Me }) {
   const t = useTranslations("topbar");
   const tn = useTranslations("nav");
-  const f = useFormatter();
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -73,12 +72,7 @@ export default function UserMenu({ theme, me }: { theme: Theme; me: Me }) {
             "/credits",
             <I.IconCoin className="h-4 w-4" />,
             tn("credits"),
-            me.credits !== null && (
-              <span className={`text-right text-xs leading-tight tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : "text-muted"}`}>
-                <span className="block font-semibold">{fmtCredits(me.credits)}</span>
-                {me.tokens !== null && <span className="block">≈{f.number(me.tokens, { notation: "compact" })} token</span>}
-              </span>
-            ),
+            me.credits !== null && <span className={`text-xs font-semibold tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : "text-muted"}`}>{fmtCredits(me.credits)}</span>,
           )}
           {link("/progress", <I.IconChart className="h-4 w-4" />, tn("progress"))}
           {link("/settings", <I.IconGear className="h-4 w-4" />, tn("settings"))}
