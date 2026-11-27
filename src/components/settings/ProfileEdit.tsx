@@ -100,20 +100,20 @@ export default function ProfileEdit({ avatar, name, email, sub, profile, stats }
           {picState === "error" && <p className="text-xs text-red-600">{ta("error")}</p>}
         </div>
         {stats}
-        {!open && (
-          <button onClick={() => setOpen(true)} className="btn btn-sm btn-secondary">
-            <I.IconEdit /> {t("edit")}
-          </button>
-        )}
       </div>
 
       {!open ? (
-        <ul className="mt-4 flex flex-wrap gap-1.5 text-xs">
+        <ul className="mt-4 flex flex-wrap items-center gap-1.5 text-xs">
           {facts.map((x) => (
             <li key={x} className="rounded-full bg-paper px-2.5 py-1 text-muted">
               {x}
             </li>
           ))}
+          <li>
+            <button onClick={() => setOpen(true)} aria-label={t("edit")} title={t("edit")} className="flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-paper hover:text-accent">
+              <I.IconEdit className="h-4 w-4" />
+            </button>
+          </li>
         </ul>
       ) : (
         <form onSubmit={save} className="mt-5 border-t border-line pt-5">

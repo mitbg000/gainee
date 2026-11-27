@@ -70,7 +70,7 @@ export default function UserMenu({ theme, me }: { theme: Theme; me: Me }) {
           {link("/profile", <I.IconUser className="h-4 w-4" />, tn("profile"))}
           {link(
             "/credits",
-            <I.IconCoin className="h-4 w-4" />,
+            <I.IconCoin className="h-4 w-4 text-amber-500 dark:text-amber-400" />,
             tn("credits"),
             me.credits !== null && <span className={`text-xs font-semibold tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : "text-muted"}`}>{fmtCredits(me.credits)}</span>,
           )}

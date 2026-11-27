@@ -52,7 +52,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
         <div className="flex items-center gap-2">
           {!admin && (
             <Link href="/credits" className={`flex h-8 items-center gap-1 rounded-full bg-ink/5 px-2.5 text-sm font-semibold tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`} aria-label={t("topbar.credits")}>
-              <IconCoin className="h-4 w-4" />
+              <IconCoin className="h-4 w-4 text-amber-500 dark:text-amber-400" />
               {fmtCredits(me.credits)}
             </Link>
           )}

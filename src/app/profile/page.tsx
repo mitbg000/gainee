@@ -51,7 +51,7 @@ export default async function ProfilePage() {
         stats={
           admin ? undefined : (
             <Link href="/credits" title={t("topup")} className={`flex h-9 items-center gap-1.5 rounded-full bg-ink/5 px-3.5 text-sm font-semibold tabular-nums transition-colors hover:bg-accent/10 hover:text-accent ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`}>
-              <I.IconCoin className="h-4 w-4" />
+              <I.IconCoin className="h-4 w-4 text-amber-500 dark:text-amber-400" />
               {fmtCredits(me.credits)} credit
             </Link>
           )
