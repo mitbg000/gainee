@@ -27,7 +27,7 @@ export default function Info({ text, label, align = "left" }: { text: React.Reac
         aria-label={label}
         aria-expanded={open}
         aria-describedby={open ? id : undefined}
-        className={`flex size-5 items-center justify-center rounded-full border text-[11px] font-bold italic leading-none transition-colors ${open ? "border-accent bg-accent text-on-accent" : "border-line text-muted hover:border-accent hover:text-accent"}`}
+        className={`flex size-3.5 items-center justify-center rounded-full border font-serif text-[9px] font-bold italic leading-none transition-colors ${open ? "border-accent bg-accent text-on-accent" : "border-line text-muted hover:border-accent hover:text-accent"}`}
       >
         i
       </button>

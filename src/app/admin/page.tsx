@@ -188,6 +188,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       .innerJoin(schema.users, eq(schema.users.id, schema.topups.userId))
       .orderBy(sql`${schema.topups.status} = 'pending' desc`, desc(schema.topups.id))
       .limit(100);
+    const { prefix } = await getSepay();
     // transfers SePay reported that did not pay a request by themselves: settle them by hand
     const odd = await db.select().from(schema.payments).where(sql`${schema.payments.status} <> 'paid'`).orderBy(desc(schema.payments.createdAt)).limit(30);
     const oddList = odd.length > 0 && (
@@ -200,7 +201,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               <span className="w-28 text-xs text-muted">{when(p.createdAt)}</span>
               <span className="font-semibold tabular-nums">{vnd(p.amount)}</span>
               <span className="min-w-0 flex-1 truncate text-muted">{p.content}</span>
-              {p.topupId && <span className="font-mono text-xs">{topupCode(p.topupId)}</span>}
+              {p.topupId && <span className="font-mono text-xs">{topupCode(p.topupId, prefix)}</span>}
               <span className="chip">{t(`payments.status.${p.status}`)}</span>
             </li>
           ))}
@@ -213,7 +214,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <ul className="divide-y divide-line rounded-2xl border border-line bg-card text-sm">
         {rows.map(({ r, email, name }) => (
           <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-            <span className="font-mono text-xs text-muted">{topupCode(r.id)}</span>
+            <span className="font-mono text-xs text-muted">{topupCode(r.id, prefix)}</span>
             <span className="min-w-0 flex-1">
               <Link href={`/admin/users/${r.userId}`} className="font-semibold hover:text-accent">
                 {name || email}
@@ -223,7 +224,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 · {fmtCredits(r.credits)} credit · {vnd(r.price)} · {when(r.createdAt)}
               </span>
             </span>
-            {r.status === "pending" ? <TopupActions id={r.id} code={topupCode(r.id)} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status}`)}</span>}
+            {r.status === "pending" ? <TopupActions id={r.id} code={topupCode(r.id, prefix)} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status}`)}</span>}
           </li>
         ))}
       </ul>
@@ -244,7 +245,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     body = (
       <div className="space-y-6">
         <PaymentSettings
-          initial={{ enabled: sepay.enabled, bank: sepay.bank, account: sepay.account, holder: sepay.holder }}
+          initial={{ enabled: sepay.enabled, bank: sepay.bank, account: sepay.account, holder: sepay.holder, prefix: sepay.prefix }}
           hasApiKey={!!sepay.apiKeyEnc}
           hasHmac={!!sepay.hmacEnc}
           webhookUrl={`${sec.siteUrl || "https://<site>"}/api/payments/sepay`}

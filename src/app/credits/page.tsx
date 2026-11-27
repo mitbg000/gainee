@@ -71,15 +71,15 @@ export default async function CreditsPage() {
 
       {/* requests still waiting for the transfer */}
       {waiting.map((r) => {
-        const pay = sepayOn(sepay) ? { qr: qrUrl(sepay, r.price, topupCode(r.id)), bank: sepay.bank, account: sepay.account, holder: sepay.holder } : null;
+        const pay = sepayOn(sepay) ? { qr: qrUrl(sepay, r.price, topupCode(r.id, sepay.prefix)), bank: sepay.bank, account: sepay.account, holder: sepay.holder } : null;
         return (
           <details key={r.id} className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-3 text-sm dark:border-amber-800 dark:bg-amber-950/30">
             <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1">
               <I.IconClock className="h-4 w-4 text-amber-700 dark:text-amber-400" />
-              <span className="flex-1">{t("waitingLine", { code: topupCode(r.id), credits: fmtCredits(r.credits), price: vnd(r.price) })}</span>
+              <span className="flex-1">{t("waitingLine", { code: topupCode(r.id, sepay.prefix), credits: fmtCredits(r.credits), price: vnd(r.price) })}</span>
               {pay && <span className="font-semibold text-accent">{t("payContinue")} →</span>}
             </summary>
-            {pay ? <PayPanel id={r.id} code={topupCode(r.id)} price={vnd(r.price)} pay={pay} /> : cfg.payInfo && <p className="mt-2 whitespace-pre-line">{cfg.payInfo}</p>}
+            {pay ? <PayPanel id={r.id} code={topupCode(r.id, sepay.prefix)} price={vnd(r.price)} pay={pay} /> : cfg.payInfo && <p className="mt-2 whitespace-pre-line">{cfg.payInfo}</p>}
           </details>
         );
       })}

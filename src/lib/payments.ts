@@ -11,13 +11,22 @@ import { addCredits } from "@/lib/credits";
 import { decrypt, encrypt } from "@/lib/crypto";
 import { getSetting, setSetting } from "@/lib/settings";
 
-/** Codes are GN + 6 digits (GN000123): set the same in SePay → Cấu trúc mã thanh toán (prefix GN, digits, 6–8). */
-export const CODE_PREFIX = "GN";
-export const topupCode = (id: number) => `${CODE_PREFIX}${String(id).padStart(6, "0")}`;
-const CODE_RE = new RegExp(`${CODE_PREFIX}\\s?(\\d{6,8})`, "i");
+/**
+ * A request's code: the admin's prefix + 6 digits (NAP000123). The same prefix goes in SePay → Cấu trúc mã thanh toán
+ * (digits, 6–8 long).
+ */
+export const DEFAULT_PREFIX = "GN";
+export const topupCode = (id: number, prefix: string) => `${prefix}${String(id).padStart(6, "0")}`;
+const codeRe = (prefix: string) => new RegExp(`${prefix}\\s?(\\d{6,8})`, "i");
 
 export const SepayConfig = z.object({
   enabled: z.boolean().default(false),
+  prefix: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z]{2,5}$/)
+    .transform((s) => s.toUpperCase())
+    .default(DEFAULT_PREFIX),
   bank: z.string().trim().max(50).default(""), // VietQR bank code, e.g. MBBank, VCB, 970422
   account: z.string().trim().max(40).regex(/^[A-Za-z0-9]*$/).default(""),
   holder: z.string().trim().max(100).default(""),
@@ -48,17 +57,38 @@ const same = (a: string, b: string) => {
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 };
 
-/** Is this call really from SePay? HMAC-SHA256 when its secret is set (signature over "timestamp.body", ≤ 5 min old), else the API key. */
-export function verifySepay(c: SepayConfig, headers: Headers, rawBody: string, now = Date.now()) {
-  if (c.hmacEnc) {
-    const sig = headers.get("x-sepay-signature") ?? "";
-    const ts = Number(headers.get("x-sepay-timestamp"));
-    if (!Number.isFinite(ts) || Math.abs(now / 1000 - ts) > 300) return false;
-    const want = "sha256=" + crypto.createHmac("sha256", decrypt(c.hmacEnc)).update(`${ts}.${rawBody}`).digest("hex");
-    return same(sig, want);
+/**
+ * Is this call really from SePay? Accepted when it matches ANY secret saved here: the HMAC-SHA256 signature over
+ * "timestamp.body" (≤ 5 minutes old) or the API key ("Authorization: Apikey …"). Returns null when accepted, else why
+ * not (logged, never the secrets themselves).
+ */
+export function verifySepay(c: SepayConfig, headers: Headers, rawBody: string, now = Date.now()): string | null {
+  if (!c.hmacEnc && !c.apiKeyEnc) return "no_secret_saved";
+  const sig = headers.get("x-sepay-signature")?.trim().toLowerCase();
+  const auth = headers.get("authorization")?.trim();
+  if (!sig && !auth) return "no_auth_header";
+  const why: string[] = [];
+  if (sig) {
+    if (!c.hmacEnc) why.push("hmac_header_but_no_hmac_secret");
+    else {
+      let ts = Number(headers.get("x-sepay-timestamp"));
+      if (ts > 1e12) ts = Math.floor(ts / 1000); // milliseconds
+      if (!Number.isFinite(ts) || !ts || Math.abs(now / 1000 - ts) > 300) why.push("hmac_bad_timestamp");
+      else {
+        const hex = crypto.createHmac("sha256", decrypt(c.hmacEnc)).update(`${ts}.${rawBody}`).digest("hex");
+        if (same(sig.replace(/^sha256=/, ""), hex)) return null;
+        why.push("hmac_mismatch");
+      }
+    }
   }
-  if (c.apiKeyEnc) return same(headers.get("authorization") ?? "", `Apikey ${decrypt(c.apiKeyEnc)}`);
-  return false; // never accept unsigned calls
+  if (auth) {
+    const key = auth.match(/^apikey\s+(.+)$/i)?.[1]?.trim();
+    if (!key) why.push("authorization_not_apikey");
+    else if (!c.apiKeyEnc) why.push("apikey_header_but_no_key_saved");
+    else if (same(key, decrypt(c.apiKeyEnc).trim())) return null;
+    else why.push("apikey_mismatch");
+  }
+  return why.join(",");
 }
 
 export const Webhook = z.object({
@@ -74,11 +104,11 @@ export const Webhook = z.object({
  * One transfer from SePay. Credits are added once: the payment id is the primary key (resent webhooks change nothing)
  * and the request moves from pending to done in one conditional update.
  */
-export async function takePayment(p: z.infer<typeof Webhook>, raw: Record<string, unknown>) {
+export async function takePayment(p: z.infer<typeof Webhook>, raw: Record<string, unknown>, prefix: string) {
   if (p.transferType !== "in") return "ignored";
   const db = getDb();
   const text = `${p.code ?? ""} ${p.content} ${p.description ?? ""}`;
-  const m = CODE_RE.exec(text);
+  const m = codeRe(prefix).exec(text);
   const topupId = m ? Number(m[1]) : null;
   const [t] = topupId ? await db.select().from(schema.topups).where(eq(schema.topups.id, topupId)) : [];
   const status = !t ? "unmatched" : t.status !== "pending" ? "settled" : p.transferAmount < t.price ? "underpaid" : "paid";
@@ -92,6 +122,6 @@ export async function takePayment(p: z.infer<typeof Webhook>, raw: Record<string
     .update(schema.topups)
     .set({ status: "done", doneAt: new Date(), note: `SePay #${p.id}` })
     .where(and(eq(schema.topups.id, t.id), eq(schema.topups.status, "pending")));
-  if ((res as unknown as [{ affectedRows: number }])[0].affectedRows === 1) await addCredits(t.userId, t.credits, "topup", `${topupCode(t.id)} · SePay`);
+  if ((res as unknown as [{ affectedRows: number }])[0].affectedRows === 1) await addCredits(t.userId, t.credits, "topup", `${topupCode(t.id, prefix)} · SePay`);
   return status;
 }

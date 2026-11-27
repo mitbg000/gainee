@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { bad, idParam, parseBody } from "@/lib/api";
 import { release } from "@/lib/coupons";
-import { topupCode } from "@/lib/payments";
+import { getSepay, topupCode } from "@/lib/payments";
 import { addCredits } from "@/lib/credits";
 import { requireRole } from "@/lib/users";
 
@@ -25,7 +25,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .set({ status: d.approve ? "done" : "rejected", doneAt: new Date() })
     .where(and(eq(schema.topups.id, id), eq(schema.topups.status, "pending")));
   if ((res as unknown as [{ affectedRows: number }])[0].affectedRows === 0) return bad("already_settled", 409); // a double click adds nothing
-  if (d.approve) await addCredits(row.userId, row.credits, "topup", topupCode(id));
+  if (d.approve) await addCredits(row.userId, row.credits, "topup", topupCode(id, (await getSepay()).prefix));
   else if (row.couponId) await release(row.couponId, row.userId); // the discount code can be used again
   return NextResponse.json({ ok: true });
 }

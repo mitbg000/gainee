@@ -11,7 +11,11 @@ export async function POST(req: Request) {
   const raw = await req.text();
   const cfg = await getSepay();
   if (!cfg.enabled) return NextResponse.json({ success: false, error: "disabled" }, { status: 503 });
-  if (!verifySepay(cfg, req.headers, raw)) return NextResponse.json({ success: false, error: "unauthorized" }, { status: 401 });
+  const refused = verifySepay(cfg, req.headers, raw);
+  if (refused) {
+    console.warn(`[sepay] webhook refused: ${refused}`); // pm2 logs gainee-web: why SePay's call was not accepted
+    return NextResponse.json({ success: false, error: "unauthorized", reason: refused }, { status: 401 });
+  }
   let body: unknown;
   try {
     body = JSON.parse(raw);
@@ -20,6 +24,6 @@ export async function POST(req: Request) {
   }
   const p = Webhook.safeParse(body);
   if (!p.success) return NextResponse.json({ success: false, error: "invalid" }, { status: 400 });
-  const result = await takePayment(p.data, body as Record<string, unknown>);
+  const result = await takePayment(p.data, body as Record<string, unknown>, cfg.prefix);
   return NextResponse.json({ success: true, result });
 }

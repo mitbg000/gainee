@@ -49,15 +49,16 @@ export async function POST(req: Request) {
       const [{ id }] = await tx.insert(schema.topups).values({ userId: u.id, credits: pack.credits, price, couponId: k?.id ?? null, discount: pack.price - price }).$returningId();
       return id;
     });
+    const sepay = await getSepay();
+    const code = topupCode(id, sepay.prefix);
     if (price === 0) {
       // fully discounted: nothing to transfer
       await db.update(schema.topups).set({ status: "done", doneAt: new Date(), note: "100%" }).where(eq(schema.topups.id, id));
-      await addCredits(u.id, pack.credits, "topup", topupCode(id));
-      return NextResponse.json({ id, price, code: topupCode(id), done: true });
+      await addCredits(u.id, pack.credits, "topup", code);
+      return NextResponse.json({ id, price, code, done: true });
     }
-    const sepay = await getSepay();
-    const pay = sepayOn(sepay) ? { qr: qrUrl(sepay, price, topupCode(id)), bank: sepay.bank, account: sepay.account, holder: sepay.holder } : null;
-    return NextResponse.json({ id, price, code: topupCode(id), pay });
+    const pay = sepayOn(sepay) ? { qr: qrUrl(sepay, price, code), bank: sepay.bank, account: sepay.account, holder: sepay.holder } : null;
+    return NextResponse.json({ id, price, code, pay });
   } catch (e) {
     if (e instanceof CouponError) return bad(e.message);
     throw e;

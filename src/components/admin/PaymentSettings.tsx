@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-type C = { enabled: boolean; bank: string; account: string; holder: string };
+type C = { enabled: boolean; bank: string; account: string; holder: string; prefix: string };
 
 /** SePay: the bank account learners pay to, and the webhook secret SePay signs its calls with. */
 export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUrl }: { initial: C; hasApiKey: boolean; hasHmac: boolean; webhookUrl: string }) {
@@ -35,6 +35,7 @@ export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUr
       <input value={c[k] as string} onChange={(e) => set({ [k]: e.target.value } as Partial<C>)} placeholder={ph} className="field mt-1 w-full" />
     </label>
   );
+  const badPrefix = !/^[A-Z]{2,5}$/.test(c.prefix);
   const missing = c.enabled && (!c.bank || !c.account || (!hasApiKey && !hasHmac && !apiKey && !hmac));
 
   return (
@@ -45,10 +46,21 @@ export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUr
         <input type="checkbox" checked={c.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
         {t("enabled")}
       </label>
-      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {field("bank", t("bank"), "MBBank, VCB, 970422…")}
         {field("account", t("account"), "0123456789")}
         {field("holder", t("holder"), "NGUYEN VAN A")}
+        <label className="block text-sm">
+          {t("prefix")}
+          <input
+            value={c.prefix}
+            onChange={(e) => set({ prefix: e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 5) })}
+            placeholder="GN"
+            className={`field mt-1 w-full font-mono ${badPrefix ? "border-red-500" : ""}`}
+            aria-invalid={badPrefix}
+          />
+          <span className={`mt-1 block text-xs ${badPrefix ? "text-red-600" : "text-muted"}`}>{badPrefix ? t("prefixBad") : t("prefixExample", { code: `${c.prefix || "GN"}000123` })}</span>
+        </label>
       </div>
 
       <div className="mt-4 rounded-xl bg-paper p-3 text-sm">
@@ -59,7 +71,7 @@ export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUr
             {t("step2")} <code className="break-all rounded bg-card px-1.5 py-0.5 text-ink">{webhookUrl}</code>
           </li>
           <li>{t("step3")}</li>
-          <li>{t("step4")}</li>
+          <li>{t("step4", { prefix: c.prefix || "GN" })}</li>
         </ol>
       </div>
 
@@ -85,7 +97,7 @@ export default function PaymentSettings({ initial, hasApiKey, hasHmac, webhookUr
       </div>
       {missing && <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{t("missing")}</p>}
       <div className="mt-4 flex items-center gap-3">
-        <button onClick={() => save()} disabled={state === "saving"} className="btn btn-primary">
+        <button onClick={() => save()} disabled={state === "saving" || badPrefix} className="btn btn-primary">
           {state === "saving" ? t("saving") : t("save")}
         </button>
         {state === "saved" && <span className="text-sm text-green-700 dark:text-green-400">{t("saved")}</span>}
