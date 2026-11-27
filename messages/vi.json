@@ -1469,7 +1469,14 @@
       "resplit": "Chia lại transcript",
       "resplitHint": "Chia lại phần Audioscripts của sách theo tiêu đề TEST n. Chỉ thay transcript của Part nào đang trống hoặc đang mang transcript của Test/Part khác; transcript bạn đã sửa tay vẫn giữ.",
       "resplitConfirm": "Chia lại transcript từ các trang sách? Part nào đang mang nhầm transcript của Test khác sẽ được thay. Sau đó các bài đã đưa vào kho chép chính tả cần bấm \"Làm lại\".",
-      "audioFailed": "Không tải lên được: {names}. Hãy chọn lại file."
+      "audioFailed": "Không tải lên được: {names}. Hãy chọn lại file.",
+      "pdfFiles": "File PDF",
+      "addPdf": "Thêm PDF",
+      "pdfHint": "Trang của PDF thêm vào được xếp sau trang cuối. Bấm “Đọc lại bằng AI” để tách đề lại khi đã đủ file.",
+      "pdfPages": "trang {from}–{to} · {n} trang",
+      "pdfOld": "PDF đã tải trước đây",
+      "pdfAdded": "Đã thêm {n} trang. Bấm “Đọc lại bằng AI” để tách đề với các trang mới.",
+      "pdfRemoveConfirm": "Bỏ “{name}” ({n} trang) khỏi bộ đề? Đề đã tách giữ nguyên cho tới khi đọc lại."
     },
     "edit": {
       "back": "Quay lại bộ đề",

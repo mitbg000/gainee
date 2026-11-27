@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
 
 /**
- * A few pages at a time (multipart): "page" (repeated page numbers), "text_<n>" (text layer, may be empty for scans)
- * and "img_<n>" (page picture rendered in the browser). Kept small so each request stays well under proxy limits.
+ * A few pages at a time (multipart): "page" (repeated page numbers), "text_<n>" (text layer, may be empty for scans),
+ * "img_<n>" (page picture rendered in the browser) and "source_<n>" (name of its PDF file). Kept small so each request stays well under proxy limits.
  */
 export async function POST(req: Request, { params }: Ctx) {
   const id = idParam((await params).id);
@@ -28,7 +28,8 @@ export async function POST(req: Request, { params }: Ctx) {
       const ext = sniff(bytes);
       if (ext && ext !== "gif") path = await saveUpload(bytes, "images/ielts", ext);
     }
-    await savePage(id, n, text, path);
+    const source = String(form.get(`source_${n}`) ?? "").trim().slice(0, 255) || null;
+    await savePage(id, n, text, path, source);
   }
   return NextResponse.json({ ok: true });
 }

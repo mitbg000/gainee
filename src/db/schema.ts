@@ -737,6 +737,8 @@ export const ieltsPages = mysqlTable(
     text: longtext("text"),
     imagePath: varchar("image_path", { length: 255 }),
     ocr: boolean("ocr").notNull().default(false),
+    /** name of the PDF file the page came from (a book can be made of several); null for books uploaded before */
+    source: varchar("source", { length: 255 }),
   },
   (t) => [uniqueIndex("ielts_pages_book_page").on(t.bookId, t.page)],
 );

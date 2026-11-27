@@ -11,7 +11,7 @@ import { toast } from "@/components/Toaster";
 const CHUNK = 4 * 1024 * 1024; // small enough to finish well inside proxy time limits on a slow upload
 const PAGE_WIDTH = 1400; // px: sharp enough to crop a map or chart, ~150 KB per page as WebP
 const BATCH = 4;
-const MAX_PAGES = 600; // the server's limit for one book
+export const MAX_PAGES = 600; // the server's limit for one book
 
 /** Upload one audio file in 8 MB chunks (stays under proxy body limits; a failed chunk is retried from where the server stopped). */
 export async function uploadAudio(bookId: number, file: File, onProgress: (done: number) => void) {
@@ -55,6 +55,82 @@ function Chosen({ files, onChange, disabled, remove }: { files: File[]; onChange
   );
 }
 
+/** The chosen PDFs, opened: one book made of all their pages, in the order of the list. */
+export async function openPdfs(files: File[]) {
+  const { getDocumentProxy } = await import("unpdf");
+  const docs = [];
+  for (const f of files) docs.push({ name: f.name, doc: await getDocumentProxy(new Uint8Array(await f.arrayBuffer())) });
+  return { docs, n: docs.reduce((sum, d) => sum + d.doc.numPages, 0) };
+}
+
+/**
+ * Every page of `docs` to the book, numbered from `first`: text layer, a picture, the PDF's name, and OCR of scanned
+ * pages here when `localOcr` (else the server reads them). Returns how many pages were scans.
+ */
+export async function sendPages(
+  bookId: number,
+  first: number,
+  docs: Awaited<ReturnType<typeof openPdfs>>["docs"],
+  localOcr: boolean,
+  say: (msg: string, pct: number) => void,
+  t: (key: string, values?: Record<string, string | number>) => string,
+) {
+  const all = docs.flatMap((d) => Array.from({ length: d.doc.numPages }, (_, i) => ({ name: d.name, get: () => d.doc.getPage(i + 1) })));
+  const n = all.length;
+  let ocr: Ocr | null = null;
+  let form = new FormData();
+  let inForm = 0;
+  let scanned = 0;
+  const send = async () => {
+    if (!inForm) return;
+    const res = await fetch(`/api/ielts/books/${bookId}/pages`, { method: "POST", body: form });
+    if (!res.ok) throw new Error(`pages: HTTP ${res.status}`);
+    form = new FormData();
+    inForm = 0;
+  };
+  try {
+    for (const [k, item] of all.entries()) {
+      const p = first + k;
+      say(t("page", { p: k + 1, n }), (k + 1) / n);
+      const page = await item.get();
+      const tc = await page.getTextContent();
+      const vp1 = page.getViewport({ scale: 1 });
+      // speaker names back in front of their lines (audioscripts), positions as shown even on rotated scans
+      let text = pageText(tc.items.flatMap((it) => ("str" in it ? [{ str: it.str, hasEOL: it.hasEOL, ...shownAt(vp1.transform, it.transform) }] : [])));
+      const vp = page.getViewport({ scale: PAGE_WIDTH / vp1.width });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(vp.width);
+      canvas.height = Math.round(vp.height);
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport: vp, canvas } as Parameters<typeof page.render>[0]).promise;
+      if (text.replace(/\s/g, "").length < 40) {
+        scanned++;
+        if (localOcr) {
+          say(t("ocr", { p: k + 1, n }), (k + 1) / n);
+          if (!ocr) {
+            const { createWorker } = await import("tesseract.js");
+            ocr = (await createWorker("eng")) as unknown as Ocr;
+          }
+          text = (await ocr.recognize(canvas)).data.text.trim();
+        }
+      }
+      const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, "image/webp", 0.72));
+      form.append("page", String(p));
+      form.append(`text_${p}`, text);
+      form.append(`source_${p}`, item.name);
+      if (blob) form.append(`img_${p}`, blob, `${p}.webp`);
+      page.cleanup();
+      if (++inForm >= BATCH) await send();
+    }
+    await send();
+  } finally {
+    await (ocr as Ocr | null)?.terminate().catch(() => {});
+  }
+  return scanned;
+}
+
 type Ocr = { recognize: (c: HTMLCanvasElement) => Promise<{ data: { text: string } }>; terminate: () => Promise<unknown> };
 
 /**
@@ -79,67 +155,14 @@ export default function ImportBook() {
   async function start() {
     if (!pdfs.length) return;
     setError(null);
-    let ocr: Ocr | null = null;
     try {
       setStatus(t("opening"));
-      const { getDocumentProxy } = await import("unpdf");
-      // several PDFs (one per test, answers apart…) become one book, pages in the order of the list
-      const docs = [];
-      for (const f of pdfs) docs.push(await getDocumentProxy(new Uint8Array(await f.arrayBuffer())));
-      const n = docs.reduce((sum, d) => sum + d.numPages, 0);
+      const { docs, n } = await openPdfs(pdfs);
       if (n > MAX_PAGES) throw new Error(t("tooManyPages", { n, max: MAX_PAGES }));
-      const all = docs.flatMap((d) => Array.from({ length: d.numPages }, (_, i) => () => d.getPage(i + 1)));
       const r = await fetch("/api/ielts/books", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ title: title.trim() || pdfs[0].name.replace(/\.pdf$/i, ""), pageCount: n }) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const { id } = await r.json();
-
-      let form = new FormData();
-      let inForm = 0;
-      let scanned = 0;
-      const send = async () => {
-        if (!inForm) return;
-        const res = await fetch(`/api/ielts/books/${id}/pages`, { method: "POST", body: form });
-        if (!res.ok) throw new Error(`pages: HTTP ${res.status}`);
-        form = new FormData();
-        inForm = 0;
-      };
-      for (let p = 1; p <= n; p++) {
-        setStatus(t("page", { p, n }));
-        setPct(p / n);
-        const page = await all[p - 1]();
-        const tc = await page.getTextContent();
-        const vp1 = page.getViewport({ scale: 1 });
-        // speaker names back in front of their lines (audioscripts), positions as shown even on rotated scans
-        let text = pageText(tc.items.flatMap((it) => ("str" in it ? [{ str: it.str, hasEOL: it.hasEOL, ...shownAt(vp1.transform, it.transform) }] : [])));
-        const vp = page.getViewport({ scale: PAGE_WIDTH / vp1.width });
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(vp.width);
-        canvas.height = Math.round(vp.height);
-        const ctx = canvas.getContext("2d")!;
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        await page.render({ canvasContext: ctx, viewport: vp, canvas } as Parameters<typeof page.render>[0]).promise;
-        if (text.replace(/\s/g, "").length < 40) {
-          scanned++;
-          if (localOcr) {
-            setStatus(t("ocr", { p, n }));
-            if (!ocr) {
-              const { createWorker } = await import("tesseract.js");
-              ocr = (await createWorker("eng")) as unknown as Ocr;
-            }
-            text = (await ocr.recognize(canvas)).data.text.trim();
-          }
-        }
-        const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, "image/webp", 0.72));
-        form.append("page", String(p));
-        form.append(`text_${p}`, text);
-        if (blob) form.append(`img_${p}`, blob, `${p}.webp`);
-        page.cleanup();
-        if (++inForm >= BATCH) await send();
-      }
-      await send();
-      await ocr?.terminate();
-      ocr = null;
+      const scanned = await sendPages(id, 1, docs, localOcr, (msg, p) => (setStatus(msg), setPct(p)), t);
 
       const skipped: string[] = [];
       for (const [i, f] of audio.entries()) {
@@ -161,7 +184,6 @@ export default function ImportBook() {
       if (skipped.length) toast(t("audioSkipped", { names: skipped.join(", ") }), "info");
       router.push(`/ielts/books/${id}`);
     } catch (e) {
-      await ocr?.terminate().catch(() => {});
       setError(e instanceof Error ? e.message : String(e));
     }
   }

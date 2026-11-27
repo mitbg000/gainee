@@ -1469,7 +1469,14 @@
       "resplit": "Split transcripts again",
       "resplitHint": "Splits the book's audioscripts again by their TEST n headings. Only parts with no transcript or another test's or part's transcript are replaced; transcripts you fixed by hand stay.",
       "resplitConfirm": "Split the transcripts again from the book's pages? Parts holding another test's transcript are replaced. Parts already in the dictation bank then need \"Redo\".",
-      "audioFailed": "Could not upload: {names}. Please choose the files again."
+      "audioFailed": "Could not upload: {names}. Please choose the files again.",
+      "pdfFiles": "PDF files",
+      "addPdf": "Add PDF",
+      "pdfHint": "Pages of an added PDF go after the last page. Press “Read again with AI” to split the tests again once all files are in.",
+      "pdfPages": "pages {from}–{to} · {n, plural, one {# page} other {# pages}}",
+      "pdfOld": "PDF uploaded earlier",
+      "pdfAdded": "{n, plural, one {# page} other {# pages}} added. Press “Read again with AI” to split the tests with the new pages.",
+      "pdfRemoveConfirm": "Take “{name}” ({n, plural, one {# page} other {# pages}}) out of the book? The tests already made stay until you read it again."
     },
     "edit": {
       "back": "Back to the book",

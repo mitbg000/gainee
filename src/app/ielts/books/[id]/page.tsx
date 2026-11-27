@@ -5,12 +5,13 @@ import Shell from "@/components/Shell";
 import BookActions from "@/components/ielts/BookActions";
 import BookTitle, { InlineRename } from "@/components/ielts/BookTitle";
 import FindMarks from "@/components/ielts/FindMarks";
+import PdfFiles from "@/components/ielts/PdfFiles";
 import AudioTest, { DeleteAudio } from "@/components/ielts/AudioTest";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { duplicates, expectedRange, gaps, missing, spans } from "@/lib/ielts/coverage";
 import { scriptLooksBroken } from "@/lib/ielts/import";
-import { audioFiles, audioTests, bookJobs, listBooks } from "@/lib/ielts/queries";
+import { audioFiles, audioTests, bookJobs, listBooks, pdfFiles } from "@/lib/ielts/queries";
 import { getSetting } from "@/lib/settings";
 import * as I from "@/components/icons";
 
@@ -22,7 +23,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const t = await getTranslations("ielts.book");
   const book = (await listBooks()).find((b) => b.id === id);
   if (!book) notFound();
-  const [files, usedBy, beat, jobs] = await Promise.all([audioFiles(id), audioTests(id), getSetting<number>("worker.heartbeat"), bookJobs(id)]);
+  const [files, usedBy, beat, jobs, pdfs] = await Promise.all([audioFiles(id), audioTests(id), getSetting<number>("worker.heartbeat"), bookJobs(id), pdfFiles(id)]);
   const jobActive = jobs.some((j) => j.type === "ielts_import");
   // the worker writes a heartbeat every 30 s; none for 2 minutes means it is not running (AI steps then never start)
   const workerDown = jobs.length > 0 && (!beat || Date.now() - beat > 120_000);
@@ -43,7 +44,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
         ← {t("back")}
       </Link>
       <BookTitle id={id} title={book.title} />
-      <p className="mt-1 text-sm text-muted">{t("summary", { pages: book.pageCount, tests: book.tests.length, reviewed, total: all.length })}</p>
+      <p className="mt-1 text-sm text-muted">{t("summary", { pages: pdfs.reduce((a, f) => a + f.count, 0), tests: book.tests.length, reviewed, total: all.length })}</p>
       <div className="mt-3">
         <BookActions id={id} status={book.status} hasTests={book.tests.length > 0} brokenScripts={brokenScripts} toCheck={toCheck} jobs={jobs} />
       </div>
@@ -101,6 +102,8 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
           </div>
         ))}
       </div>
+
+      <PdfFiles bookId={id} files={pdfs} pageCount={book.pageCount} />
 
       {files.length > 0 && (
         <div className="mt-6 rounded-2xl border border-line bg-card p-4">

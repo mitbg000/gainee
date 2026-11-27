@@ -1,5 +1,5 @@
 /** IELTS books, tests, sections and attempts (server only). */
-import { and, asc, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { addXp, bumpActivity, XP } from "@/lib/activity";
@@ -56,11 +56,39 @@ export async function getBook(id: number) {
   return b;
 }
 
-export async function savePage(bookId: number, page: number, text: string, imagePath: string | null) {
+export async function savePage(bookId: number, page: number, text: string, imagePath: string | null, source: string | null = null) {
   await getDb()
     .insert(pages)
-    .values({ bookId, page, text, imagePath })
-    .onDuplicateKeyUpdate({ set: { text, imagePath, ocr: false } });
+    .values({ bookId, page, text, imagePath, source })
+    .onDuplicateKeyUpdate({ set: { text, imagePath, ocr: false, source } });
+}
+
+/** The PDF files a book was made of, in page order ("" = pages uploaded before file names were kept). */
+export async function pdfFiles(bookId: number) {
+  const rows = await getDb()
+    .select({ source: pages.source, from: sql<number>`MIN(${pages.page})`, to: sql<number>`MAX(${pages.page})`, count: sql<number>`COUNT(*)` })
+    .from(pages)
+    .where(eq(pages.bookId, bookId))
+    .groupBy(pages.source);
+  return rows.map((r) => ({ name: r.source ?? "", from: Number(r.from), to: Number(r.to), count: Number(r.count) })).sort((a, b) => a.from - b.from);
+}
+
+/** Room for `count` more pages after the last one: the book's page count grows, the first new page number comes back. */
+export async function addPageRoom(bookId: number, count: number) {
+  return getDb().transaction(async (tx) => {
+    await tx.update(books).set({ pageCount: sql`${books.pageCount} + ${count}` }).where(eq(books.id, bookId));
+    const [b] = await tx.select({ n: books.pageCount }).from(books).where(eq(books.id, bookId));
+    return b.n - count + 1;
+  });
+}
+
+/** Take out the pages of one PDF file; returns their pictures to delete. */
+export async function removePdfPages(bookId: number, source: string) {
+  const db = getDb();
+  const where = and(eq(pages.bookId, bookId), source ? eq(pages.source, source) : isNull(pages.source));
+  const gone = await db.select({ p: pages.imagePath }).from(pages).where(where);
+  await db.delete(pages).where(where);
+  return gone.map((r) => r.p).filter((p): p is string => !!p);
 }
 
 export const renameTest = (id: number, title: string) => getDb().update(tests).set({ title }).where(eq(tests.id, id));
