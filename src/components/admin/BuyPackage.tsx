@@ -6,7 +6,16 @@ import { useState } from "react";
 import PayPanel, { type Pay } from "./PayPanel";
 
 /** Top-up packages: asking for one gives a code to write in the bank transfer; the admin then adds the credits. */
-export default function BuyPackage({ packages, payInfo }: { packages: { credits: number; price: string; perCredit: string; save: number }[]; payInfo: string }) {
+export default function BuyPackage({
+  packages,
+  payInfo,
+  custom,
+}: {
+  packages: { credits: number; price: string; perCredit: string; save: number }[];
+  payInfo: string;
+  /** any amount from `min` VND at `perCredit` VND a credit (null: packages only) */
+  custom: { min: number; perCredit: number } | null;
+}) {
   const t = useTranslations("credits");
   const router = useRouter();
   const [busy, setBusy] = useState(-1);
@@ -30,13 +39,22 @@ export default function BuyPackage({ packages, payInfo }: { packages: { credits:
     setPrices(out);
   }
 
+  const [amount, setAmount] = useState(custom ? String(custom.min) : "");
+  const amountN = Math.round(Number(amount) || 0);
+  const customCredits = custom ? Math.floor((amountN / custom.perCredit) * 100) / 100 : 0;
+  const tooLow = !!custom && amountN < custom.min;
+
   async function ask(index: number) {
     setBusy(index);
     setError("");
-    const r = await fetch("/api/credits/topup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ index, code: prices && code ? code : undefined }) }).catch(() => null);
+    const which = index === -2 ? { amount: amountN } : { index };
+    const r = await fetch("/api/credits/topup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...which, code: prices && code ? code : undefined }) }).catch(() => null);
     setBusy(-1);
     const j = await r?.json().catch(() => ({}));
-    if (!r?.ok) return setError(j?.error === "too_many_pending" ? t("tooMany") : t.has(`codeErrors.${j?.error}`) ? t(`codeErrors.${j?.error}`) : t("failed"));
+    if (!r?.ok)
+      return setError(
+        j?.error === "too_many_pending" ? t("tooMany") : j?.error === "below_min" && custom ? t("belowMin", { min: custom.min.toLocaleString("vi-VN") }) : t.has(`codeErrors.${j?.error}`) ? t(`codeErrors.${j?.error}`) : t("failed"),
+      );
     setPrices(null);
     setCode("");
     setDone({ id: j.id, code: j.code, price: j.price, pay: j.pay ?? null, paid: !!j.done });
@@ -64,6 +82,41 @@ export default function BuyPackage({ packages, payInfo }: { packages: { credits:
           </button>
         ))}
       </div>
+      {custom && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!tooLow && busy < 0) ask(-2);
+          }}
+          className="mt-3 rounded-xl border border-dashed border-line p-3"
+        >
+          <label htmlFor="amount" className="text-sm font-semibold">
+            {t("customTitle")}
+          </label>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="relative min-w-0 flex-1 basis-40">
+              <input
+                id="amount"
+                type="number"
+                inputMode="numeric"
+                min={custom.min}
+                step={10000}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="field w-full pr-8 text-right tabular-nums"
+                aria-describedby="amount-help"
+              />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted">₫</span>
+            </div>
+            <button disabled={tooLow || busy >= 0} className="btn btn-primary">
+              {busy === -2 ? t("sending") : t("customBuy", { n: customCredits.toLocaleString() })}
+            </button>
+          </div>
+          <p id="amount-help" className={`mt-1 text-xs ${tooLow && amount ? "text-red-600 dark:text-red-400" : "text-muted"}`}>
+            {t("customHelp", { min: custom.min.toLocaleString("vi-VN"), rate: custom.perCredit.toLocaleString("vi-VN") })}
+          </p>
+        </form>
+      )}
       <div className="mt-3 flex gap-2">
         <input value={code} onChange={(e) => {
           setCode(e.target.value.toUpperCase());

@@ -16,6 +16,10 @@ export const CreditConfig = z.object({
   image: z.number().min(0).default(0), // credits per AI picture
   packages: z.array(z.object({ credits: z.number().positive(), price: z.number().int().min(0) })).max(20).default([]), // price in VND
   payInfo: z.string().max(2000).default(""), // how to pay, shown on the top-up page
+  // a top-up of any amount (VND) at a fixed price per credit, from a minimum
+  customEnabled: z.boolean().default(false),
+  customMin: z.number().int().min(1000).max(1e9).default(20000),
+  customPerCredit: z.number().positive().max(1e7).default(500), // VND per credit
 });
 export type CreditConfig = z.infer<typeof CreditConfig>;
 
@@ -23,6 +27,9 @@ export const getCreditConfig = async () => CreditConfig.parse((await getSetting(
 export const setCreditConfig = (c: CreditConfig) => setSetting("credits.config", c);
 
 const round = (n: number) => Math.round(n * 10_000) / 10_000;
+
+/** Credits for a top-up of `amount` VND at the custom rate (2 decimals). */
+export const customCredits = (c: CreditConfig, amount: number) => Math.floor((amount / c.customPerCredit) * 100) / 100;
 
 /** Price of one AI reply. */
 export function aiCost(c: CreditConfig, model: string, promptTokens = 0, completionTokens = 0) {

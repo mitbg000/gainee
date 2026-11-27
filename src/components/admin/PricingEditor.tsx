@@ -113,6 +113,27 @@ export default function PricingEditor({ initial, models }: { initial: CreditConf
             {t("addPackage")}
           </button>
         </div>
+        <div className="mt-4 border-t border-line pt-4">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" checked={c.customEnabled} onChange={(e) => set({ customEnabled: e.target.checked })} />
+            {t("customOn")}
+          </label>
+          {c.customEnabled && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <label className="flex items-center gap-2">
+                {t("customMin")}
+                <input type="number" min={1000} step={1000} value={c.customMin} onChange={(e) => set({ customMin: Math.max(1000, Math.round(num(e.target.value))) })} className="field w-32 text-right tabular-nums" />
+                <span className="text-muted">₫</span>
+              </label>
+              <label className="flex items-center gap-2">
+                {t("customRate")}
+                <input type="number" min={1} step="any" value={c.customPerCredit} onChange={(e) => set({ customPerCredit: Math.max(1, num(e.target.value)) })} className="field w-28 text-right tabular-nums" />
+                <span className="text-muted">₫ / credit</span>
+              </label>
+              <span className="w-full text-xs text-muted">{t("customHint", { credits: Math.floor((c.customMin / c.customPerCredit) * 100) / 100, min: c.customMin.toLocaleString("vi-VN") })}</span>
+            </div>
+          )}
+        </div>
         <label className="mt-4 block text-sm">
           {t("payInfo")}
           <textarea value={c.payInfo} onChange={(e) => set({ payInfo: e.target.value })} rows={3} maxLength={2000} placeholder={t("payInfoHint")} className="field mt-1 w-full" />

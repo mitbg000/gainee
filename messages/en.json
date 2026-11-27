@@ -1905,7 +1905,11 @@
       "paidText": "Request {code} is paid and the credits are in your account."
     },
     "save": "Save {n}%",
-    "perCredit": "{price} per credit"
+    "perCredit": "{price} per credit",
+    "customTitle": "Or enter an amount",
+    "customBuy": "Top up → {n} credits",
+    "customHelp": "At least {min} ₫ · {rate} ₫ per credit",
+    "belowMin": "The minimum is {min} ₫"
   },
   "admin": {
     "title": "Admin",
@@ -2002,7 +2006,11 @@
       "saving": "Saving…",
       "save": "Save",
       "saved": "Saved",
-      "error": "Could not save"
+      "error": "Could not save",
+      "customOn": "Learners may enter their own amount",
+      "customMin": "Minimum",
+      "customRate": "Price",
+      "customHint": "The minimum {min} ₫ gives {credits} credits. Discount codes work on own amounts too."
     },
     "byDefault": "Default",
     "on": "On",

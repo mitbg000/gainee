@@ -1905,7 +1905,11 @@
       "paidText": "Yêu cầu {code} đã được thanh toán, credit đã vào tài khoản."
     },
     "save": "Tiết kiệm {n}%",
-    "perCredit": "{price}/credit"
+    "perCredit": "{price}/credit",
+    "customTitle": "Hoặc tự nhập số tiền",
+    "customBuy": "Nạp → {n} credit",
+    "customHelp": "Tối thiểu {min} ₫ · {rate} ₫ cho 1 credit",
+    "belowMin": "Số tiền tối thiểu là {min} ₫"
   },
   "admin": {
     "title": "Quản trị",
@@ -2002,7 +2006,11 @@
       "saving": "Đang lưu…",
       "save": "Lưu",
       "saved": "Đã lưu",
-      "error": "Không lưu được"
+      "error": "Không lưu được",
+      "customOn": "Cho học viên tự nhập số tiền nạp",
+      "customMin": "Tối thiểu",
+      "customRate": "Giá",
+      "customHint": "Nạp tối thiểu {min} ₫ được {credits} credit. Mã giảm giá cũng áp dụng cho số tiền tự nhập."
     },
     "byDefault": "Mặc định",
     "on": "Bật",

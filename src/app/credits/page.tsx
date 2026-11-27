@@ -54,7 +54,7 @@ export default async function CreditsPage() {
         </div>
         <div className="rounded-2xl border border-line bg-card p-5">
           <p className="font-semibold">{t("topup")}</p>
-          {cfg.packages.length ? (
+          {cfg.packages.length || cfg.customEnabled ? (
             <BuyPackage
               packages={(() => {
                 // bigger packs are usually cheaper per credit: show how much each saves against the dearest rate
@@ -62,6 +62,7 @@ export default async function CreditsPage() {
                 return cfg.packages.map((p) => ({ credits: p.credits, price: vnd(p.price), perCredit: vnd(p.price / p.credits), save: top > 0 ? Math.round((1 - p.price / p.credits / top) * 100) : 0 }));
               })()}
               payInfo={cfg.payInfo}
+              custom={cfg.customEnabled ? { min: cfg.customMin, perCredit: cfg.customPerCredit } : null}
             />
           ) : (
             <p className="mt-2 text-sm text-muted">{t("noPackages")}</p>
