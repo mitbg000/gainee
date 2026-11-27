@@ -76,93 +76,93 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
     return <Quiz words={shuffle(running)} all={all} mode={mode} onExit={exit} />;
   }
 
+  const tile = (a: Activity) => (
+    <button
+      key={a}
+      onClick={() => start(a)}
+      className={`group flex items-center gap-3 rounded-2xl border bg-card p-3.5 text-left transition-colors hover:border-accent hover:bg-accent/5 ${activity === a ? "border-accent/50" : "border-line"}`}
+    >
+      <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-paper text-accent group-hover:bg-accent group-hover:text-on-accent [&>svg]:size-5">{ICON[a]}</span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <b>{t(`activity.${a}`)}</b>
+          {a === "learn" && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">{t("recommended")}</span>}
+          {a === "picture" && <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-muted">{t("withImages", { n: words.filter((w) => w.images?.length).length })}</span>}
+        </span>
+        <span className="mt-0.5 block text-xs leading-snug text-muted">{t(`activityHint.${a}`)}</span>
+      </span>
+      <I.IconPlay className="h-4 w-4 flex-none text-muted group-hover:text-accent" />
+    </button>
+  );
+  const chips = <T extends string | number>(list: readonly T[], value: T, on: (v: T) => void, label: (v: T) => string) => (
+    <div className="flex flex-wrap gap-1.5">
+      {list.map((v) => (
+        <button key={String(v)} onClick={() => on(v)} className={`chip ${value === v ? "chip-on" : ""}`}>
+          {label(v)}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* what to do first, Anki style: due reviews before new learning */}
-      <div className={`flex flex-wrap items-center gap-3 rounded-2xl border p-4 ${due ? "border-accent/40 bg-accent/5" : "border-line bg-card"}`}>
-        <span className={`flex size-10 flex-none items-center justify-center rounded-full ${due ? "bg-accent/10 text-accent" : "bg-green-500/15 text-green-600"}`}>{due ? <I.IconClock /> : <I.IconCheckCircle />}</span>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold">{due ? t("plan.due", { n: due }) : t("plan.none")}</p>
-          <p className="text-sm text-muted">{due ? t("plan.dueTip") : t("plan.noneTip")}</p>
-        </div>
-        <Link href="/quick" className="btn btn-primary">
-          <I.IconBolt /> {t("plan.quick")}
-        </Link>
+      <div className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border px-4 py-3 ${due ? "border-accent/40 bg-accent/5" : "border-line bg-card"}`}>
+        <span className={due ? "text-accent" : "text-green-600"}>{due ? <I.IconClock /> : <I.IconCheckCircle />}</span>
+        <p className="min-w-0 flex-1 text-sm">
+          <b>{due ? t("plan.due", { n: due }) : t("plan.none")}</b> <span className="text-muted">{due ? t("plan.dueShort") : t("plan.noneShort")}</span>
+        </p>
         {due > 0 && (
-          <Link href="/review" className="btn btn-secondary">
+          <Link href="/review" className="btn btn-sm btn-primary">
             {t("plan.review")}
           </Link>
         )}
+        <Link href="/quick" className={`btn btn-sm ${due ? "btn-secondary" : "btn-primary"}`}>
+          <I.IconBolt /> {t("plan.quick")}
+        </Link>
       </div>
 
-      <div className="grid gap-5 rounded-2xl border border-line bg-card p-5 md:grid-cols-2">
-        <div>
-          <p className="mb-2 text-sm font-semibold">{t("orderLabel")}</p>
-          <div className="flex flex-wrap gap-2">
-            {ORDERS.map((o) => (
-              <button
-                key={o}
-                onClick={() => {
-                  setOrder(o);
-                  keep("practice_order", o);
-                }}
-                className={`chip ${order === o ? "chip-on" : ""}`}
-              >
-                {t(`order.${o}`)}
-              </button>
-            ))}
-          </div>
+      {/* which words, how many – applies to every way of studying below */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-line bg-card px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold">{t("orderLabel")}</span>
+          {chips(
+            ORDERS,
+            order,
+            (o) => {
+              setOrder(o);
+              keep("practice_order", o);
+            },
+            (o) => t(`order.${o}`),
+          )}
         </div>
-        <div>
-          <p className="mb-2 text-sm font-semibold">{t("sizeLabel")}</p>
-          <div className="flex flex-wrap gap-2">
-            {[10, 20, 50, 0].map((n) => (
-              <button key={n} onClick={() => setSize(n)} className={`chip ${size === n ? "chip-on" : ""}`}>
-                {n ? n : t("allWords", { n: words.length })}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="md:col-span-2">
-          <p className="mb-2 text-sm font-semibold">{t("modeLabelTest")}</p>
-          <div className="flex flex-wrap gap-2">
-            {MODES.map((m) => (
-              <button
-                key={m}
-                onClick={() => {
-                  setMode(m);
-                  keep("practice_mode", m);
-                }}
-                title={t(`modeHint.${m}`)}
-                className={`chip ${mode === m ? "chip-on" : ""}`}
-              >
-                {t(`mode.${m}`)}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold">{t("sizeLabel")}</span>
+          {chips([10, 20, 50, 0] as const, size as 10 | 20 | 50 | 0, setSize, (n) => (n ? String(n) : t("allWords", { n: words.length })))}
         </div>
       </div>
 
-      <div>
-        <p className="mb-2 text-sm font-semibold">{t("activityLabel")}</p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {ACTIVITIES.map((a) => (
-            <button
-              key={a}
-              onClick={() => start(a)}
-              className={`group flex flex-col items-start gap-2 rounded-2xl border-2 p-4 text-left transition-colors ${activity === a ? "border-accent/60 bg-card" : "border-line bg-card"} hover:border-accent hover:bg-accent/5`}
-            >
-              <span className="flex w-full items-center gap-2">
-                <span className="flex size-10 items-center justify-center rounded-xl bg-paper text-accent group-hover:bg-accent group-hover:text-on-accent [&>svg]:size-5">{ICON[a]}</span>
-                <I.IconPlay className="ml-auto h-4 w-4 text-muted group-hover:text-accent" />
-              </span>
-              <b>{t(`activity.${a}`)}</b>
-              <span className="text-xs leading-snug text-muted">{t(`activityHint.${a}`)}</span>
-              {a === "picture" && <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-muted">{t("withImages", { n: words.filter((w) => w.images?.length).length })}</span>}
-            </button>
-          ))}
+      <section>
+        <h2 className="mb-2 text-sm font-semibold text-muted">{t("groups.learn")}</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{(["learn", "cards", "test"] as const).map(tile)}</div>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+          <span>{t("modeLabelTest")}</span>
+          {chips(
+            MODES,
+            mode,
+            (m) => {
+              setMode(m);
+              keep("practice_mode", m);
+            },
+            (m) => t(`mode.${m}`),
+          )}
         </div>
-      </div>
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-sm font-semibold text-muted">{t("groups.deep")}</h2>
+        <div className="grid gap-3 sm:grid-cols-2">{(["write", "picture", "passage", "match"] as const).map(tile)}</div>
+      </section>
     </div>
   );
 }

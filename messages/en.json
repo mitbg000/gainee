@@ -984,12 +984,12 @@
     "again": "New round",
     "change": "Change type",
     "plan": {
-      "due": "{n} words due for review today",
-      "dueTip": "Review due words first (a few minutes): reviewing just before you forget makes memories last. Then study more here.",
+      "due": "{n, plural, one {# word due for review today} other {# words due for review today}}",
       "review": "Review now",
       "none": "Nothing is due for review",
-      "noneTip": "A good time for new words: use “Learn” to really know them, or “Flashcards” for a quick pass.",
-      "quick": "5-minute quick study"
+      "quick": "5-minute quick study",
+      "dueShort": "Review them first (a few minutes), then practise below.",
+      "noneShort": "Learn new words with “Learn” or Quick study."
     },
     "activityLabel": "Choose how to study",
     "activity": {
@@ -1080,7 +1080,12 @@
       "retryWrong": "Retry the misses",
       "typingRound": "Typing round"
     },
-    "modeLabelTest": "Question type (for Test)"
+    "modeLabelTest": "Question type (for Test)",
+    "recommended": "Recommended",
+    "groups": {
+      "learn": "Learn and test",
+      "deep": "Go deeper and games"
+    }
   },
   "writing": {
     "title": "Writing practice",

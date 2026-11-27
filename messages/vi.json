@@ -985,11 +985,11 @@
     "change": "Đổi kiểu luyện",
     "plan": {
       "due": "{n} từ đến hạn ôn hôm nay",
-      "dueTip": "Nên ôn các từ đến hạn trước (vài phút): ôn đúng lúc sắp quên giúp nhớ lâu nhất. Sau đó học thêm ở đây.",
       "review": "Ôn ngay",
       "none": "Không có từ nào đến hạn ôn",
-      "noneTip": "Giờ là lúc học từ mới: dùng “Học” để nắm chắc từ, hoặc “Thẻ ghi nhớ” để lướt nhanh.",
-      "quick": "Học nhanh 5 phút"
+      "quick": "Học nhanh 5 phút",
+      "dueShort": "Ôn trước (vài phút), rồi luyện thêm ở dưới.",
+      "noneShort": "Học từ mới bằng “Học” hoặc Học nhanh."
     },
     "activityLabel": "Chọn cách học",
     "activity": {
@@ -1080,7 +1080,12 @@
       "retryWrong": "Luyện lại câu sai",
       "typingRound": "Vòng tự gõ"
     },
-    "modeLabelTest": "Dạng câu hỏi (cho Kiểm tra)"
+    "modeLabelTest": "Dạng câu hỏi (cho Kiểm tra)",
+    "recommended": "Đề xuất",
+    "groups": {
+      "learn": "Học và kiểm tra",
+      "deep": "Luyện sâu và trò chơi"
+    }
   },
   "writing": {
     "title": "Luyện Writing",
