@@ -129,6 +129,20 @@ export const couponUses = mysqlTable(
   (t) => [primaryKey({ columns: [t.couponId, t.userId] })],
 );
 
+/** "Forgot password" links: only a hash of the token is kept; one use, 30 minutes. */
+export const passwordResets = mysqlTable(
+  "password_resets",
+  {
+    id: pk(),
+    userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: varchar("token_hash", { length: 64 }).notNull().unique(),
+    expiresAt: ts("expires_at").notNull(),
+    usedAt: ts("used_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("password_resets_user").on(t.userId, t.createdAt)],
+);
+
 /** Every login try, for the admin's security page. */
 export const loginLogs = mysqlTable(
   "login_logs",

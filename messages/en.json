@@ -55,7 +55,10 @@
       "locked": "This account is locked. Please contact the admin."
     },
     "noAccount": "No account yet?",
-    "register": "Sign up"
+    "register": "Sign up",
+    "title": "Welcome back",
+    "subtitle": "Log in to go on learning.",
+    "forgot": "Forgot password?"
   },
   "dashboard": {
     "kicker": "Dashboard",
@@ -1820,7 +1823,9 @@
       "invalid": "Email or password is not valid",
       "unknown": "Sign-up failed",
       "captcha": "Please confirm you are not a robot and try again"
-    }
+    },
+    "subtitle": "Free, just an email.",
+    "terms": "By signing up you agree to use Gainee for your own learning and not to share the account."
   },
   "credits": {
     "title": "Credits",
@@ -2089,8 +2094,119 @@
         "failedLogins": {
           "title": "{n} failed logins in 24 hours",
           "fix": "Many failed logins: check the list below, lock or change the password of the targeted account."
+        },
+        "mail": {
+          "title": "Password reset e-mails can be sent",
+          "fix": "SMTP is not set up: users who forget their password cannot reset it themselves. Fill in the E-mail part below and save."
         }
-      }
+      },
+      "mailTitle": "E-mail (forgotten passwords)",
+      "mailHint": "Use your e-mail provider's SMTP: Gmail (turn on 2-step verification, then create an App Password), Zoho, Mailgun, Brevo… The site address is used for the links in e-mails.",
+      "siteUrl": "Site address",
+      "mailFrom": "Sender",
+      "smtpUser": "SMTP user",
+      "smtpPass": "SMTP password",
+      "testMail": "Send a test e-mail to me",
+      "testing": "Sending…",
+      "testSent": "Sent, check your inbox",
+      "testFailed": "Could not send: {error}"
     }
+  },
+  "auth": {
+    "headline": "Read what you like, get better at English every day.",
+    "point1": "Turn articles and books into lessons with vocabulary and exercises",
+    "point2": "Review words just before you forget them, with spaced repetition",
+    "point3": "Dictation practice and IELTS tests like the real exam",
+    "forgotTitle": "Forgot password",
+    "forgotHint": "Enter your account's email. We will send a link to choose a new password.",
+    "sendLink": "Send reset link",
+    "sending": "Sending…",
+    "sentTitle": "Check your inbox",
+    "sentBody": "If {email} has an account, a reset link arrives in a few minutes (check Spam too). It works once, for 30 minutes.",
+    "tooMany": "Too many requests. Please wait 15 minutes.",
+    "failed": "Something went wrong, please try again.",
+    "noMail": "Reset e-mails cannot be sent yet. Please ask the admin to reset your password.",
+    "backToLogin": "Back to login",
+    "resetTitle": "Choose a new password",
+    "resetHint": "At least 8 characters. After saving you are logged out on every device.",
+    "newPassword": "New password",
+    "repeatPassword": "Repeat password",
+    "mismatch": "The passwords do not match",
+    "savePassword": "Save password",
+    "saving": "Saving…",
+    "badLink": "This link has expired or was already used. Ask for a new one.",
+    "resetDone": "Password changed. Log in with your new password.",
+    "mail": {
+      "subject": "Reset your Gainee password",
+      "title": "Reset your password",
+      "hello": "Hello {name},",
+      "body": "Someone (probably you) asked to reset your Gainee password. Press the button below to choose a new one. The link works once, for 30 minutes.",
+      "button": "Choose a new password",
+      "foot": "If you did not ask for this, ignore this e-mail: your password stays the same."
+    }
+  },
+  "landing": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "kicker": "Learn English from real reading",
+    "title": "Read what you love. Remember words longer. Raise your IELTS band.",
+    "lead": "Gainee turns articles, books and videos into lessons with vocabulary, exercises, spaced review and IELTS practice, with AI explanations when you need them.",
+    "ctaSignup": "Start for free",
+    "ctaLogin": "Log in to learn",
+    "more": "See what's inside",
+    "bonus": "{n} free AI credits when you sign up",
+    "demo": {
+      "source": "The Guardian · Environment",
+      "before": "Scientists warn that the planet is warming at an",
+      "word": "unprecedented",
+      "after": "rate, with summers growing longer every decade.",
+      "meaning": "never done or known before",
+      "saved": "Saved to notebook",
+      "review": "Review in 3 days",
+      "streak": "days in a row"
+    },
+    "featuresTitle": "Everything for learning in one place",
+    "featuresLead": "Reading, listening, writing, review and test practice: you learn from real content, Gainee keeps it organised.",
+    "f": {
+      "read": {
+        "title": "Reading into lessons",
+        "text": "Paste an article or upload a PDF; AI splits it into short parts, picks vocabulary and writes IELTS-style questions."
+      },
+      "words": {
+        "title": "Notebook & spaced review",
+        "text": "Tap a word to look it up and save it; its card comes back right before you forget it."
+      },
+      "ielts": {
+        "title": "IELTS practice tests",
+        "text": "Listening and Reading tests like on the computer exam, scored, with your mistakes by question type."
+      },
+      "listen": {
+        "title": "Dictation",
+        "text": "Hear sentences from videos and IELTS tests, type them, see exactly what you missed."
+      },
+      "write": {
+        "title": "Writing graded by AI",
+        "text": "Task 1, Task 2 and translation; get bands per criterion and fixes."
+      },
+      "progress": {
+        "title": "See your progress",
+        "text": "Streaks, weekly goals, words you know and scores over time."
+      }
+    },
+    "stepsTitle": "Start in 3 steps",
+    "step1": {
+      "title": "Create an account",
+      "text": "Just an email; learn on your phone or computer."
+    },
+    "step2": {
+      "title": "Pick something to read",
+      "text": "Study the texts in the library or add ones you like."
+    },
+    "step3": {
+      "title": "A little every day",
+      "text": "10–15 minutes of reading, listening and review; Gainee shows what is due."
+    },
+    "endTitle": "Ready for your first lesson?",
+    "endText": "It takes a minute to start."
   }
 }

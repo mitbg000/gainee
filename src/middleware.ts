@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession, type Session } from "@/lib/session";
 
-const PUBLIC_PATHS = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/api/health"];
+const PUBLIC_PATHS = ["/welcome", "/login", "/register", "/forgot", "/reset", "/api/auth/login", "/api/auth/register", "/api/auth/forgot", "/api/auth/reset", "/api/health"];
 const RANK = { student: 0, editor: 1, admin: 2 } as const;
 
 const under = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(p + "/"));
@@ -39,6 +39,7 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  if (pathname === "/") return NextResponse.rewrite(new URL("/welcome", req.url), { request: { headers } }); // visitors see the landing page
   // Behind Nginx, req.nextUrl carries the internal 127.0.0.1:PORT origin, so build the redirect from the proxy headers.
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
   const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");

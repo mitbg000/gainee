@@ -55,7 +55,10 @@
       "locked": "Tài khoản đã bị khoá. Hãy liên hệ quản trị viên."
     },
     "noAccount": "Chưa có tài khoản?",
-    "register": "Đăng ký"
+    "register": "Đăng ký",
+    "title": "Chào mừng trở lại",
+    "subtitle": "Đăng nhập để tiếp tục học.",
+    "forgot": "Quên mật khẩu?"
   },
   "dashboard": {
     "kicker": "Tổng quan",
@@ -1820,7 +1823,9 @@
       "invalid": "Email hoặc mật khẩu chưa hợp lệ",
       "unknown": "Đăng ký thất bại",
       "captcha": "Hãy xác nhận bạn không phải robot rồi thử lại"
-    }
+    },
+    "subtitle": "Miễn phí, chỉ cần email.",
+    "terms": "Khi đăng ký, bạn đồng ý dùng Gainee cho việc học cá nhân và không chia sẻ tài khoản."
   },
   "credits": {
     "title": "Credit",
@@ -2089,8 +2094,119 @@
         "failedLogins": {
           "title": "{n} lần đăng nhập sai trong 24 giờ",
           "fix": "Nhiều lần đăng nhập sai: xem danh sách bên dưới, khoá hoặc đổi mật khẩu tài khoản bị nhắm tới."
+        },
+        "mail": {
+          "title": "Gửi được email đặt lại mật khẩu",
+          "fix": "Chưa cấu hình SMTP: người dùng quên mật khẩu chưa tự đặt lại được. Điền phần Email bên dưới rồi lưu."
         }
-      }
+      },
+      "mailTitle": "Email (quên mật khẩu)",
+      "mailHint": "Dùng SMTP của nhà cung cấp email: Gmail (bật xác minh 2 bước rồi tạo App Password), Zoho, Mailgun, Brevo… Địa chỉ site dùng để tạo link trong email.",
+      "siteUrl": "Địa chỉ site",
+      "mailFrom": "Người gửi",
+      "smtpUser": "Tài khoản SMTP",
+      "smtpPass": "Mật khẩu SMTP",
+      "testMail": "Gửi email thử tới tôi",
+      "testing": "Đang gửi…",
+      "testSent": "Đã gửi, hãy kiểm tra hộp thư",
+      "testFailed": "Không gửi được: {error}"
     }
+  },
+  "auth": {
+    "headline": "Đọc thứ bạn thích, giỏi tiếng Anh lên mỗi ngày.",
+    "point1": "Biến bài báo, sách thành bài học có từ vựng và bài tập",
+    "point2": "Ôn từ đúng lúc sắp quên bằng lặp lại ngắt quãng",
+    "point3": "Luyện nghe chép chính tả và đề IELTS như thi thật",
+    "forgotTitle": "Quên mật khẩu",
+    "forgotHint": "Nhập email của tài khoản. Chúng tôi sẽ gửi một link để đặt mật khẩu mới.",
+    "sendLink": "Gửi link đặt lại",
+    "sending": "Đang gửi…",
+    "sentTitle": "Hãy kiểm tra hộp thư",
+    "sentBody": "Nếu {email} có tài khoản, link đặt lại mật khẩu sẽ đến trong vài phút (xem cả mục Spam). Link dùng được một lần trong 30 phút.",
+    "tooMany": "Bạn đã yêu cầu nhiều lần. Hãy đợi 15 phút.",
+    "failed": "Có lỗi, hãy thử lại.",
+    "noMail": "Hiện chưa gửi được email đặt lại mật khẩu. Hãy liên hệ quản trị viên để được đặt lại.",
+    "backToLogin": "Quay lại đăng nhập",
+    "resetTitle": "Đặt mật khẩu mới",
+    "resetHint": "Mật khẩu mới có ít nhất 8 ký tự. Sau khi lưu, bạn sẽ bị đăng xuất khỏi mọi thiết bị.",
+    "newPassword": "Mật khẩu mới",
+    "repeatPassword": "Nhập lại mật khẩu",
+    "mismatch": "Hai mật khẩu chưa giống nhau",
+    "savePassword": "Lưu mật khẩu",
+    "saving": "Đang lưu…",
+    "badLink": "Link đã hết hạn hoặc đã được dùng. Hãy yêu cầu link mới.",
+    "resetDone": "Đã đổi mật khẩu. Hãy đăng nhập bằng mật khẩu mới.",
+    "mail": {
+      "subject": "Đặt lại mật khẩu Gainee",
+      "title": "Đặt lại mật khẩu",
+      "hello": "Xin chào {name},",
+      "body": "Ai đó (có thể là bạn) vừa yêu cầu đặt lại mật khẩu Gainee. Bấm nút dưới đây để chọn mật khẩu mới. Link dùng được một lần trong 30 phút.",
+      "button": "Đặt mật khẩu mới",
+      "foot": "Nếu bạn không yêu cầu, hãy bỏ qua email này: mật khẩu của bạn không đổi."
+    }
+  },
+  "landing": {
+    "login": "Đăng nhập",
+    "signup": "Đăng ký",
+    "kicker": "Học tiếng Anh qua bài đọc thật",
+    "title": "Đọc thứ bạn thích. Nhớ từ lâu hơn. Lên band IELTS.",
+    "lead": "Gainee biến bài báo, sách và video thành bài học có từ vựng, bài tập, ôn tập ngắt quãng và luyện đề IELTS, kèm AI giải thích khi bạn cần.",
+    "ctaSignup": "Bắt đầu miễn phí",
+    "ctaLogin": "Đăng nhập để học",
+    "more": "Xem có gì",
+    "bonus": "Tặng {n} credit dùng AI khi đăng ký",
+    "demo": {
+      "source": "The Guardian · Môi trường",
+      "before": "Scientists warn that the planet is warming at an",
+      "word": "unprecedented",
+      "after": "rate, with summers growing longer every decade.",
+      "meaning": "chưa từng có, chưa từng xảy ra",
+      "saved": "Đã lưu vào sổ từ",
+      "review": "Ôn lại sau 3 ngày",
+      "streak": "ngày học liên tiếp"
+    },
+    "featuresTitle": "Mọi thứ để học đều ở một chỗ",
+    "featuresLead": "Từ đọc, nghe, viết đến ôn tập và luyện đề: bạn học trên nội dung thật, và Gainee lo phần sắp xếp.",
+    "f": {
+      "read": {
+        "title": "Đọc thành bài học",
+        "text": "Dán bài báo hoặc tải PDF; AI chia thành phần ngắn, rút từ vựng, tạo câu hỏi kiểu IELTS."
+      },
+      "words": {
+        "title": "Sổ từ & ôn tập ngắt quãng",
+        "text": "Bấm vào từ để tra và lưu; thẻ từ quay lại đúng lúc bạn sắp quên."
+      },
+      "ielts": {
+        "title": "Luyện đề IELTS",
+        "text": "Làm đề Listening, Reading như trên máy, chấm điểm và xem lại câu sai theo dạng."
+      },
+      "listen": {
+        "title": "Chép chính tả",
+        "text": "Nghe từng câu từ video và đề IELTS, gõ lại, biết ngay sai ở đâu."
+      },
+      "write": {
+        "title": "Writing có AI chấm",
+        "text": "Viết Task 1, Task 2, dịch câu; nhận band theo tiêu chí và gợi ý sửa."
+      },
+      "progress": {
+        "title": "Thấy mình tiến bộ",
+        "text": "Chuỗi ngày học, mục tiêu tuần, số từ đã thuộc và điểm theo thời gian."
+      }
+    },
+    "stepsTitle": "Bắt đầu trong 3 bước",
+    "step1": {
+      "title": "Tạo tài khoản",
+      "text": "Chỉ cần email; học trên điện thoại hay máy tính đều được."
+    },
+    "step2": {
+      "title": "Chọn bài để học",
+      "text": "Học các bài có sẵn trong thư viện hoặc thêm bài bạn thích."
+    },
+    "step3": {
+      "title": "Học mỗi ngày một ít",
+      "text": "10–15 phút đọc, nghe và ôn từ; Gainee nhắc bạn phần đến hạn."
+    },
+    "endTitle": "Sẵn sàng học bài đầu tiên?",
+    "endText": "Chỉ mất một phút để bắt đầu."
   }
 }

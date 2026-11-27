@@ -14,16 +14,32 @@ export const SecurityConfig = z.object({
   captcha: z.boolean().default(false),
   turnstileSiteKey: z.string().max(200).default(""),
   turnstileSecretEnc: z.string().max(1000).default(""),
+  // e-mail (password reset links)
+  siteUrl: z.string().max(200).default(""), // https://gainee.example – links in e-mails never come from request headers
+  smtpHost: z.string().max(200).default(""),
+  smtpPort: z.number().int().min(1).max(65535).default(587),
+  smtpSecure: z.boolean().default(false), // true: TLS from the start (port 465); false: STARTTLS
+  smtpUser: z.string().max(200).default(""),
+  smtpPassEnc: z.string().max(1000).default(""),
+  mailFrom: z.string().max(200).default(""), // Gainee <no-reply@…>
 });
 export type SecurityConfig = z.infer<typeof SecurityConfig>;
 
 export const getSecurity = async () => SecurityConfig.parse((await getSetting("security.config")) ?? {});
 
-/** Save; a new Turnstile secret (plain) replaces the stored one, an empty one keeps it. */
-export async function setSecurity(c: Omit<SecurityConfig, "turnstileSecretEnc">, secret?: string) {
+/** Save; a new secret (plain) replaces the stored one, an empty one keeps it. */
+export async function setSecurity(c: Omit<SecurityConfig, "turnstileSecretEnc" | "smtpPassEnc">, secrets: { turnstile?: string; smtp?: string } = {}) {
   const cur = await getSecurity();
-  await setSetting("security.config", { ...c, turnstileSecretEnc: secret ? encrypt(secret) : cur.turnstileSecretEnc });
+  await setSetting("security.config", {
+    ...c,
+    siteUrl: c.siteUrl.replace(/\/+$/, ""),
+    turnstileSecretEnc: secrets.turnstile ? encrypt(secrets.turnstile) : cur.turnstileSecretEnc,
+    smtpPassEnc: secrets.smtp ? encrypt(secrets.smtp) : cur.smtpPassEnc,
+  });
 }
+
+/** Can e-mail be sent (server, sender and site address set)? */
+export const mailOn = (c: SecurityConfig) => !!c.smtpHost && !!c.mailFrom && /^https?:\/\//.test(c.siteUrl);
 
 /** Is the captcha really on (switched on and both keys set)? */
 export const captchaOn = (c: SecurityConfig) => c.captcha && !!c.turnstileSiteKey && !!c.turnstileSecretEnc;

@@ -13,7 +13,7 @@ import { getDb, schema } from "@/db";
 import type { AiRouting } from "@/lib/ai/tasks";
 import { getCreditConfig } from "@/lib/credits";
 import { imageUrl } from "@/lib/images";
-import { captchaOn, getSecurity } from "@/lib/security";
+import { captchaOn, getSecurity, mailOn } from "@/lib/security";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { getSetting } from "@/lib/settings";
 import { FEATURES, requireRole } from "@/lib/users";
@@ -132,6 +132,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       { key: "aiDaily", level: sec.aiCreditsPerDay > 0 ? "ok" : "warn" },
       { key: "aiSize", level: sec.maxInputChars > 0 && sec.maxOutputTokens > 0 ? "ok" : "warn" },
       { key: "providers", level: Number(providers) > 0 ? "ok" : "warn", values: { n: Number(providers) } },
+      { key: "mail", level: mailOn(sec) ? "ok" : "warn" },
       { key: "failedLogins", level: Number(failed24) > 50 ? "bad" : Number(failed24) > 10 ? "warn" : "ok", values: { n: Number(failed24) } },
     ];
     const dot = { ok: "bg-green-500", warn: "bg-amber-500", bad: "bg-red-500" };
@@ -151,7 +152,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             ))}
           </ul>
         </section>
-        <SecurityEditor initial={{ aiPerMinute: sec.aiPerMinute, aiCreditsPerDay: sec.aiCreditsPerDay, maxInputChars: sec.maxInputChars, maxOutputTokens: sec.maxOutputTokens, captcha: sec.captcha, turnstileSiteKey: sec.turnstileSiteKey }} hasSecret={!!sec.turnstileSecretEnc} />
+        <SecurityEditor
+          initial={(({ turnstileSecretEnc: _a, smtpPassEnc: _b, ...rest }) => (void _a, void _b, rest))(sec)}
+          hasSecret={!!sec.turnstileSecretEnc}
+          hasSmtpPass={!!sec.smtpPassEnc}
+        />
         <section>
           <h2 className="font-serif text-xl font-bold">{t("security.loginsTitle")}</h2>
           <ul className="mt-2 divide-y divide-line rounded-2xl border border-line bg-card text-sm">

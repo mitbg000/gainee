@@ -3,14 +3,12 @@
 import Script from "next/script";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
-import ThemeSwitcher from "@/components/ThemeSwitcher";
-import type { Theme } from "@/theme/config";
+import Link from "next/link";
 
 const KNOWN = ["email_taken", "too_many_attempts", "signup_closed", "invalid", "captcha"];
 
 /** `siteKey`: Cloudflare Turnstile is on (the widget puts its answer in the form field cf-turnstile-response). */
-export default function RegisterForm({ theme, bonus, siteKey }: { theme: Theme; bonus: number; siteKey: string | null }) {
+export default function RegisterForm({ bonus, siteKey }: { bonus: number; siteKey: string | null }) {
   const t = useTranslations();
   const [f, setF] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
@@ -39,17 +37,10 @@ export default function RegisterForm({ theme, bonus, siteKey }: { theme: Theme; 
   );
 
   return (
-    <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border border-line bg-card p-7 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-serif text-3xl font-bold">{t("register.title")}</h1>
-          <p className="mt-1 text-sm text-muted">{bonus > 0 ? t("register.bonus", { n: bonus }) : t("app.tagline")}</p>
-        </div>
-        <div className="flex flex-col items-end gap-1.5">
-          <LanguageSwitcher />
-          <ThemeSwitcher initial={theme} />
-        </div>
-      </div>
+    <form onSubmit={submit}>
+      <h1 className="font-serif text-3xl font-bold">{t("register.title")}</h1>
+      <p className="mt-1 text-sm text-muted">{t("register.subtitle")}</p>
+      {bonus > 0 && <p className="mt-3 inline-block rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">🎁 {t("register.bonus", { n: bonus })}</p>}
       {field("name", "text", "name")}
       {field("email", "email", "email")}
       {field("password", "password", "new-password")}
@@ -60,15 +51,20 @@ export default function RegisterForm({ theme, bonus, siteKey }: { theme: Theme; 
           <div className="cf-turnstile mt-4" data-sitekey={siteKey} />
         </>
       )}
-      {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{t(`register.errors.${error}`)}</p>}
-      <button type="submit" disabled={busy} className="btn btn-primary mt-5 w-full">
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">
+          {t(`register.errors.${error}`)}
+        </p>
+      )}
+      <button type="submit" disabled={busy} className="btn btn-primary mt-6 w-full">
         {busy ? t("login.checking") : t("register.submit")}
       </button>
+      <p className="mt-3 text-center text-xs text-muted">{t("register.terms")}</p>
       <p className="mt-4 text-center text-sm text-muted">
         {t("register.haveAccount")}{" "}
-        <a href="/login" className="font-semibold text-accent underline">
+        <Link href="/login" className="font-semibold text-accent hover:underline">
           {t("login.submit")}
-        </a>
+        </Link>
       </p>
     </form>
   );
