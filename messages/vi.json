@@ -50,8 +50,7 @@
       "me": "Của tôi",
       "learn": "Học",
       "manage": "Quản lý"
-    },
-    "creditsLeft": "{n} credit"
+    }
   },
   "login": {
     "username": "Email hoặc tên đăng nhập",

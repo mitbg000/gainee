@@ -50,8 +50,7 @@
       "me": "Me",
       "learn": "Learn",
       "manage": "Manage"
-    },
-    "creditsLeft": "{n} credits"
+    }
   },
   "login": {
     "username": "Email or username",

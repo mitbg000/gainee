@@ -40,7 +40,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
         </Link>
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
         <SidebarNav tree={tree} admin={admin} hidden={hidden} badges={{ "/review": due }} />
-        <SidebarAccount name={who.name} avatar={who.avatar} credits={who.credits} />
+        <SidebarAccount name={who.name} avatar={who.avatar} />
       </CollapsibleSidebar>
 
       {/* Mobile top bar */}
