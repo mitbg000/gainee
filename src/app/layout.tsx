@@ -7,6 +7,8 @@ import { lookAttrs, lookCss } from "@/theme/look";
 import { fontVars } from "@/theme/fonts";
 import PwaRegister from "@/components/PwaRegister";
 import Toaster from "@/components/Toaster";
+import NavProgress from "@/components/NavProgress";
+import { Suspense } from "react";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -44,6 +46,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body className="font-sans antialiased">
         <NextIntlClientProvider>
+          <Suspense fallback={null}>
+            <NavProgress />
+          </Suspense>
           {children}
           <Toaster />
         </NextIntlClientProvider>
