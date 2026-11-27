@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import { numbersOfGroup, splitBlanks, type Group, type Item, type SectionContent } from "@/lib/ielts/types";
+import { numbersOfGroup, parseTable, splitBlanks, type Group, type Item, type SectionContent } from "@/lib/ielts/types";
 import * as I from "@/components/icons";
 
 export type QProps = {
@@ -101,24 +101,36 @@ function GapText({ text, p }: { text: string; p: QProps }) {
         </div>,
       );
     } else if (line.startsWith("|")) {
-      const rows: string[][] = [];
-      while (i < lines.length && lines[i].trim().startsWith("|")) {
-        const cells = lines[i].trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
-        if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) rows.push(cells);
-        i++;
-      }
+      const block: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) block.push(lines[i++]);
       i--;
+      const rows = parseTable(block);
       out.push(
         <div key={i} className="my-3 overflow-x-auto">
           <table className="w-full border-collapse text-[0.95em]">
             <tbody>
               {rows.map((r, ri) => (
                 <tr key={ri}>
-                  {r.map((c, ci) => (
-                    <td key={ci} className={`border border-ink/25 px-2 py-1.5 align-top leading-9 ${ri === 0 ? "bg-ink/5 font-bold" : ""}`}>
-                      {inline(c)}
-                    </td>
-                  ))}
+                  {r.map((cell, ci) => {
+                    const Cell = ri === 0 ? "th" : "td";
+                    return (
+                      <Cell key={ci} className={`border border-ink/25 px-2.5 py-1.5 text-left align-top ${ri === 0 ? "bg-ink/5 font-bold" : ""}`}>
+                        {cell.map((l, li) =>
+                          /^[•▪-]\s/.test(l) ? (
+                            // a bullet inside the cell, its text hanging under the first word like the book
+                            <div key={li} className="flex gap-1.5 leading-9">
+                              <span aria-hidden>•</span>
+                              <span>{inline(l.replace(/^[•▪-]\s*/, ""))}</span>
+                            </div>
+                          ) : (
+                            <div key={li} className="leading-9">
+                              {inline(l)}
+                            </div>
+                          ),
+                        )}
+                      </Cell>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>

@@ -15,7 +15,7 @@ export type Group = {
   to: number;
   /** "Complete the notes below. Write ONE WORD ONLY for each answer." */
   instructions: string;
-  /** gap: notes / table / summary / form with blanks written [[7]]. Lines: "# heading", "- bullet", "| a | b |" table rows. */
+  /** gap: notes / table / summary / form with blanks written [[7]]. Lines: "# heading", "- bullet", "| a | b |" table rows (one per row, "<br>" between the lines inside a cell). */
   text?: string;
   /** match: the shared list (features, headings, sentence endings, letters on a map). */
   options?: Option[];
@@ -153,4 +153,38 @@ export const formatAnswers = (a: Record<string, string>) =>
 /** Pieces of a gap-fill line: text and blanks ([[7]]). */
 export function splitBlanks(line: string): (string | number)[] {
   return line.split(/\[\[(\d{1,2})\]\]/).map((p, i) => (i % 2 ? Number(p) : p));
+}
+
+/**
+ * Table rows "| a | b |" → rows of cells, each cell its printed lines. A book cell often holds several lines (bullets):
+ * written "<br>" inside the cell, or – by older imports – as extra rows whose first cell is empty; those rows are
+ * folded back into the row above, so one cell never shows as two. Every row gets the header's number of cells.
+ */
+export function parseTable(lines: string[]): string[][][] {
+  const rows: string[][] = [];
+  for (const raw of lines) {
+    const cells = raw.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+    if (cells.every((c) => /^:?-{2,}:?$/.test(c))) continue; // | --- | --- |
+    rows.push(cells);
+  }
+  if (!rows.length) return [];
+  const cols = rows[0].length;
+  const fit = (r: string[]) => (r.length > cols ? [...r.slice(0, cols - 1), r.slice(cols - 1).join(" ")] : [...r, ...Array(cols - r.length).fill("")]);
+  const out: string[][] = [fit(rows[0])];
+  for (const r of rows.slice(1).map(fit)) {
+    const prev = out[out.length - 1];
+    // a continuation line of the row above (its first cell is empty), not the header
+    if (!r[0] && out.length > 1 && r.some(Boolean)) r.forEach((c, i) => c && (prev[i] = prev[i] ? `${prev[i]}<br>${c}` : c));
+    else out.push(r);
+  }
+  // each cell's lines: "<br>" breaks, and "• a • b" written on one line becomes two bullets
+  return out.map((r) =>
+    r.map((c) =>
+      c
+        .split(/<br\s*\/?>/i)
+        .flatMap((l) => l.split(/\s+(?=[•▪]\s)/))
+        .map((l) => l.trim())
+        .filter(Boolean),
+    ),
+  );
 }

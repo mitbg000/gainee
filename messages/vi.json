@@ -1545,7 +1545,8 @@
       "transcribeHint": "Khi sách không in transcript: Whisper nghe đoạn âm thanh đã lưu của Part (theo mốc đầu/cuối đã lưu) và viết lại, mỗi câu một dòng. Kiểm tra rồi bấm Lưu.",
       "transcribeConfirm": "Thay transcript hiện có bằng bản Whisper nghe được?",
       "transcribed": "Đã có transcript từ âm thanh (chưa có tên người nói). Kiểm tra, có thể bấm \"Sửa transcript bằng AI\", rồi Lưu.",
-      "transcribeFailed": "Không tạo được transcript: {error}"
+      "transcribeFailed": "Không tạo được transcript: {error}",
+      "tableHint": "Bảng: mỗi hàng của bảng viết trên một dòng \"| … | … |\". Nhiều dòng trong cùng một ô thì nối bằng <br>, ví dụ \"• Expensive<br>• Leaves [[13]]\"."
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",

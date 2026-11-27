@@ -362,6 +362,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                         </button>
                       </p>
                       <textarea value={g.text} onChange={(e) => setG(i, { text: e.target.value })} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
+                      {g.text.includes("|") && <p className="mt-1 text-xs text-muted">{t("tableHint")}</p>}
 
                     </>
                   ) : (

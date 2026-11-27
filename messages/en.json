@@ -1545,7 +1545,8 @@
       "transcribeHint": "When the book prints no transcript: Whisper listens to the part's saved audio stretch (its saved start/end) and writes it out, one sentence a line. Check it, then Save.",
       "transcribeConfirm": "Replace the current transcript with what Whisper hears?",
       "transcribed": "Transcript made from the audio (no speaker names yet). Check it, maybe use \"Fix transcript with AI\", then Save.",
-      "transcribeFailed": "Could not make a transcript: {error}"
+      "transcribeFailed": "Could not make a transcript: {error}",
+      "tableHint": "Tables: each table row on one line \"| … | … |\". Several lines inside one cell are joined with <br>, e.g. \"• Expensive<br>• Leaves [[13]]\"."
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",
