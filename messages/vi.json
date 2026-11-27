@@ -1411,7 +1411,7 @@
       "ocr": "Đang đọc chữ trang scan {p}/{n} (trên máy này)",
       "audio": "Đang tải audio {i}/{n}: {name}",
       "queue": "Đã tải xong, đang gửi cho AI đọc…",
-      "pdf": "File PDF bộ đề",
+      "pdf": "File PDF đề (chọn được nhiều file, nhiều lần)",
       "title": "Tên bộ đề",
       "audioFiles": "File audio (có thể chọn nhiều)",
       "audioHint": "Đặt tên kiểu “Test 1.mp3” hoặc “Test 1 Section 2.mp3” để tự gắn vào đúng đề. File khác gắn tay ở trang duyệt.",
@@ -1420,7 +1420,9 @@
       "start": "Tải lên và tách đề",
       "keepOpen": "Giữ trang này mở cho tới khi tải xong. Bước AI chạy ở server, bạn có thể đóng trang lúc đó.",
       "marks": "Đang tìm mốc Part trong {name}: {step}",
-      "audioSkipped": "Không tải lên được: {names}. Đề vẫn được tách; hãy thêm lại file này ở trang bộ đề (nút Thêm audio)."
+      "audioSkipped": "Không tải lên được: {names}. Đề vẫn được tách; hãy thêm lại file này ở trang bộ đề (nút Thêm audio).",
+      "pdfHint": "Nhiều PDF (mỗi test một file, đáp án riêng…) được ghép thành một bộ đề, theo thứ tự trong danh sách.",
+      "tooManyPages": "Các file có tổng {n} trang, tối đa {max} trang cho một bộ đề."
     },
     "book": {
       "reimportConfirm": "Đọc lại sẽ thay toàn bộ đề nháp hiện tại (kể cả phần đã sửa). Tiếp tục?",
@@ -1466,7 +1468,8 @@
       "deleteAudioConfirm": "Xoá file audio “{name}”? Các phần Listening đang dùng file này sẽ không còn audio.",
       "resplit": "Chia lại transcript",
       "resplitHint": "Chia lại phần Audioscripts của sách theo tiêu đề TEST n. Chỉ thay transcript của Part nào đang trống hoặc đang mang transcript của Test/Part khác; transcript bạn đã sửa tay vẫn giữ.",
-      "resplitConfirm": "Chia lại transcript từ các trang sách? Part nào đang mang nhầm transcript của Test khác sẽ được thay. Sau đó các bài đã đưa vào kho chép chính tả cần bấm \"Làm lại\"."
+      "resplitConfirm": "Chia lại transcript từ các trang sách? Part nào đang mang nhầm transcript của Test khác sẽ được thay. Sau đó các bài đã đưa vào kho chép chính tả cần bấm \"Làm lại\".",
+      "audioFailed": "Không tải lên được: {names}. Hãy chọn lại file."
     },
     "edit": {
       "back": "Quay lại bộ đề",

@@ -11,6 +11,7 @@ import { toast } from "@/components/Toaster";
 const CHUNK = 4 * 1024 * 1024; // small enough to finish well inside proxy time limits on a slow upload
 const PAGE_WIDTH = 1400; // px: sharp enough to crop a map or chart, ~150 KB per page as WebP
 const BATCH = 4;
+const MAX_PAGES = 600; // the server's limit for one book
 
 /** Upload one audio file in 8 MB chunks (stays under proxy body limits; a failed chunk is retried from where the server stopped). */
 export async function uploadAudio(bookId: number, file: File, onProgress: (done: number) => void) {
@@ -31,6 +32,29 @@ export async function uploadAudio(bookId: number, file: File, onProgress: (done:
   return id as number;
 }
 
+/** Add a new pick to the files already chosen: each pick is sorted by name, a file chosen twice is kept once. */
+export function addFiles(have: File[], picked: FileList | null) {
+  const fresh = Array.from(picked ?? []).filter((f) => !have.some((h) => h.name === f.name && h.size === f.size));
+  return [...have, ...fresh.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))];
+}
+
+function Chosen({ files, onChange, disabled, remove }: { files: File[]; onChange: (f: File[]) => void; disabled: boolean; remove: string }) {
+  if (!files.length) return null;
+  return (
+    <ol className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+      {files.map((f, i) => (
+        <li key={`${f.name}-${f.size}`} className="flex items-center gap-2 rounded-lg bg-paper px-3 py-1 text-sm">
+          <span className="text-muted">{i + 1}.</span>
+          <span className="min-w-0 flex-1 truncate">{f.name}</span>
+          <button type="button" disabled={disabled} onClick={() => onChange(files.filter((x) => x !== f))} aria-label={`${remove} ${f.name}`} className="icon-btn">
+            <I.IconX />
+          </button>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 type Ocr = { recognize: (c: HTMLCanvasElement) => Promise<{ data: { text: string } }>; terminate: () => Promise<unknown> };
 
 /**
@@ -40,8 +64,9 @@ type Ocr = { recognize: (c: HTMLCanvasElement) => Promise<{ data: { text: string
 export default function ImportBook() {
   const t = useTranslations("ielts.import");
   const tm = useTranslations("ielts.marks");
+  const ta = useTranslations("app");
   const router = useRouter();
-  const [pdf, setPdf] = useState<File | null>(null);
+  const [pdfs, setPdfs] = useState<File[]>([]);
   const [audio, setAudio] = useState<File[]>([]);
   const [title, setTitle] = useState("");
   const [localOcr, setLocalOcr] = useState(true);
@@ -52,15 +77,19 @@ export default function ImportBook() {
   const busy = status !== null && !error;
 
   async function start() {
-    if (!pdf) return;
+    if (!pdfs.length) return;
     setError(null);
     let ocr: Ocr | null = null;
     try {
       setStatus(t("opening"));
       const { getDocumentProxy } = await import("unpdf");
-      const doc = await getDocumentProxy(new Uint8Array(await pdf.arrayBuffer()));
-      const n = doc.numPages;
-      const r = await fetch("/api/ielts/books", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ title: title.trim() || pdf.name.replace(/\.pdf$/i, ""), pageCount: n }) });
+      // several PDFs (one per test, answers apart…) become one book, pages in the order of the list
+      const docs = [];
+      for (const f of pdfs) docs.push(await getDocumentProxy(new Uint8Array(await f.arrayBuffer())));
+      const n = docs.reduce((sum, d) => sum + d.numPages, 0);
+      if (n > MAX_PAGES) throw new Error(t("tooManyPages", { n, max: MAX_PAGES }));
+      const all = docs.flatMap((d) => Array.from({ length: d.numPages }, (_, i) => () => d.getPage(i + 1)));
+      const r = await fetch("/api/ielts/books", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ title: title.trim() || pdfs[0].name.replace(/\.pdf$/i, ""), pageCount: n }) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const { id } = await r.json();
 
@@ -77,7 +106,7 @@ export default function ImportBook() {
       for (let p = 1; p <= n; p++) {
         setStatus(t("page", { p, n }));
         setPct(p / n);
-        const page = await doc.getPage(p);
+        const page = await all[p - 1]();
         const tc = await page.getTextContent();
         const vp1 = page.getViewport({ scale: 1 });
         // speaker names back in front of their lines (audioscripts), positions as shown even on rotated scans
@@ -144,24 +173,33 @@ export default function ImportBook() {
         <input
           type="file"
           accept="application/pdf"
+          multiple
           disabled={busy}
           onChange={(e) => {
-            const f = e.target.files?.[0] ?? null;
-            setPdf(f);
-            if (f && !title) setTitle(f.name.replace(/\.pdf$/i, ""));
+            const next = addFiles(pdfs, e.target.files);
+            e.target.value = ""; // so the same file can be chosen again after removing it
+            setPdfs(next);
+            if (next[0] && !title) setTitle(next[0].name.replace(/\.pdf$/i, ""));
           }}
           className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-on-accent"
         />
+        <span className="mt-1 block text-xs text-muted">{t("pdfHint")}</span>
       </label>
+      <Chosen files={pdfs} onChange={setPdfs} disabled={busy} remove={ta("delete")} />
       <label className="block">
         <span className="text-sm font-semibold">{t("title")}</span>
         <input value={title} onChange={(e) => setTitle(e.target.value)} disabled={busy} placeholder="Cambridge IELTS 21" className="field mt-1 w-full" />
       </label>
       <label className="block">
         <span className="text-sm font-semibold">{t("audioFiles")}</span>
-        <input type="file" accept="audio/*,.mp3,.m4a" multiple disabled={busy} onChange={(e) => setAudio(Array.from(e.target.files ?? []))} className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-paper file:px-3 file:py-2 file:font-semibold" />
+        <input type="file" accept="audio/*,.mp3,.m4a" multiple disabled={busy} onChange={(e) => {
+          const next = addFiles(audio, e.target.files);
+          e.target.value = "";
+          setAudio(next);
+        }} className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-paper file:px-3 file:py-2 file:font-semibold" />
         <span className="mt-1 block text-xs text-muted">{t("audioHint")}</span>
       </label>
+      <Chosen files={audio} onChange={setAudio} disabled={busy} remove={ta("delete")} />
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" checked={localOcr} onChange={(e) => setLocalOcr(e.target.checked)} disabled={busy} className="mt-0.5 size-4" />
         <span>
@@ -185,7 +223,7 @@ export default function ImportBook() {
         </div>
       )}
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-      <button onClick={start} disabled={!pdf || busy} className="btn btn-primary">
+      <button onClick={start} disabled={!pdfs.length || busy} className="btn btn-primary">
         <I.IconUpload /> {t("start")}
       </button>
       <p className="text-xs text-muted">{t("keepOpen")}</p>

@@ -1411,7 +1411,7 @@
       "ocr": "Reading scanned page {p}/{n} (on this computer)",
       "audio": "Uploading audio {i}/{n}: {name}",
       "queue": "Uploaded – sending to AI…",
-      "pdf": "Test book PDF",
+      "pdf": "Test book PDFs (several files, in several picks)",
       "title": "Book title",
       "audioFiles": "Audio files (several allowed)",
       "audioHint": "Names like “Test 1.mp3” or “Test 1 Section 2.mp3” are attached to the right test automatically; others you attach on the review screen.",
@@ -1420,7 +1420,9 @@
       "start": "Upload and split",
       "keepOpen": "Keep this page open until the upload finishes. The AI step runs on the server; you can leave then.",
       "marks": "Finding part marks in {name}: {step}",
-      "audioSkipped": "Could not upload: {names}. The book is still read; add these files again on the book page (Add audio)."
+      "audioSkipped": "Could not upload: {names}. The book is still read; add these files again on the book page (Add audio).",
+      "pdfHint": "Several PDFs (one per test, answers apart…) become one book, in the order of the list.",
+      "tooManyPages": "These files have {n} pages; one book can have at most {max}."
     },
     "book": {
       "reimportConfirm": "Reading again replaces all draft tests (including your edits). Continue?",
@@ -1466,7 +1468,8 @@
       "deleteAudioConfirm": "Delete the audio file “{name}”? Listening parts using it will have no audio.",
       "resplit": "Split transcripts again",
       "resplitHint": "Splits the book's audioscripts again by their TEST n headings. Only parts with no transcript or another test's or part's transcript are replaced; transcripts you fixed by hand stay.",
-      "resplitConfirm": "Split the transcripts again from the book's pages? Parts holding another test's transcript are replaced. Parts already in the dictation bank then need \"Redo\"."
+      "resplitConfirm": "Split the transcripts again from the book's pages? Parts holding another test's transcript are replaced. Parts already in the dictation bank then need \"Redo\".",
+      "audioFailed": "Could not upload: {names}. Please choose the files again."
     },
     "edit": {
       "back": "Back to the book",

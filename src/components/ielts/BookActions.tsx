@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { uploadAudio } from "./ImportBook";
 import * as I from "@/components/icons";
-import { ask } from "@/components/Toaster";
+import { ask, toast } from "@/components/Toaster";
 
 type BookJob = { id: number; type: string; status: string; progress: string | null };
 
@@ -59,14 +59,15 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
     await fetch(`/api/ielts/books/${id}`, { method: "DELETE" });
     router.push("/ielts");
   }
-  async function addAudio(files: FileList | null) {
-    try {
-      for (const f of Array.from(files ?? [])) await uploadAudio(id, f, (p) => setUpload(`${f.name} ${Math.round(p * 100)}%`));
-      setUpload(null);
-      router.refresh();
-    } catch (e) {
-      setUpload(String(e));
-    }
+  async function addAudio(input: HTMLInputElement) {
+    const files = Array.from(input.files ?? []);
+    input.value = ""; // so the same files can be chosen again
+    const failed: string[] = [];
+    // one failed file does not stop the others
+    for (const f of files) await uploadAudio(id, f, (p) => setUpload(`${f.name} ${Math.round(p * 100)}%`)).catch(() => failed.push(f.name));
+    setUpload(null);
+    if (failed.length) toast(t("audioFailed", { names: failed.join(", ") }), "error");
+    router.refresh();
   }
 
   return (
@@ -82,7 +83,7 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
       ))}
       <label className="btn btn-sm btn-secondary cursor-pointer">
         <I.IconHeadphones /> {upload ?? t("addAudio")}
-        <input type="file" accept="audio/*,.mp3,.m4a" multiple className="sr-only" onChange={(e) => addAudio(e.target.files)} disabled={!!upload} />
+        <input type="file" accept="audio/*,.mp3,.m4a" multiple className="sr-only" onChange={(e) => addAudio(e.target)} disabled={!!upload} />
       </label>
       {brokenScripts > 0 && !has("ielts_fix_scripts") && (
         <button onClick={fixScripts} className="btn btn-sm btn-primary">
