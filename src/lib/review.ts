@@ -1,5 +1,5 @@
 /** Spaced repetition of saved words with FSRS (ts-fsrs). */
-import { and, asc, count, eq, gt, lte, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, isNotNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { fsrs, type Card, type Grade } from "ts-fsrs";
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
@@ -119,4 +119,57 @@ export async function gradeWord(id: number, rating: Grade, mode: LogMode, durati
 export async function dueCount() {
   const [r] = await getDb().select({ n: count() }).from(words).where(and(eq(words.userId, await myId()), eq(words.suspended, false), lte(words.due, new Date())));
   return r?.n ?? 0;
+}
+
+/** Days until the next review from which a word counts as learned: remembered after three weeks (~90 % by FSRS). */
+export const LEARNED_DAYS = 21;
+
+/**
+ * Words for one quick round. "learn": new words, the latest saved first. "review": words due now, the most overdue
+ * first (FSRS decides when). Each with what is needed to ask about it.
+ */
+export async function quickWords(kind: "learn" | "review", size = 10) {
+  const db = getDb();
+  const uid = await myId();
+  const base = and(eq(words.userId, uid), eq(words.suspended, false), or(isNotNull(words.meaningVi), isNotNull(words.definitionEn)));
+  const rows =
+    kind === "learn"
+      ? await db.select().from(words).where(and(base, eq(words.state, 0))).orderBy(desc(words.id)).limit(size)
+      : await db.select().from(words).where(and(base, gt(words.state, 0), lte(words.due, new Date()))).orderBy(asc(words.due)).limit(size);
+  // other saved words: wrong options for the questions
+  const others = await db
+    .select({ term: words.term, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn })
+    .from(words)
+    .where(and(base, notInArray(words.id, rows.length ? rows.map((r) => r.id) : [0])))
+    .orderBy(desc(words.id))
+    .limit(300);
+  return {
+    words: rows.map((w) => ({
+      id: w.id,
+      term: w.term,
+      ipa: w.ipa,
+      pos: w.pos,
+      meaningVi: w.meaningVi,
+      definitionEn: w.definitionEn,
+      context: w.context,
+      example: w.example,
+      state: w.state,
+      stability: w.stability,
+    })),
+    others,
+  };
+}
+
+/** How many words wait in each part, and when the next review falls due (for the choice screen). */
+export async function quickCounts() {
+  const db = getDb();
+  const uid = await myId();
+  const base = and(eq(words.userId, uid), eq(words.suspended, false), or(isNotNull(words.meaningVi), isNotNull(words.definitionEn)));
+  const [[fresh], [due], [next], [learned]] = await Promise.all([
+    db.select({ n: count() }).from(words).where(and(base, eq(words.state, 0))),
+    db.select({ n: count() }).from(words).where(and(base, gt(words.state, 0), lte(words.due, new Date()))),
+    db.select({ at: sql<Date | null>`MIN(${words.due})` }).from(words).where(and(base, gt(words.state, 0), gt(words.due, new Date()))),
+    db.select({ n: count() }).from(words).where(and(base, eq(words.state, 2), sql`${words.scheduledDays} >= ${LEARNED_DAYS}`)),
+  ]);
+  return { fresh: fresh.n, due: due.n, nextDue: next.at ? new Date(next.at) : null, learned: learned.n };
 }

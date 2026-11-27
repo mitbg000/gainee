@@ -1,95 +1,68 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import Match from "@/components/practice/Match";
-import { shuffle, type PWord } from "@/components/practice/questions";
-import ReviewSession from "@/components/review/ReviewSession";
-import SentencePractice from "./SentencePractice";
 import * as I from "@/components/icons";
-import { sfx } from "@/lib/sound";
+import QuickMix, { type QWord } from "./QuickMix";
 
-const STEPS = ["review", "write", "match", "done"] as const;
-type Step = (typeof STEPS)[number];
+type Other = { term: string; pos: string | null; meaningVi: string | null; definitionEn: string | null };
+type Part = "review" | "learn";
 
 /**
- * "Quick study" – about five minutes, the same order every day: due cards first (spaced repetition),
- * then two sentences of your own (deep processing), then a timed match (fun, fast recall).
+ * "Quick study": two parts, one after the other – words due for review (FSRS says when), then new words.
+ * A part with no words is left out; each part is about 10 questions' worth of words.
  */
-export default function QuickSession({ pool, streak, activeToday, known }: { pool: PWord[]; streak: number; activeToday: boolean; known: number }) {
+export default function QuickSession({ review, learn, others, streak, activeToday, learned }: { review: QWord[]; learn: QWord[]; others: Other[]; streak: number; activeToday: boolean; learned: number }) {
   const t = useTranslations("learn.quick");
-  const [step, setStep] = useState<Step>("review");
-  // picked once per session: two recent words to write with, six for the match
-  const [picks] = useState(() => {
-    const s = shuffle(pool);
-    return { write: s.slice(0, 2), match: shuffle(pool).slice(0, 6) };
-  });
-  const next = () => {
-    const n = STEPS[Math.min(STEPS.indexOf(step) + 1, STEPS.length - 1)];
-    if (n === "done" && step !== "done") sfx("done");
-    setStep(n);
-  };
-  const i = STEPS.indexOf(step);
+  const router = useRouter();
+  const parts = ([["review", review], ["learn", learn]] as const).filter(([, ws]) => ws.length).map(([p]) => p as Part);
+  const [i, setI] = useState(0);
+  const part = parts[i];
+
+  if (!parts.length)
+    return (
+      <div className="mx-auto max-w-2xl rounded-3xl border border-dashed border-line bg-card p-8 text-center">
+        <I.BigIcon icon={I.IconWords} />
+        <p className="mt-3 font-semibold">{t("nothing")}</p>
+        <Link href="/library" className="btn btn-primary mt-4">
+          {t("goRead")}
+        </Link>
+      </div>
+    );
 
   return (
     <div>
       <ol className="mx-auto mb-6 flex max-w-2xl items-center gap-2 text-sm">
-        {STEPS.slice(0, 3).map((s, k) => (
-          <li key={s} className="flex flex-1 items-center gap-2">
-            <span
-              className={`flex size-7 flex-none items-center justify-center rounded-full text-xs font-bold ${k < i ? "bg-green-500 text-white" : k === i ? "bg-accent text-on-accent" : "bg-line text-muted"}`}
-            >
+        {parts.map((p, k) => (
+          <li key={p} className="flex flex-1 items-center gap-2">
+            <span className={`flex size-7 flex-none items-center justify-center rounded-full text-xs font-bold ${k < i ? "bg-green-500 text-white" : k === i ? "bg-accent text-on-accent" : "bg-line text-muted"}`}>
               {k < i ? <I.IconCheck className="h-3.5 w-3.5" /> : k + 1}
             </span>
-            <span className={`truncate ${k === i ? "font-semibold" : "text-muted"}`}>{t(`step.${s}`)}</span>
-            {k < 2 && <span className="h-px flex-1 bg-line" />}
+            <span className={`truncate ${k === i ? "font-semibold" : "text-muted"}`}>{t(`part.${p}`, { n: (p === "review" ? review : learn).length })}</span>
+            {k < parts.length - 1 && <span className="h-px flex-1 bg-line" />}
           </li>
         ))}
       </ol>
 
-      {step === "review" && <ReviewSession limit={8} onDone={next} />}
-      {step === "write" && (picks.write.length ? <SentencePractice words={picks.write} onDone={next} /> : <Skip onNext={next} />)}
-      {step === "match" &&
-        (picks.match.length >= 2 ? (
-          <div>
-            <Match words={picks.match} onExit={next} />
-            <div className="mt-4 text-center">
-              <button onClick={next} className="btn btn-primary">
-                {t("finish")}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <Skip onNext={next} />
-        ))}
-      {step === "done" && (
+      {part ? (
+        <QuickMix key={part} kind={part} words={part === "review" ? review : learn} others={others} onDone={() => setI(i + 1)} doneLabel={i + 1 < parts.length ? t(`toPart.${parts[i + 1]}`) : t("finish")} />
+      ) : (
         <div className="mx-auto max-w-2xl rounded-3xl border border-line bg-card p-8 text-center">
           <I.BigIcon icon={I.IconFlame} tone="orange" />
           <p className="mt-3 font-serif text-3xl font-bold">{t("streak", { n: activeToday ? streak : streak + 1 })}</p>
-          <p className="mt-2 text-muted">{t("doneTip", { known })}</p>
+          <p className="mt-2 text-muted">{t("doneTip", { known: learned })}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Link href="/progress" className="btn btn-primary">
+            <button onClick={() => router.refresh()} className="btn btn-primary">
+              {t("again")}
+            </button>
+            <Link href="/progress" className="btn btn-secondary">
               {t("seeProgress")}
-            </Link>
-            <Link href="/practice" className="btn btn-secondary">
-              {t("more")}
             </Link>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Skip({ onNext }: { onNext: () => void }) {
-  const t = useTranslations("learn.quick");
-  return (
-    <div className="mx-auto max-w-2xl rounded-3xl border border-line bg-card p-8 text-center">
-      <p className="text-muted">{t("notEnough")}</p>
-      <button onClick={onNext} autoFocus className="btn btn-primary mt-4">
-        {t("continue")}
-      </button>
     </div>
   );
 }

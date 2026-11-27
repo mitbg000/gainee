@@ -1235,19 +1235,48 @@
     },
     "quick": {
       "title": "Học nhanh 5 phút",
-      "intro": "Mỗi ngày một phiên ngắn, luôn theo thứ tự: ôn thẻ đến hạn → tự viết 2 câu → ghép thẻ nhanh. Đều đặn quan trọng hơn học nhiều.",
-      "step": {
-        "review": "Ôn thẻ",
-        "write": "Viết câu",
-        "match": "Ghép thẻ"
+      "intro": "Phần 1 ôn các từ đến hạn, phần 2 học vài từ mới. Bấm chọn đáp án, máy tự chấm và hẹn ngày ôn lại. Đang có {due} từ cần ôn · {fresh} từ mới · {learned} từ đã thuộc.",
+      "part": {
+        "review": "Ôn từ ({n})",
+        "learn": "Học từ mới ({n})"
       },
-      "finish": "Hoàn thành phiên học",
+      "toPart": {
+        "learn": "Sang phần học từ mới"
+      },
+      "finish": "Hoàn thành",
+      "again": "Học tiếp",
+      "nothing": "Chưa có từ nào cần ôn hay từ mới để học. Lưu thêm từ khi đọc bài nhé.",
+      "goRead": "Đến thư viện bài đọc",
+      "kind": {
+        "meaning": "Chọn nghĩa đúng",
+        "term": "Chọn từ đúng với nghĩa",
+        "cloze": "Chọn từ điền vào chỗ trống",
+        "listen": "Nghe và chọn từ",
+        "type": "Gõ từ đúng với nghĩa"
+      },
+      "known": "{n}/{total} từ đã nhớ",
+      "stop": "Kết thúc phần này",
+      "lookingBack": "Xem lại câu đã làm",
+      "listen": "Nghe",
+      "typeHint": "Bắt đầu bằng “{first}”…",
+      "check": "Kiểm tra",
+      "dontKnow": "Không nhớ",
+      "right": "Đúng!",
+      "wrongWas": "Đáp án:",
+      "prev": "Câu trước",
+      "next": "Câu tiếp",
+      "skip": "Bỏ qua",
+      "roundDone": "Xong {n} từ",
+      "learnedNow": "{n} từ đã thuộc: hẹn ôn lại sau ít nhất 3 tuần.",
+      "soon": {
+        "today": "ôn lại hôm nay",
+        "week": "trong tuần",
+        "later": "sau 1 tuần",
+        "hint": "Từ trả lời sai sẽ quay lại sớm, từ nhớ tốt thưa dần."
+      },
       "streak": "Chuỗi {n} ngày!",
-      "doneTip": "Bạn đã thuộc chắc {known} từ. Hẹn gặp lại ngày mai để giữ chuỗi ngày học.",
-      "seeProgress": "Xem tiến độ",
-      "more": "Luyện thêm",
-      "notEnough": "Chưa đủ từ cho bước này – lưu thêm từ khi đọc nhé.",
-      "continue": "Tiếp tục"
+      "doneTip": "Bạn đã thuộc {known} từ (hẹn ôn lại sau ít nhất 3 tuần). Hẹn gặp lại ngày mai.",
+      "seeProgress": "Xem tiến độ"
     }
   },
   "sound": {

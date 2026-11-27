@@ -1,38 +1,35 @@
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import QuickSession from "@/components/learn/QuickSession";
 import Shell from "@/components/Shell";
 import { getDb, schema } from "@/db";
-import { myId } from "@/lib/owner";
 import { today } from "@/lib/activity";
-import { masteredByWeek, streak } from "@/lib/stats";
+import { myId } from "@/lib/owner";
+import { quickCounts, quickWords } from "@/lib/review";
+import { streak } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
-const { words, activity } = schema;
+const { activity } = schema;
 
-/** Quick study (about 5 minutes): due cards, two sentences of your own, one match round. */
+/** Quick study: words due for review first, then a few new words; questions of mixed kinds, graded for FSRS. */
 export default async function QuickPage() {
   const t = await getTranslations("learn.quick");
-  const db = getDb();
   const uid = await myId();
-  const [pool, s, [act], m] = await Promise.all([
-    // words being learnt (studied at least once) first, newest first; they are the ones worth using in a sentence
-    db
-      .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, context: words.context })
-      .from(words)
-      .where(and(eq(words.userId, uid), isNotNull(words.meaningVi)))
-      .orderBy(desc(sql`${words.reps} > 0`), desc(words.lastReview), desc(words.id))
-      .limit(40),
+  const [review, learn, s, [act], counts] = await Promise.all([
+    quickWords("review", 10),
+    quickWords("learn", 5),
     streak(),
-    db.select({ xp: activity.xp, minutes: activity.minutes }).from(activity).where(and(eq(activity.userId, uid), eq(activity.day, today()))),
-    masteredByWeek(),
+    getDb().select({ xp: activity.xp, minutes: activity.minutes }).from(activity).where(and(eq(activity.userId, uid), eq(activity.day, today()))),
+    quickCounts(),
   ]);
+  const ids = [...review.words, ...learn.words].map((w) => w.id);
   return (
     <Shell>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-muted">{t("intro")}</p>
+      <p className="mt-1 text-muted">{t("intro", { due: counts.due, fresh: counts.fresh, learned: counts.learned })}</p>
       <div className="mt-6">
-        <QuickSession pool={pool} streak={s} activeToday={!!act && (act.xp > 0 || act.minutes > 0)} known={m.known} />
+        {/* a new set after "again": the page data changes, so the session starts over */}
+        <QuickSession key={ids.join(",")} review={review.words} learn={learn.words} others={[...review.others, ...learn.others]} streak={s} activeToday={!!act && (act.xp > 0 || act.minutes > 0)} learned={counts.learned} />
       </div>
     </Shell>
   );

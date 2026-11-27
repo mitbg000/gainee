@@ -1234,20 +1234,49 @@
       "another": "Another passage"
     },
     "quick": {
-      "title": "5-minute quick study",
-      "intro": "One short session a day, always in this order: due cards → write 2 sentences → a quick match. Regularity beats quantity.",
-      "step": {
-        "review": "Review",
-        "write": "Write",
-        "match": "Match"
+      "title": "Quick study (5 minutes)",
+      "intro": "Part 1 reviews the words that are due, part 2 teaches a few new ones. Pick an answer; it is marked for you and the next review is scheduled. Now: {due} to review · {fresh} new · {learned} learned.",
+      "part": {
+        "review": "Review ({n})",
+        "learn": "New words ({n})"
       },
-      "finish": "Finish session",
+      "toPart": {
+        "learn": "On to new words"
+      },
+      "finish": "Finish",
+      "again": "Study more",
+      "nothing": "No words to review and no new words yet. Save words while you read.",
+      "goRead": "Go to the reading library",
+      "kind": {
+        "meaning": "Pick the meaning",
+        "term": "Pick the word for this meaning",
+        "cloze": "Pick the word that fills the gap",
+        "listen": "Listen and pick the word",
+        "type": "Type the word for this meaning"
+      },
+      "known": "{n}/{total} remembered",
+      "stop": "End this part",
+      "lookingBack": "Looking back",
+      "listen": "Listen",
+      "typeHint": "Starts with “{first}”…",
+      "check": "Check",
+      "dontKnow": "I don't know",
+      "right": "Right!",
+      "wrongWas": "Answer:",
+      "prev": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "roundDone": "{n, plural, one {# word} other {# words}} done",
+      "learnedNow": "{n} learned: next review in 3 weeks or more.",
+      "soon": {
+        "today": "again today",
+        "week": "this week",
+        "later": "after a week",
+        "hint": "Words you missed come back soon; words you know come back less and less often."
+      },
       "streak": "{n}-day streak!",
-      "doneTip": "You know {known} words for sure. See you tomorrow to keep your streak.",
-      "seeProgress": "See progress",
-      "more": "Practise more",
-      "notEnough": "Not enough words for this step yet – save more while reading.",
-      "continue": "Continue"
+      "doneTip": "You have learned {known} words (next review 3+ weeks away). See you tomorrow.",
+      "seeProgress": "See progress"
     }
   },
   "sound": {
