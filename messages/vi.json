@@ -1886,7 +1886,26 @@
       "already_used": "Bạn đã dùng mã này rồi",
       "too_many_attempts": "Nhập sai quá nhiều lần, hãy đợi 15 phút",
       "invalid": "Mã không hợp lệ"
-    }
+    },
+    "freeDone": "Gói được giảm 100%: credit đã được cộng.",
+    "pay": {
+      "open": "Mở mã QR thanh toán",
+      "title": "Chuyển khoản để nạp",
+      "hint": "Quét mã QR bằng app ngân hàng, hoặc chuyển khoản đúng số tiền và nội dung dưới đây. Credit được cộng tự động sau vài giây.",
+      "bank": "Ngân hàng",
+      "account": "Số tài khoản",
+      "holder": "Chủ tài khoản",
+      "amount": "Số tiền",
+      "content": "Nội dung",
+      "copy": "Bấm để sao chép",
+      "copied": "Đã sao chép",
+      "waiting": "Đang chờ nhận tiền… trang sẽ tự cập nhật.",
+      "qrAlt": "Mã QR chuyển khoản {code}",
+      "paidTitle": "Đã nhận tiền!",
+      "paidText": "Yêu cầu {code} đã được thanh toán, credit đã vào tài khoản."
+    },
+    "save": "Tiết kiệm {n}%",
+    "perCredit": "{price}/credit"
   },
   "admin": {
     "title": "Quản trị",
@@ -2118,6 +2137,37 @@
       "testSent": "Đã gửi, hãy kiểm tra hộp thư",
       "testFailed": "Không gửi được: {error}",
       "testTo": "Gửi tới email (để trống: email của bạn)"
+    },
+    "payments": {
+      "title": "Thanh toán tự động với SePay",
+      "hint": "Học viên chuyển khoản theo mã QR; SePay báo về Gainee qua webhook và credit được cộng ngay, không cần duyệt tay. Tắt mục này thì vẫn duyệt tay ở tab Yêu cầu nạp.",
+      "enabled": "Bật thanh toán qua SePay",
+      "bank": "Mã ngân hàng (VietQR)",
+      "account": "Số tài khoản nhận tiền",
+      "holder": "Tên chủ tài khoản",
+      "setupTitle": "Cấu hình trên my.sepay.vn",
+      "step1": "Liên kết tài khoản ngân hàng ở trên với SePay.",
+      "step2": "Webhooks → Thêm webhook: sự kiện \"Có tiền vào\", gửi JSON tới",
+      "step3": "Bảo mật: chọn HMAC-SHA256 (khuyên dùng) hoặc API Key, rồi dán khoá vào ô bên dưới.",
+      "step4": "Cấu hình Công ty → Cấu trúc mã thanh toán: tiền tố GN, hậu tố là số, dài 6–8 ký tự.",
+      "kept": "Đã lưu (để trống nếu không đổi)",
+      "apiKeyHint": "Khoá API của webhook",
+      "hmacHint": "Secret key HMAC của webhook",
+      "recommended": "khuyên dùng",
+      "remove": "Xoá khoá này",
+      "missing": "Cần mã ngân hàng, số tài khoản và ít nhất một khoá webhook thì thanh toán mới bật.",
+      "save": "Lưu",
+      "saving": "Đang lưu…",
+      "saved": "Đã lưu",
+      "error": "Không lưu được",
+      "oddTitle": "Giao dịch SePay cần xem",
+      "oddHint": "Tiền đã vào nhưng chưa tự cộng credit: chuyển thiếu, sai nội dung, hoặc trả cho yêu cầu đã đóng. Kiểm tra rồi cộng credit tay ở trang người dùng.",
+      "status": {
+        "underpaid": "Thiếu tiền",
+        "unmatched": "Không có mã",
+        "settled": "Yêu cầu đã đóng",
+        "paid": "Đã cộng"
+      }
     }
   },
   "auth": {

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession, type Session } from "@/lib/session";
 
-const PUBLIC_PATHS = ["/welcome", "/login", "/register", "/forgot", "/reset", "/api/auth/login", "/api/auth/register", "/api/auth/forgot", "/api/auth/reset", "/api/health"];
+const PUBLIC_PATHS = ["/welcome", "/login", "/register", "/forgot", "/reset", "/api/auth/login", "/api/auth/register", "/api/auth/forgot", "/api/auth/reset", "/api/health", "/api/payments/sepay"];
 const RANK = { student: 0, editor: 1, admin: 2 } as const;
 
 const under = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(p + "/"));

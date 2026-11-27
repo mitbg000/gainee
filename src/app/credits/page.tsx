@@ -2,10 +2,12 @@ import { desc, eq } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import BuyPackage from "@/components/admin/BuyPackage";
+import PayPanel from "@/components/admin/PayPanel";
 import RedeemCode from "@/components/admin/RedeemCode";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { getDb, schema } from "@/db";
 import { creditHistory, getCreditConfig } from "@/lib/credits";
+import { getSepay, qrUrl, sepayOn, topupCode } from "@/lib/payments";
 import { currentUser } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
@@ -20,13 +22,15 @@ export default async function CreditsPage() {
     creditHistory(me.id, 100),
     getDb().select().from(schema.topups).where(eq(schema.topups.userId, me.id)).orderBy(desc(schema.topups.id)).limit(20),
   ]);
+  const sepay = await getSepay();
+  const payOf = (id: number, price: number) => (sepayOn(sepay) ? { qr: qrUrl(sepay, price, topupCode(id)), bank: sepay.bank, account: sepay.account, holder: sepay.holder } : null);
   const vnd = (n: number) => f.number(n, { style: "currency", currency: "VND", maximumFractionDigits: 0 });
   const rates = Object.entries(cfg.models);
 
   return (
     <Shell>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <div className="mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="rounded-2xl border border-line bg-card p-5">
           <p className="text-sm text-muted">{t("balance")}</p>
           {me.role === "admin" ? <p className="mt-1 text-lg font-semibold">{t("adminFree")}</p> : <p className={`mt-1 font-serif text-4xl font-bold tabular-nums ${me.credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`}>{fmtCredits(me.credits)}</p>}
@@ -51,7 +55,14 @@ export default async function CreditsPage() {
         <div className="rounded-2xl border border-line bg-card p-5">
           <p className="font-semibold">{t("topup")}</p>
           {cfg.packages.length ? (
-            <BuyPackage packages={cfg.packages.map((p) => ({ credits: p.credits, price: vnd(p.price) }))} payInfo={cfg.payInfo} />
+            <BuyPackage
+              packages={(() => {
+                // bigger packs are usually cheaper per credit: show how much each saves against the dearest rate
+                const top = Math.max(...cfg.packages.map((p) => p.price / p.credits));
+                return cfg.packages.map((p) => ({ credits: p.credits, price: vnd(p.price), perCredit: vnd(p.price / p.credits), save: top > 0 ? Math.round((1 - p.price / p.credits / top) * 100) : 0 }));
+              })()}
+              payInfo={cfg.payInfo}
+            />
           ) : (
             <p className="mt-2 text-sm text-muted">{t("noPackages")}</p>
           )}
@@ -60,12 +71,18 @@ export default async function CreditsPage() {
             <ul className="mt-4 divide-y divide-line border-t border-line text-sm">
               {mine.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center gap-2 py-2">
-                  <span className="font-mono text-xs text-muted">GN{r.id}</span>
+                  <span className="font-mono text-xs text-muted">{topupCode(r.id)}</span>
                   <span className="flex-1">
                     {t("packLine", { n: fmtCredits(r.credits) })} · {vnd(r.price)}
                     {r.discount > 0 && <span className="text-xs text-green-700 dark:text-green-400"> ({t("saved", { n: vnd(r.discount) })})</span>}
                   </span>
                   <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`status.${r.status}`)}</span>
+                {r.status === "pending" && payOf(r.id, r.price) && (
+                    <details className="w-full">
+                      <summary className="cursor-pointer text-xs text-accent">{t("pay.open")}</summary>
+                      <PayPanel id={r.id} code={topupCode(r.id)} price={vnd(r.price)} pay={payOf(r.id, r.price)!} />
+                    </details>
+                  )}
                 </li>
               ))}
             </ul>

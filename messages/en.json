@@ -1886,7 +1886,26 @@
       "already_used": "You already used this code",
       "too_many_attempts": "Too many wrong codes, wait 15 minutes",
       "invalid": "Invalid code"
-    }
+    },
+    "freeDone": "100% off: the credits were added.",
+    "pay": {
+      "open": "Show the payment QR",
+      "title": "Pay by bank transfer",
+      "hint": "Scan the QR code with your banking app, or transfer exactly this amount with this content. Credits are added automatically within seconds.",
+      "bank": "Bank",
+      "account": "Account number",
+      "holder": "Account holder",
+      "amount": "Amount",
+      "content": "Content",
+      "copy": "Click to copy",
+      "copied": "Copied",
+      "waiting": "Waiting for the payment… this page updates itself.",
+      "qrAlt": "Bank transfer QR code {code}",
+      "paidTitle": "Payment received!",
+      "paidText": "Request {code} is paid and the credits are in your account."
+    },
+    "save": "Save {n}%",
+    "perCredit": "{price} per credit"
   },
   "admin": {
     "title": "Admin",
@@ -2118,6 +2137,37 @@
       "testSent": "Sent, check your inbox",
       "testFailed": "Could not send: {error}",
       "testTo": "Send to (empty: your e-mail)"
+    },
+    "payments": {
+      "title": "Automatic payments with SePay",
+      "hint": "Learners pay by bank transfer with a QR code; SePay tells Gainee through a webhook and the credits are added at once, without approval. Switched off, top-ups are approved by hand under Top-ups.",
+      "enabled": "Take payments through SePay",
+      "bank": "Bank code (VietQR)",
+      "account": "Receiving account number",
+      "holder": "Account holder",
+      "setupTitle": "Set up on my.sepay.vn",
+      "step1": "Link the bank account above to SePay.",
+      "step2": "Webhooks → Add webhook: event \"money in\", send JSON to",
+      "step3": "Security: choose HMAC-SHA256 (recommended) or API Key, and paste the key below.",
+      "step4": "Company settings → Payment code structure: prefix GN, digits, 6–8 long.",
+      "kept": "Saved (leave empty to keep it)",
+      "apiKeyHint": "The webhook's API key",
+      "hmacHint": "The webhook's HMAC secret key",
+      "recommended": "recommended",
+      "remove": "Remove this key",
+      "missing": "Payments need the bank code, the account number and at least one webhook key.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Could not save",
+      "oddTitle": "SePay transfers to check",
+      "oddHint": "Money arrived but no credits were added: too little, wrong content, or a request already closed. Check, then add credits by hand on the user's page.",
+      "status": {
+        "underpaid": "Too little",
+        "unmatched": "No code",
+        "settled": "Request closed",
+        "paid": "Added"
+      }
     }
   },
   "auth": {

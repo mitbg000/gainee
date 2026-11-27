@@ -9,6 +9,7 @@
  */
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   customType,
   date,
@@ -127,6 +128,21 @@ export const couponUses = mysqlTable(
     createdAt: createdAt(),
   },
   (t) => [primaryKey({ columns: [t.couponId, t.userId] })],
+);
+
+/** Bank transfers SePay reported (webhook); `id` is SePay's, so a resent webhook is recognised. */
+export const payments = mysqlTable(
+  "payments",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey(), // SePay transaction id
+    topupId: int("topup_id"),
+    amount: int("amount").notNull(), // VND
+    content: varchar("content", { length: 500 }).notNull(),
+    status: mysqlEnum("status", ["paid", "underpaid", "unmatched", "settled"]).notNull(), // settled: the request was already closed
+    raw: jsonText<Record<string, unknown>>("raw").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("payments_topup").on(t.topupId), index("payments_status").on(t.status, t.createdAt)],
 );
 
 /** "Forgot password" links: only a hash of the token is kept; one use, 30 minutes. */

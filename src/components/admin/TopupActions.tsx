@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-export default function TopupActions({ id }: { id: number }) {
+export default function TopupActions({ id, code }: { id: number; code: string }) {
   const t = useTranslations("admin");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const settle = async (approve: boolean) => {
-    if (!confirm(approve ? t("approveConfirm", { code: `GN${id}` }) : t("rejectConfirm"))) return;
+    if (!confirm(approve ? t("approveConfirm", { code }) : t("rejectConfirm"))) return;
     setBusy(true);
     await fetch(`/api/admin/topups/${id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ approve }) }).catch(() => null);
     setBusy(false);

@@ -7,12 +7,14 @@ import Avatar from "@/components/Avatar";
 import CouponEditor from "@/components/admin/CouponEditor";
 import GroupEditor from "@/components/admin/GroupEditor";
 import SecurityEditor from "@/components/admin/SecurityEditor";
+import PaymentSettings from "@/components/admin/PaymentSettings";
 import PricingEditor from "@/components/admin/PricingEditor";
 import TopupActions from "@/components/admin/TopupActions";
 import { getDb, schema } from "@/db";
 import type { AiRouting } from "@/lib/ai/tasks";
 import { getCreditConfig } from "@/lib/credits";
 import { imageUrl } from "@/lib/images";
+import { getSepay, topupCode } from "@/lib/payments";
 import { captchaOn, getSecurity, mailOn } from "@/lib/security";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { getSetting } from "@/lib/settings";
@@ -183,11 +185,32 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       .innerJoin(schema.users, eq(schema.users.id, schema.topups.userId))
       .orderBy(sql`${schema.topups.status} = 'pending' desc`, desc(schema.topups.id))
       .limit(100);
+    // transfers SePay reported that did not pay a request by themselves: settle them by hand
+    const odd = await db.select().from(schema.payments).where(sql`${schema.payments.status} <> 'paid'`).orderBy(desc(schema.payments.createdAt)).limit(30);
+    const oddList = odd.length > 0 && (
+      <section className="mb-6">
+        <h2 className="font-semibold">{t("payments.oddTitle")}</h2>
+        <p className="text-xs text-muted">{t("payments.oddHint")}</p>
+        <ul className="mt-2 divide-y divide-line rounded-2xl border border-line bg-card text-sm">
+          {odd.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+              <span className="w-28 text-xs text-muted">{when(p.createdAt)}</span>
+              <span className="font-semibold tabular-nums">{vnd(p.amount)}</span>
+              <span className="min-w-0 flex-1 truncate text-muted">{p.content}</span>
+              {p.topupId && <span className="font-mono text-xs">{topupCode(p.topupId)}</span>}
+              <span className="chip">{t(`payments.status.${p.status}`)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
     body = rows.length ? (
+      <>
+      {oddList}
       <ul className="divide-y divide-line rounded-2xl border border-line bg-card text-sm">
         {rows.map(({ r, email, name }) => (
           <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-            <span className="font-mono text-xs text-muted">GN{r.id}</span>
+            <span className="font-mono text-xs text-muted">{topupCode(r.id)}</span>
             <span className="min-w-0 flex-1">
               <Link href={`/admin/users/${r.userId}`} className="font-semibold hover:text-accent">
                 {name || email}
@@ -197,12 +220,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 · {fmtCredits(r.credits)} credit · {vnd(r.price)} · {when(r.createdAt)}
               </span>
             </span>
-            {r.status === "pending" ? <TopupActions id={r.id} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status}`)}</span>}
+            {r.status === "pending" ? <TopupActions id={r.id} code={topupCode(r.id)} /> : <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`topupStatus.${r.status}`)}</span>}
           </li>
         ))}
       </ul>
+      </>
     ) : (
-      <p className="text-sm text-muted">{t("noTopups")}</p>
+      oddList || <p className="text-sm text-muted">{t("noTopups")}</p>
     );
   } else if (tab === "pricing") {
     const [cfg, routing, seen] = await Promise.all([
@@ -213,7 +237,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     const models = [...new Set([...Object.keys(cfg.models), ...Object.values(routing ?? {}).flatMap((r) => (r ? [r.model, r.fallback?.model ?? ""] : [])), ...seen.map((s) => s.model)])]
       .filter(Boolean)
       .sort();
-    body = <PricingEditor initial={cfg} models={models} />;
+    const [sepay, sec] = await Promise.all([getSepay(), getSecurity()]);
+    body = (
+      <div className="space-y-6">
+        <PaymentSettings
+          initial={{ enabled: sepay.enabled, bank: sepay.bank, account: sepay.account, holder: sepay.holder }}
+          hasApiKey={!!sepay.apiKeyEnc}
+          hasHmac={!!sepay.hmacEnc}
+          webhookUrl={`${sec.siteUrl || "https://<site>"}/api/payments/sepay`}
+        />
+        <PricingEditor initial={cfg} models={models} />
+      </div>
+    );
   } else {
     const [byTask, recent] = await Promise.all([
       db

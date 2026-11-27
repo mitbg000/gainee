@@ -3,13 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import PayPanel, { type Pay } from "./PayPanel";
 
 /** Top-up packages: asking for one gives a code to write in the bank transfer; the admin then adds the credits. */
-export default function BuyPackage({ packages, payInfo }: { packages: { credits: number; price: string }[]; payInfo: string }) {
+export default function BuyPackage({ packages, payInfo }: { packages: { credits: number; price: string; perCredit: string; save: number }[]; payInfo: string }) {
   const t = useTranslations("credits");
   const router = useRouter();
   const [busy, setBusy] = useState(-1);
-  const [done, setDone] = useState<number | null>(null);
+  const [done, setDone] = useState<{ id: number; code: string; price: number; pay: Pay | null; paid: boolean } | null>(null);
   const [error, setError] = useState("");
   const [code, setCode] = useState("");
   const [prices, setPrices] = useState<Record<number, string> | null>(null); // with the discount code
@@ -38,7 +39,7 @@ export default function BuyPackage({ packages, payInfo }: { packages: { credits:
     if (!r?.ok) return setError(j?.error === "too_many_pending" ? t("tooMany") : t.has(`codeErrors.${j?.error}`) ? t(`codeErrors.${j?.error}`) : t("failed"));
     setPrices(null);
     setCode("");
-    setDone(j.id);
+    setDone({ id: j.id, code: j.code, price: j.price, pay: j.pay ?? null, paid: !!j.done });
     router.refresh();
   }
 
@@ -46,9 +47,10 @@ export default function BuyPackage({ packages, payInfo }: { packages: { credits:
     <>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {packages.map((p, i) => (
-          <button key={i} disabled={busy >= 0} onClick={() => ask(i)} className="flex flex-col items-start rounded-xl border border-line p-3 text-left transition-colors hover:border-accent">
+          <button key={i} disabled={busy >= 0} onClick={() => ask(i)} className="relative flex flex-col items-start rounded-xl border border-line p-3 text-left transition-colors hover:border-accent">
+            {p.save >= 1 && <span className="absolute right-2 top-2 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800 dark:bg-green-950/60 dark:text-green-300">{t("save", { n: p.save })}</span>}
             <span className="font-serif text-2xl font-bold tabular-nums">{p.credits.toLocaleString()}</span>
-            <span className="text-xs text-muted">credit</span>
+            <span className="text-xs text-muted">credit · {t("perCredit", { price: p.perCredit })}</span>
             <span className="mt-1 text-sm font-semibold text-accent">
               {busy === i ? t("sending") : prices?.[i] && prices[i] !== p.price ? (
                 <>
@@ -73,12 +75,17 @@ export default function BuyPackage({ packages, payInfo }: { packages: { credits:
       </div>
       {prices && <p className="mt-1 text-xs text-green-700 dark:text-green-400">{t("applied")}</p>}
       {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {done !== null && (
-        <div className="mt-3 rounded-xl bg-accent/10 p-3 text-sm">
-          <p>{t("asked", { code: `GN${done}` })}</p>
-          {payInfo && <p className="mt-2 whitespace-pre-line">{payInfo}</p>}
-        </div>
-      )}
+      {done &&
+        (done.paid ? (
+          <p className="mt-3 rounded-xl bg-green-50 p-3 text-sm text-green-800 dark:bg-green-950/40 dark:text-green-300">{t("freeDone")}</p>
+        ) : done.pay ? (
+          <PayPanel id={done.id} code={done.code} price={`${done.price.toLocaleString("vi-VN")} ₫`} pay={done.pay} />
+        ) : (
+          <div className="mt-3 rounded-xl bg-accent/10 p-3 text-sm">
+            <p>{t("asked", { code: done.code })}</p>
+            {payInfo && <p className="mt-2 whitespace-pre-line">{payInfo}</p>}
+          </div>
+        ))}
     </>
   );
 }
