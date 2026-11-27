@@ -1,6 +1,6 @@
 # Gainee
 
-A personal (single-user) web app for learning English through reading. It turns articles into IELTS-style lessons with vocabulary, exercises and spaced repetition, tracks your progress and keeps you motivated. It works with DeepSeek, ChatGPT, Gemini and Grok.
+A web app for learning English through reading, for many learners (roles, groups, AI paid with credits topped up through SePay). It turns articles into IELTS-style lessons with vocabulary, exercises and spaced repetition, tracks your progress and keeps you motivated. It works with DeepSeek, ChatGPT, Gemini and Grok.
 
 - **UI languages:** English and Vietnamese, switchable with the EN / VI toggle
 - **Light / dark / system theme**, a mobile-first layout, and installable as an app (PWA), including on iPhone/iPad
@@ -8,6 +8,8 @@ A personal (single-user) web app for learning English through reading. It turns 
 - **Your own categories** for texts and words: nested topics, sources and custom labels
 - **Stack:** Next.js 15 · TypeScript · Tailwind · Drizzle ORM · MySQL / MariaDB · PM2
 - **Hosting target:** aaPanel (Nginx + MySQL + Node.js manager); works on any Linux server with Node 20.6+ and MySQL
+
+Technical summary (Vietnamese, current state): [docs/TECHNICAL.md](docs/TECHNICAL.md).
 
 **Status:** Phases 0 and 1 are done. You can import texts, have AI lessons generated and validated, and use the full reader with margin notes, quick AI and the offline dictionary. Next up is Phase 2: the vocabulary notebook with images, spaced repetition and the progress dashboard. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
