@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import RichEditor from "@/components/RichEditor";
+import { ask } from "@/components/Toaster";
 
 const post = (url: string, method: string, body?: unknown) =>
   fetch(url, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
@@ -48,7 +49,7 @@ export default function LessonEditor({ lessonId, paragraphs, hasNext, onClose }:
             {t("cancel")}
           </button>
           {hasNext && (
-            <button disabled={busy} onClick={() => confirm(t("mergeConfirm")) && run(post(`/api/lessons/${lessonId}/merge`, "POST"))} className="btn btn-secondary ml-auto">
+            <button disabled={busy} onClick={async () => (await ask(t("mergeConfirm"))) && run(post(`/api/lessons/${lessonId}/merge`, "POST"))} className="btn btn-secondary ml-auto">
               {t("merge")}
             </button>
           )}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 export type CutJob = { id: number; status: string; progress: string | null } | null;
 const json = (body: unknown) => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -32,7 +33,7 @@ function JobState({ job }: { job: NonNullable<CutJob> }) {
       </span>
       <button
         onClick={async () => {
-          if (!confirm(t("cancelConfirm"))) return;
+          if (!await ask(t("cancelConfirm"), { danger: true })) return;
           await fetch(`/api/jobs/${job.id}`, { method: "DELETE" });
           router.refresh();
         }}
@@ -60,7 +61,7 @@ export default function IeltsToBank({ sectionId, hasScript, sourceId, job, refre
   useRefreshWhile(refresh && canCut && !!job);
 
   async function run() {
-    if (sourceId && !confirm(t("redoConfirm"))) return;
+    if (sourceId && !await ask(t("redoConfirm"))) return;
     setError(null);
     const r = await fetch("/api/listen/ielts", json({ sectionIds: [sectionId] })).catch(() => null);
     if (!r?.ok) return setError(t("failed", { error: (await r?.json().catch(() => ({})))?.error ?? "network" }));

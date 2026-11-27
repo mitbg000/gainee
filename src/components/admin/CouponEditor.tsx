@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { ask } from "@/components/Toaster";
 
 type Row = { id: number; code: string; kind: "gift" | "discount"; credits: number; percent: number; amount: number; maxUses: number | null; used: number; expiresAt: string | null; active: boolean; note: string | null };
 const json = (method: string, body?: unknown) => ({ method, headers: { "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -28,7 +29,7 @@ export default function CouponEditor({ rows }: { rows: Row[] }) {
     router.refresh();
   };
   const remove = async (r: Row) => {
-    if (!confirm(t("deleteConfirm", { code: r.code }))) return;
+    if (!await ask(t("deleteConfirm", { code: r.code }), { danger: true })) return;
     await fetch(`/api/admin/coupons/${r.id}`, json("DELETE"));
     router.refresh();
   };

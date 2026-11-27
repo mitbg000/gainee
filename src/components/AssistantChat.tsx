@@ -7,6 +7,7 @@ import Markdown from "@/components/lesson/Markdown";
 import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/ModelPicker";
 import type { TreeDoc } from "@/lib/documents/queries";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type ChatInfo = { id: string; title: string; lessonId: number | null; updatedAt: string };
@@ -61,7 +62,7 @@ export default function AssistantChat({ docs, initialLessonId, compact = false }
     setListOpen(false);
   }
   async function remove(id: string) {
-    if (!confirm(t("deleteConfirm"))) return;
+    if (!await ask(t("deleteConfirm"), { danger: true })) return;
     await fetch(`/api/assistant/chats/${id}`, { method: "DELETE" });
     if (id === chatId) startNew();
     loadList();

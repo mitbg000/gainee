@@ -7,6 +7,7 @@ import type { LabelWithCounts } from "@/lib/labels";
 import { DOT, type LabelColor } from "./colors";
 import LabelChip from "./LabelChip";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 type Kind = "topic" | "source" | "custom";
 type Draft = { name: string; emoji: string; color: LabelColor; parentId: number | null; description: string };
@@ -166,7 +167,7 @@ function Section({
                     {t("edit")}
                   </button>
                   <button
-                    onClick={() => confirm(t("confirmDelete", { name: l.name })) && onDelete(l.id)}
+                    onClick={async () => (await ask(t("confirmDelete", { name: l.name }), { danger: true })) && onDelete(l.id)}
                     className="btn btn-sm btn-danger"
                   >
                     {t("delete")}

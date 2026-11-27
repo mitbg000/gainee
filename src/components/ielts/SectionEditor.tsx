@@ -8,6 +8,7 @@ import { formatAnswers, formatItems, formatOptions, GROUP_TYPES, parseAnswers, p
 import Questions, { Passage } from "./Questions";
 import * as I from "@/components/icons";
 import Info from "@/components/Info";
+import { ask } from "@/components/Toaster";
 
 type EditGroup = { type: GroupType; from: number; to: number; instructions: string; text: string; optionsTitle: string; options: string; items: string; image?: string; itemImages: Record<number, string> };
 export type EditorData = {
@@ -135,7 +136,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     else router.refresh();
   }
   async function reparse() {
-    if (!confirm(t("reparseConfirm"))) return;
+    if (!await ask(t("reparseConfirm"))) return;
     setBusy("reparse");
     const r = await fetch(`/api/ielts/sections/${data.id}/reparse`, { method: "POST" });
     setBusy(null);
@@ -149,7 +150,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
   /** AI writes a completion group again with [[n]] blanks: from its cropped picture, else from the book's pages. */
   async function aiBlanks(i: number) {
     const g = groups[i];
-    if (g.text.trim() && !confirm(t("aiBlanksConfirm"))) return;
+    if (g.text.trim() && !await ask(t("aiBlanksConfirm"))) return;
     setBusy(`picture${i}`);
     setMsg(null);
     const body = JSON.stringify({ image: g.image, from: Number(g.from), to: Number(g.to), instructions: g.instructions, answers: parseAnswers(answers) });
@@ -191,7 +192,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
   }
   /** The book prints no transcript: the worker hears the part's saved audio stretch; the text lands in the editor. */
   async function transcribe() {
-    if (transcript.trim() && !confirm(t("transcribeConfirm"))) return;
+    if (transcript.trim() && !await ask(t("transcribeConfirm"))) return;
     setBusy("transcribe");
     setMsg(t("transcribing"));
     const r = await fetch(`/api/ielts/sections/${data.id}/transcribe`, { method: "POST" }).catch(() => null);
@@ -347,7 +348,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                         <I.IconX />
                       </button>
                     )}
-                    <button onClick={() => confirm(t("removeGroup")) && setGroups(groups.filter((_, k) => k !== i))} className="btn btn-sm btn-danger" aria-label={t("removeGroup")}>
+                    <button onClick={async () => (await ask(t("removeGroup"), { danger: true })) && setGroups(groups.filter((_, k) => k !== i))} className="btn btn-sm btn-danger" aria-label={t("removeGroup")}>
                       <I.IconTrash />
                     </button>
                   </div>
@@ -364,7 +365,7 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                         </button>
                         {/* plain answer lines "9. [[9]]" for every number: the questions are read on the picture */}
                         <button
-                          onClick={() => (!g.text.trim() || confirm(t("simpleBlanksConfirm"))) && setG(i, { text: Array.from({ length: Math.max(0, Number(g.to) - Number(g.from) + 1) }, (_, k) => `${Number(g.from) + k}. [[${Number(g.from) + k}]]`).join("\n") })}
+                          onClick={async () => (!g.text.trim() || (await ask(t("simpleBlanksConfirm")))) && setG(i, { text: Array.from({ length: Math.max(0, Number(g.to) - Number(g.from) + 1) }, (_, k) => `${Number(g.from) + k}. [[${Number(g.from) + k}]]`).join("\n") })}
                           className="btn btn-sm btn-ghost"
                         >
                           <I.IconChecklist /> {t("simpleBlanks")}

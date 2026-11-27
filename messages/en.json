@@ -5,7 +5,11 @@
     "description": "Turn articles into IELTS lessons: vocabulary, exercises, spaced repetition and progress tracking.",
     "prev": "Previous",
     "next": "Next",
-    "steps": "Move between items"
+    "steps": "Move between items",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close"
   },
   "language": {
     "label": "Language",

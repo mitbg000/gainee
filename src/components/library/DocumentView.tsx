@@ -9,6 +9,7 @@ import LabelChip from "@/components/labels/LabelChip";
 import LabelPicker from "@/components/labels/LabelPicker";
 import * as I from "@/components/icons";
 import ShareDoc from "./ShareDoc";
+import { ask } from "@/components/Toaster";
 
 type Info = { title: string; author: string; source: string; level: string; lessons: Record<number, { title: string; titleVi: string }> };
 
@@ -287,7 +288,7 @@ export default function DocumentView({ initial, groups }: { initial: DocumentDet
         {doc.canEdit && (
         <button
           onClick={async () => {
-            if (!confirm(t("confirmDelete"))) return;
+            if (!await ask(t("confirmDelete"), { danger: true })) return;
             await fetch(`/api/documents/${doc.id}`, { method: "DELETE" });
             router.push("/library");
             router.refresh();

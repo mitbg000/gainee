@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 /** Which test a recording belongs to: its Listening parts get the file (with part marks) as soon as one is chosen. */
 export default function AudioTest({ id, value, tests }: { id: number; value: number | null; tests: { id: number; title: string }[] }) {
@@ -41,7 +42,7 @@ export function DeleteAudio({ id, name }: { id: number; name: string }) {
   return (
     <button
       onClick={async () => {
-        if (!confirm(t("deleteAudioConfirm", { name }))) return;
+        if (!await ask(t("deleteAudioConfirm", { name }), { danger: true })) return;
         setBusy(true);
         await fetch(`/api/ielts/audio/${id}`, { method: "DELETE" });
         router.refresh();

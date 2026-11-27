@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { fmtCredits } from "@/lib/fmtCredits";
 import Switches from "./Switches";
+import { ask } from "@/components/Toaster";
 
 type U = { id: number; email: string; name: string; role: "student" | "editor" | "admin"; disabled: boolean; credits: number; features: Record<string, boolean> | null };
 const json = (method: string, body: unknown) => ({ method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -97,7 +98,7 @@ export default function UserEditor({ user, defaults, features, groups, groupIds,
         <button onClick={save} disabled={!!password && password.length < 8} className="btn btn-primary">
           {t("save")}
         </button>
-        <button onClick={() => confirm(t("logoutAllConfirm")) && send(`/api/admin/users/${u.id}`, json("PATCH", { logoutAll: true }), t("loggedOut"))} className="btn btn-ghost">
+        <button onClick={async () => (await ask(t("logoutAllConfirm"), { danger: true })) && send(`/api/admin/users/${u.id}`, json("PATCH", { logoutAll: true }), t("loggedOut"))} className="btn btn-ghost">
           {t("logoutAll")}
         </button>
         {msg && <span className="text-sm text-muted">{msg}</span>}

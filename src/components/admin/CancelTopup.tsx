@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { ask } from "@/components/Toaster";
 
 /** Cancel one's own waiting top-up request. */
 export default function CancelTopup({ id, code }: { id: number; code: string }) {
@@ -15,7 +16,7 @@ export default function CancelTopup({ id, code }: { id: number; code: string }) 
       disabled={busy}
       onClick={async (e) => {
         e.preventDefault(); // inside a <summary>: do not open the QR
-        if (!confirm(t("cancelConfirm", { code }))) return;
+        if (!await ask(t("cancelConfirm", { code }), { danger: true })) return;
         setBusy(true);
         await fetch(`/api/credits/topup/${id}`, { method: "DELETE" }).catch(() => null);
         setBusy(false);

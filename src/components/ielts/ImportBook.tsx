@@ -6,6 +6,7 @@ import { useState } from "react";
 import * as I from "@/components/icons";
 import { saveMarks } from "./FindMarks";
 import { pageText, shownAt } from "@/lib/ielts/pdfText";
+import { toast } from "@/components/Toaster";
 
 const CHUNK = 4 * 1024 * 1024; // small enough to finish well inside proxy time limits on a slow upload
 const PAGE_WIDTH = 1400; // px: sharp enough to crop a map or chart, ~150 KB per page as WebP
@@ -128,7 +129,7 @@ export default function ImportBook() {
       const q = await fetch(`/api/ielts/books/${id}/import`, { method: "POST" });
       if (!q.ok) throw new Error(`import: HTTP ${q.status}`);
       if (scanned && !localOcr) console.info(`${scanned} scanned pages will be read by AI on the server`);
-      if (skipped.length) alert(t("audioSkipped", { names: skipped.join(", ") }));
+      if (skipped.length) toast(t("audioSkipped", { names: skipped.join(", ") }), "info");
       router.push(`/ielts/books/${id}`);
     } catch (e) {
       await ocr?.terminate().catch(() => {});

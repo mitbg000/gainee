@@ -6,6 +6,7 @@ import { getLook, getTheme } from "@/theme/server";
 import { lookAttrs, lookCss } from "@/theme/look";
 import { fontVars } from "@/theme/fonts";
 import PwaRegister from "@/components/PwaRegister";
+import Toaster from "@/components/Toaster";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,7 +43,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <script dangerouslySetInnerHTML={{ __html: "addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e})" }} />
       </head>
       <body className="font-sans antialiased">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          {children}
+          <Toaster />
+        </NextIntlClientProvider>
         <PwaRegister />
       </body>
     </html>

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { uploadAudio } from "./ImportBook";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 type BookJob = { id: number; type: string; status: string; progress: string | null };
 
@@ -24,13 +25,13 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
   }, [jobs.length, router]);
 
   async function cancel(j: BookJob) {
-    if (!confirm(t("cancelConfirm"))) return;
+    if (!await ask(t("cancelConfirm"), { danger: true })) return;
     await fetch(`/api/jobs/${j.id}`, { method: "DELETE" });
     router.refresh();
   }
 
   async function reimport() {
-    if (hasTests && !confirm(t("reimportConfirm"))) return;
+    if (hasTests && !await ask(t("reimportConfirm"))) return;
     await fetch(`/api/ielts/books/${id}/import`, { method: "POST" });
     router.refresh();
   }
@@ -45,7 +46,7 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
     router.refresh();
   }
   async function resplit() {
-    if (!confirm(t("resplitConfirm"))) return;
+    if (!await ask(t("resplitConfirm"))) return;
     await fetch(`/api/ielts/books/${id}/resplit-scripts`, { method: "POST" });
     router.refresh();
   }
@@ -54,7 +55,7 @@ export default function BookActions({ id, status, hasTests, brokenScripts = 0, t
     router.refresh();
   }
   async function remove() {
-    if (!confirm(t("deleteConfirm"))) return;
+    if (!await ask(t("deleteConfirm"), { danger: true })) return;
     await fetch(`/api/ielts/books/${id}`, { method: "DELETE" });
     router.push("/ielts");
   }

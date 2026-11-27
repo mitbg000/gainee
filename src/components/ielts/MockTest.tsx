@@ -8,6 +8,7 @@ import { numbersOf, SKILL_TIME, type SectionContent, type Skill } from "@/lib/ie
 import Questions, { Passage } from "./Questions";
 import * as I from "@/components/icons";
 import { localAudio } from "@/lib/ielts/audioCache";
+import { ask } from "@/components/Toaster";
 
 export type MockSection = { id: number; skill: Skill; part: number; content: SectionContent; audio: { url: string; start: number | null; end: number | null } | null };
 export type MockData = { testId: number; title: string; book: string; sections: MockSection[] };
@@ -372,8 +373,8 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
           )}
         </div>
         <button
-          onClick={() => {
-            if (confirm(t("exitConfirm"))) router.push("/ielts");
+          onClick={async () => {
+            if (await ask(t("exitConfirm"), { danger: true })) router.push("/ielts");
           }}
           className="btn btn-sm btn-ghost"
           aria-label={t("exit")}
@@ -500,8 +501,8 @@ export default function MockTest({ data, skill, sectionId, wholeFile = false }: 
           <I.IconArrowRight />
         </button>
         <button
-          onClick={() => {
-            if (confirm(si + 1 < skills.length ? t("nextSkillConfirm") : t("submitConfirm", { left: total - done }))) finishSkill();
+          onClick={async () => {
+            if (await ask(si + 1 < skills.length ? t("nextSkillConfirm") : t("submitConfirm", { left: total - done }))) finishSkill();
           }}
           className="btn btn-sm btn-primary flex-none"
         >

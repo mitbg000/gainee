@@ -10,6 +10,7 @@ import { sfx } from "@/lib/sound";
 import type { PlayItem } from "@/lib/listen/queries";
 import { ListenLayout, LookupText, useLookup } from "./Lookup";
 import { prefetchClip, useClipPlayer } from "./useClipPlayer";
+import { ask } from "@/components/Toaster";
 
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 const SPEEDS = [0.75, 1, 1.25];
@@ -227,7 +228,7 @@ export default function Practice(p: Props) {
   }
 
   async function report() {
-    if (!confirm(t("reportConfirm"))) return;
+    if (!await ask(t("reportConfirm"))) return;
     await fetch(`/api/listen/items/${item.id}`, { method: "PATCH", ...json({ hidden: true }) });
     setStats((s) => ({ ...s, skipped: s.skipped + 1 }));
     recorded.current.add(item.id);

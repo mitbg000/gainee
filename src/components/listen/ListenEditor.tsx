@@ -7,6 +7,7 @@ import * as I from "@/components/icons";
 import { clean, removeWords } from "@/lib/listen/clean";
 import type { Media } from "@/lib/listen/queries";
 import { useClipPlayer } from "./useClipPlayer";
+import { toast } from "@/components/Toaster";
 
 type Row = { key: number; id?: number; start: number; end: number; text: string; speaker: string | null; hidden: boolean; confidence: number | null };
 const json = (body: unknown) => ({ headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -118,7 +119,7 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
     const a = await fetch(`/api/listen/sources/${sourceId}/items`, { method: "PUT", ...json({ items: rows.map(({ id, start, end, text, speaker, hidden }) => ({ id, start, end, text, speaker, hidden })) }) });
     const b = await fetch(`/api/listen/sources/${sourceId}`, { method: "PATCH", ...json({ title: title.trim() || title0, shift, ...(reviewed ? { reviewed: true } : {}) }) });
     setSaving(false);
-    if (!a.ok || !b.ok) return alert(t("saveFailed"));
+    if (!a.ok || !b.ok) return toast(t("saveFailed"), "error");
     setDirty(false);
     router.push(reviewed ? `/listen/${sourceId}` : `/listen/${sourceId}/edit`);
     router.refresh();

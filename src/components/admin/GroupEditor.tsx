@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import Switches from "./Switches";
+import { ask } from "@/components/Toaster";
 
 type G = { id: number; name: string; features: Record<string, boolean> | null; members: number[] };
 const json = (method: string, body?: unknown) => ({ method, headers: { "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -57,7 +58,7 @@ function Group({ g, users, features, open, onToggle }: { g: G; users: { id: numb
     router.refresh();
   }
   async function remove() {
-    if (!confirm(t("deleteConfirm", { name: g.name }))) return;
+    if (!await ask(t("deleteConfirm", { name: g.name }), { danger: true })) return;
     await fetch(`/api/admin/groups/${g.id}`, json("DELETE"));
     router.refresh();
   }

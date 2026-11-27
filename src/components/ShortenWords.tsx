@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { ask } from "@/components/Toaster";
 
 /** Shorten every long saved meaning with AI, one word at a time (each saved as soon as it is done). */
 export default function ShortenWords({ ids }: { ids: number[] }) {
@@ -13,7 +14,7 @@ export default function ShortenWords({ ids }: { ids: number[] }) {
   if (!ids.length) return null;
 
   async function run() {
-    if (!confirm(t("shortenAllConfirm", { n: ids.length }))) return;
+    if (!await ask(t("shortenAllConfirm", { n: ids.length }))) return;
     setFailed(0);
     for (let i = 0; i < ids.length; i++) {
       setDone(i);

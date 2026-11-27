@@ -9,6 +9,7 @@ import PromptView from "@/components/writing/Chart";
 import ModelPicker, { loadModelChoice, type ModelChoice } from "@/components/ModelPicker";
 import type { Grade, WritingKind } from "@/lib/writing";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 const KINDS: WritingKind[] = ["task2", "task1", "translate", "sentence", "free"];
 const MIN_WORDS: Record<WritingKind, number> = { task1: 150, task2: 250, free: 0, translate: 0, sentence: 0 };
@@ -155,7 +156,7 @@ export default function WritingStudio({ initial, kind: startKind }: { initial: I
   }
 
   async function remove() {
-    if (!idRef.current || !confirm(t("deleteConfirm"))) return;
+    if (!idRef.current || !await ask(t("deleteConfirm"), { danger: true })) return;
     await fetch(`/api/writings/${idRef.current}`, { method: "DELETE" });
     router.push(`/writing?new=1&kind=${kind}`);
     router.refresh();

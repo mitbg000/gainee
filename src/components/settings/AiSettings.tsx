@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ProviderPublic } from "@/lib/ai/providers";
 import { AI_TASKS, PROVIDER_PRESETS, type AiRouting, type AiTask, type ImageSetting } from "@/lib/ai/tasks";
 import ModelSelect, { forgetModels } from "./ModelSelect";
+import { ask } from "@/components/Toaster";
 
 type PresetKey = keyof typeof PROVIDER_PRESETS;
 type TestResult = { ok: boolean; reply?: string; error?: string; models: string[]; modelsError?: string | null };
@@ -159,7 +160,7 @@ function ProviderCard({ p, onChange }: { p: ProviderPublic; onChange: () => void
         <button
           className={`${btn} text-red-600 dark:text-red-400`}
           onClick={async () => {
-            if (!confirm(t("confirmDelete", { name: p.label }))) return;
+            if (!await ask(t("confirmDelete", { name: p.label }), { danger: true })) return;
             await fetch(`/api/ai/providers/${p.id}`, { method: "DELETE" });
             onChange();
           }}

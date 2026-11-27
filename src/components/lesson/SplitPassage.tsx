@@ -6,6 +6,7 @@ import type { RichPara } from "@/lib/text/rich";
 import { offsetIn, segments, type Mark } from "./marks";
 import { HL_COLORS, HL_DOT, type Annotation, type HlColor } from "./types";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 type Sel = { paragraph: number; start: number; end: number; quote: string; x: number; y: number };
 
@@ -148,8 +149,8 @@ export default function SplitPassage({
       {hit && (
         <div className={bar} style={{ left: hit.x, top: hit.y }}>
           <button
-            onClick={() => {
-              if (annotations.find((a) => a.id === hit.id)?.note && !confirm(t("unhighlightConfirm"))) return;
+            onClick={async () => {
+              if (annotations.find((a) => a.id === hit.id)?.note && !(await ask(t("unhighlightConfirm"), { danger: true }))) return;
               onDelete(hit.id);
               setHit(null);
             }}

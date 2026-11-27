@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { speak } from "@/lib/speech";
 import * as I from "@/components/icons";
+import { ask } from "@/components/Toaster";
 
 export type WordData = {
   id: number;
@@ -76,7 +77,7 @@ export default function WordCard({ word, images }: { word: WordData; images: Img
     }
   }
   async function remove() {
-    if (!confirm(t("deleteConfirm", { term: word.term }))) return;
+    if (!await ask(t("deleteConfirm", { term: word.term }), { danger: true })) return;
     await fetch(`/api/words/${word.id}`, { method: "DELETE" });
     router.refresh();
   }

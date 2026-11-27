@@ -5,7 +5,11 @@
     "description": "Biến bài báo thành bài học IELTS: từ vựng, bài tập, ôn tập ngắt quãng và theo dõi tiến độ.",
     "prev": "Trước",
     "next": "Tiếp theo",
-    "steps": "Chuyển câu"
+    "steps": "Chuyển câu",
+    "ok": "Đồng ý",
+    "cancel": "Huỷ",
+    "delete": "Xoá",
+    "close": "Đóng"
   },
   "language": {
     "label": "Ngôn ngữ",

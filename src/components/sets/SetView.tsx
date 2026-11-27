@@ -15,6 +15,7 @@ import { meaningOf, shuffle, type PWord } from "@/components/practice/questions"
 import { autoSpeak, speak } from "@/lib/speech";
 import * as I from "@/components/icons";
 import { sfx } from "@/lib/sound";
+import { ask } from "@/components/Toaster";
 
 export type SetCardData = PWord & { example: string | null; note: string | null; state: number };
 type Mode = "cards" | "learn" | "write" | "picture" | "test" | "match";
@@ -83,7 +84,7 @@ export default function SetView({
     if (r.ok) router.push(`/words/sets/${(await r.json()).id}/edit`);
   }
   async function remove() {
-    if (!setId || !confirm(t("deleteConfirm", { title }))) return;
+    if (!setId || !await ask(t("deleteConfirm", { title }), { danger: true })) return;
     await fetch(`/api/sets/${setId}`, { method: "DELETE" });
     router.push("/words");
     router.refresh();
