@@ -1,6 +1,7 @@
 /** Background job queue stored in MySQL – no Redis needed. */
 import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
+import { actorId } from "@/lib/actor";
 
 const { jobs } = schema;
 export type Job = typeof jobs.$inferSelect;
@@ -14,7 +15,7 @@ export async function enqueue(
 ): Promise<number> {
   const [row] = await getDb()
     .insert(jobs)
-    .values({ type, payload, runAt: opts.runAt ?? new Date(), maxAttempts: opts.maxAttempts ?? 3 })
+    .values({ type, payload, userId: await actorId(), runAt: opts.runAt ?? new Date(), maxAttempts: opts.maxAttempts ?? 3 })
     .$returningId();
   return row.id;
 }

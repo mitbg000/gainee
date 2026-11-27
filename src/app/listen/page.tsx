@@ -8,6 +8,7 @@ import { MISS_KINDS } from "@/lib/listen/check";
 import IeltsToBank, { CutBook, RefreshWhile } from "@/components/listen/IeltsToBank";
 import { cutJobs, lastCutProblem } from "@/lib/listen/jobs";
 import { dueCount, ieltsParts, listSources, missTotals } from "@/lib/listen/queries";
+import { isEditor } from "@/lib/users";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +21,11 @@ const FILTERS = ["all", "youtube", "ielts", "draft"] as const;
 export default async function ListenPage({ searchParams }: { searchParams: Promise<{ tab?: string; filter?: string }> }) {
   const t = await getTranslations("listen");
   const q = await searchParams;
-  const [sources, due, misses, parts, jobs, problem] = await Promise.all([listSources(), dueCount(), missTotals(), ieltsParts(), cutJobs(), lastCutProblem()]);
-  const tab: Tab = TABS.find((x) => x === q.tab) ?? (sources.length ? "practice" : "add");
+  const [all, due, misses, parts, jobs, problem, editor] = await Promise.all([listSources(), dueCount(), missTotals(), ieltsParts(), cutJobs(), lastCutProblem(), isEditor()]);
+  // adding to and checking the bank is the editors' job; learners practise the checked recordings
+  const sources = editor ? all : all.filter((s) => s.reviewed);
+  const tabs = editor ? TABS : TABS.filter((x) => x !== "add" && x !== "ielts");
+  const tab: Tab = tabs.find((x) => x === q.tab) ?? (sources.length || !editor ? "practice" : "add");
   const filter = FILTERS.find((x) => x === q.filter) ?? "all";
   const jobOf = new Map(jobs.flatMap((j) => j.sectionIds.map((s) => [s, { id: j.id, status: j.status, progress: j.progress }] as const)));
   const books = [...new Map(parts.map((p) => [p.bookId, p.book])).entries()];
@@ -41,7 +45,7 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
       <p className="mt-1 text-sm text-muted">{t("intro")}</p>
 
       <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-14 md:mx-0 md:px-0">
-        {TABS.map((k) => (
+        {tabs.map((k) => (
           <Link key={k} href={`/listen?tab=${k}`} role="tab" aria-selected={tab === k} className="tab" scroll={false}>
             {ICON[k]}
             {t(`tabs.${k}`)}
@@ -117,10 +121,14 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
                   <Link href={`/listen/${s.id}`} className="btn btn-sm btn-secondary" title={t("modes.dictation")}>
                     <I.IconPen /> <span className="hidden sm:inline">{t("modes.dictation")}</span>
                   </Link>
-                  <Link href={`/listen/${s.id}/edit`} className={`btn btn-sm ${s.reviewed ? "btn-ghost" : "btn-secondary"}`} title={t("review")}>
-                    <I.IconEdit /> <span className="hidden sm:inline">{t("review")}</span>
-                  </Link>
-                  <DeleteSource id={s.id} title={s.title} />
+                  {editor && (
+                    <>
+                      <Link href={`/listen/${s.id}/edit`} className={`btn btn-sm ${s.reviewed ? "btn-ghost" : "btn-secondary"}`} title={t("review")}>
+                        <I.IconEdit /> <span className="hidden sm:inline">{t("review")}</span>
+                      </Link>
+                      <DeleteSource id={s.id} title={s.title} />
+                    </>
+                  )}
                 </li>
               ))}
             </ul>

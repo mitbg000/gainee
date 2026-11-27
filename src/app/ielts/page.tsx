@@ -4,6 +4,7 @@ import Shell from "@/components/Shell";
 import AttemptList from "@/components/ielts/AttemptList";
 import { InlineRename } from "@/components/ielts/BookTitle";
 import { listBooks, mistakes, recentAttempts } from "@/lib/ielts/queries";
+import { isEditor } from "@/lib/users";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 /** IELTS hub: uploaded books → tests → mock tests (like the computer exam), practice per part and short lessons per question group. */
 export default async function IeltsPage() {
   const t = await getTranslations("ielts");
-  const [books, attempts, wrong] = await Promise.all([listBooks(), recentAttempts(12), mistakes()]);
+  const [all, attempts, wrong, editor] = await Promise.all([listBooks(), recentAttempts(12), mistakes(), isEditor()]);
+  const books = editor ? all : all.filter((b) => b.tests.length); // learners see the books that are ready
   const tests = new Map(books.flatMap((b) => b.tests.map((x) => [x.id, `${b.title} · ${x.title}`] as const)));
   const sections = new Map(books.flatMap((b) => b.tests.flatMap((x) => x.sections.map((s) => [s.id, `${t(`skill.${s.skill}`)} ${s.part}`] as const))));
   const ready = books.filter((b) => b.tests.length);
@@ -26,9 +28,11 @@ export default async function IeltsPage() {
         <Link href="/ielts/review" className="btn btn-secondary">
           <I.IconTarget /> {t("mistakes", { n: wrong.wrong.length })}
         </Link>
-        <Link href="/ielts/import" className="btn btn-primary">
-          <I.IconUpload /> {t("upload")}
-        </Link>
+        {editor && (
+          <Link href="/ielts/import" className="btn btn-primary">
+            <I.IconUpload /> {t("upload")}
+          </Link>
+        )}
       </div>
 
       {!books.length && (
@@ -36,9 +40,11 @@ export default async function IeltsPage() {
           <I.BigIcon icon={I.IconClipboard} />
           <p className="mt-3 font-semibold">{t("emptyTitle")}</p>
           <p className="mt-1 text-sm text-muted">{t("emptyHint")}</p>
-          <Link href="/ielts/import" className="btn btn-primary mt-4">
-            <I.IconUpload /> {t("upload")}
-          </Link>
+          {editor && (
+            <Link href="/ielts/import" className="btn btn-primary mt-4">
+              <I.IconUpload /> {t("upload")}
+            </Link>
+          )}
         </div>
       )}
 
@@ -61,16 +67,18 @@ export default async function IeltsPage() {
               <h2 className="font-serif text-2xl font-bold">{b.title}</h2>
               <span className={`chip ${reviewed < secs.length ? "" : "chip-on"}`}>{t("reviewed", { n: reviewed, total: secs.length })}</span>
               {b.status === "parsing" && <span className="chip">{t("status.parsing")}</span>}
-              <Link href={`/ielts/books/${b.id}`} className="btn btn-sm btn-ghost ml-auto">
-                <I.IconEdit /> {t("manage")}
-              </Link>
+              {editor && (
+                <Link href={`/ielts/books/${b.id}`} className="btn btn-sm btn-ghost ml-auto">
+                  <I.IconEdit /> {t("manage")}
+                </Link>
+              )}
             </div>
             <div className="mt-3 grid gap-4 lg:grid-cols-2">
               {b.tests.map((test) => (
                 <div key={test.id} className="rounded-2xl border border-line bg-card p-4">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="flex min-w-0 flex-1 text-lg font-bold">
-                      <InlineRename url={`/api/ielts/tests/${test.id}`} title={test.title} />
+                      {editor ? <InlineRename url={`/api/ielts/tests/${test.id}`} title={test.title} /> : test.title}
                     </h3>
                     <Link href={`/ielts/mock/${test.id}`} className="btn btn-sm btn-primary">
                       <I.IconClock /> {t("mockFull")}

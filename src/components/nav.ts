@@ -1,4 +1,4 @@
-export type NavItem = { href: string; key: string; icon: string; phase?: number; mobileTab?: boolean };
+export type NavItem = { href: string; key: string; icon: string; phase?: number; mobileTab?: boolean; admin?: boolean };
 
 /** Single source of truth for navigation (desktop sidebar + mobile tab bar / "More" sheet). */
 export const NAV: NavItem[] = [
@@ -16,5 +16,7 @@ export const NAV: NavItem[] = [
   { href: "/writing", key: "writing", icon: "pen" },
   { href: "/progress", key: "progress", icon: "chart" },
   { href: "/assistant", key: "assistant", icon: "spark" },
+  { href: "/credits", key: "credits", icon: "coin" },
+  { href: "/admin", key: "admin", icon: "shield", admin: true },
   { href: "/settings", key: "settings", icon: "gear" },
 ];

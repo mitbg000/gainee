@@ -39,18 +39,23 @@
     "writing": "Luyện Writing",
     "quick": "Học nhanh 5 phút",
     "ielts": "Luyện thi IELTS",
-    "listen": "Luyện nghe"
+    "listen": "Luyện nghe",
+    "credits": "Credit",
+    "admin": "Quản trị"
   },
   "login": {
-    "username": "Tên đăng nhập",
+    "username": "Email hoặc tên đăng nhập",
     "password": "Mật khẩu",
     "submit": "Đăng nhập",
     "checking": "Đang kiểm tra…",
     "errors": {
       "wrong_credentials": "Sai tên đăng nhập hoặc mật khẩu",
       "too_many_attempts": "Thử sai quá nhiều lần. Hãy đợi 15 phút.",
-      "unknown": "Đăng nhập thất bại"
-    }
+      "unknown": "Đăng nhập thất bại",
+      "locked": "Tài khoản đã bị khoá. Hãy liên hệ quản trị viên."
+    },
+    "noAccount": "Chưa có tài khoản?",
+    "register": "Đăng ký"
   },
   "dashboard": {
     "kicker": "Tổng quan",
@@ -1048,7 +1053,8 @@
     "language": "Ngôn ngữ",
     "quick": "Học nhanh",
     "quickTitle": "Học nhanh 5 phút mỗi ngày",
-    "streak": "Chuỗi {n} ngày học liên tiếp"
+    "streak": "Chuỗi {n} ngày học liên tiếp",
+    "credits": "Số credit còn lại"
   },
   "sets": {
     "notebook": "Sổ tay từ vựng",
@@ -1770,5 +1776,154 @@
     "ieltsNone": "Chưa có Part Listening nào có audio. Tải sách và audio trong mục IELTS trước.",
     "lookupHint": "Chạm vào một từ (hoặc bôi đen vài từ) trong câu đã hiện để tra nghĩa, hỏi AI và lưu vào sổ từ. Kết quả hiện ở đây.",
     "resize": "Kéo để đổi độ rộng cột (bấm đúp: về mặc định)"
+  },
+  "register": {
+    "title": "Tạo tài khoản",
+    "bonus": "Tặng {n} credit để dùng AI khi đăng ký",
+    "name": "Tên hiển thị (không bắt buộc)",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "passwordHint": "Ít nhất 8 ký tự",
+    "submit": "Đăng ký",
+    "haveAccount": "Đã có tài khoản?",
+    "errors": {
+      "email_taken": "Email này đã có tài khoản",
+      "too_many_attempts": "Thử quá nhiều lần. Hãy đợi 15 phút.",
+      "signup_closed": "Hiện chưa mở đăng ký",
+      "invalid": "Email hoặc mật khẩu chưa hợp lệ",
+      "unknown": "Đăng ký thất bại"
+    }
+  },
+  "credits": {
+    "title": "Credit",
+    "balance": "Số dư",
+    "adminFree": "Quản trị viên dùng AI không bị trừ credit",
+    "how": "Mỗi lần dùng AI (giải thích, chấm bài, tạo bài học, chat…) sẽ trừ credit theo lượng chữ AI đọc và viết.",
+    "rates": "Bảng giá",
+    "rate": "{in} credit / 1 triệu token vào · {out} / 1 triệu token ra",
+    "otherModels": "Model khác",
+    "imageRate": "Ảnh AI: {n} credit / ảnh",
+    "topup": "Nạp credit",
+    "noPackages": "Chưa có gói nạp. Hãy liên hệ quản trị viên.",
+    "packLine": "{n} credit",
+    "status": {
+      "pending": "Đang chờ",
+      "done": "Đã cộng",
+      "rejected": "Từ chối"
+    },
+    "history": "Lịch sử",
+    "kind": {
+      "signup": "Quà đăng ký",
+      "topup": "Nạp",
+      "admin": "Quản trị viên điều chỉnh",
+      "ai": "Dùng AI"
+    },
+    "task": {
+      "lesson_generate": "tạo bài học",
+      "reader_quick": "hỏi nhanh khi đọc",
+      "writing_grade": "chấm Writing",
+      "chat": "chat",
+      "ielts_import": "đọc sách IELTS",
+      "image": "ảnh AI"
+    },
+    "noHistory": "Chưa có giao dịch nào",
+    "tooMany": "Bạn đang có 3 yêu cầu chờ duyệt",
+    "failed": "Không gửi được yêu cầu",
+    "sending": "Đang gửi…",
+    "asked": "Đã gửi yêu cầu {code}. Ghi mã này vào nội dung chuyển khoản; credit được cộng khi quản trị viên xác nhận."
+  },
+  "admin": {
+    "title": "Quản trị",
+    "tabs": {
+      "users": "Người dùng",
+      "topups": "Yêu cầu nạp",
+      "pricing": "Giá credit",
+      "usage": "Dùng AI"
+    },
+    "user": "Người dùng",
+    "role": "Vai trò",
+    "credits": "Credit",
+    "used": "Đã dùng {n} ngày",
+    "lastLogin": "Đăng nhập gần nhất",
+    "locked": "đã khoá",
+    "roles": {
+      "student": "Học viên",
+      "editor": "Biên tập",
+      "admin": "Quản trị"
+    },
+    "calls": "{n} lượt",
+    "topupStatus": {
+      "done": "Đã cộng",
+      "rejected": "Từ chối"
+    },
+    "noTopups": "Chưa có yêu cầu nạp",
+    "usageHint": "{n} ngày qua, theo tác vụ và model. Token: vào / ra.",
+    "task": "Tác vụ",
+    "callsCol": "Lượt",
+    "tokens": "Token",
+    "recent": "Lượt gọi gần nhất",
+    "failedCall": "lỗi",
+    "approve": "Đã nhận tiền",
+    "reject": "Từ chối",
+    "approveConfirm": "Cộng credit cho yêu cầu {code}?",
+    "rejectConfirm": "Từ chối yêu cầu này?",
+    "forbiddenTitle": "Bạn không có quyền mở trang này",
+    "forbiddenHint": "Trang này dành cho biên tập viên hoặc quản trị viên.",
+    "home": "Về trang chủ",
+    "joined": "tham gia {date}",
+    "creditLog": "Biến động credit",
+    "aiCalls": "Lượt dùng AI",
+    "name": "Tên hiển thị",
+    "roleHint": {
+      "student": "Học và luyện tập; dùng AI theo credit.",
+      "editor": "Thêm học viên quyền nhập sách IELTS, duyệt kho nghe.",
+      "admin": "Toàn quyền: người dùng, giá, nhà cung cấp AI. Không bị trừ credit."
+    },
+    "lock": "Khoá tài khoản (đăng xuất ngay)",
+    "newPassword": "Đặt mật khẩu mới",
+    "newPasswordHint": "Để trống nếu không đổi",
+    "features": "Tính năng AI",
+    "featuresHint": "Bỏ chọn để tắt riêng cho người này.",
+    "feature": {
+      "lesson_generate": "Tạo bài học từ bài đọc",
+      "reader_quick": "Hỏi nhanh khi đọc, tra từ",
+      "writing_grade": "Chấm Writing, Speaking",
+      "chat": "Trợ lý chat",
+      "ielts_import": "Đọc sách IELTS bằng AI",
+      "images": "Tạo ảnh AI"
+    },
+    "save": "Lưu",
+    "saved": "Đã lưu",
+    "saveError": "Không lưu được ({error})",
+    "creditsDone": "Đã cập nhật credit",
+    "balance": "Số dư",
+    "amount": "Số credit",
+    "amountHint": "+100 hoặc -20",
+    "note": "Ghi chú (không bắt buộc)",
+    "giveCredits": "Cộng / trừ",
+    "pricing": {
+      "signupTitle": "Đăng ký",
+      "allowSignup": "Cho phép tự đăng ký bằng email",
+      "bonus": "Credit tặng khi đăng ký",
+      "ratesTitle": "Giá theo model",
+      "ratesHint": "Credit cho mỗi 1 triệu token AI đọc vào và viết ra. Model không có giá riêng dùng giá mặc định.",
+      "in": "Vào",
+      "out": "Ra",
+      "default": "Mặc định",
+      "useDefault": "Dùng giá mặc định",
+      "usesDefault": "giá mặc định",
+      "ownPrice": "Đặt giá riêng",
+      "image": "Credit cho mỗi ảnh AI",
+      "packagesTitle": "Gói nạp",
+      "packagesHint": "Học viên chọn gói rồi chuyển khoản; bạn bấm \"Đã nhận tiền\" ở mục Yêu cầu nạp để cộng credit.",
+      "remove": "Xoá",
+      "addPackage": "Thêm gói",
+      "payInfo": "Hướng dẫn thanh toán",
+      "payInfoHint": "Ví dụ: Chuyển khoản tới Vietcombank 0123456789 – Nguyễn Văn A, nội dung ghi mã yêu cầu.",
+      "saving": "Đang lưu…",
+      "save": "Lưu",
+      "saved": "Đã lưu",
+      "error": "Không lưu được"
+    }
   }
 }

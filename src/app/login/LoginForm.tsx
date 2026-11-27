@@ -7,9 +7,9 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import type { Theme } from "@/theme/config";
 
-const KNOWN_ERRORS = ["wrong_credentials", "too_many_attempts"] as const;
+const KNOWN_ERRORS = ["wrong_credentials", "too_many_attempts", "locked"] as const;
 
-function Form({ theme }: { theme: Theme }) {
+function Form({ theme, signup }: { theme: Theme; signup: boolean }) {
   const t = useTranslations();
   const router = useRouter();
   const next = useSearchParams().get("next") || "/";
@@ -70,14 +70,22 @@ function Form({ theme }: { theme: Theme }) {
       <button type="submit" disabled={busy || !username || !password} className="btn btn-primary mt-5 w-full">
         {busy ? t("login.checking") : t("login.submit")}
       </button>
+      {signup && (
+        <p className="mt-4 text-center text-sm text-muted">
+          {t("login.noAccount")}{" "}
+          <a href="/register" className="font-semibold text-accent underline">
+            {t("login.register")}
+          </a>
+        </p>
+      )}
     </form>
   );
 }
 
-export default function LoginForm({ theme }: { theme: Theme }) {
+export default function LoginForm({ theme, signup = false }: { theme: Theme; signup?: boolean }) {
   return (
     <Suspense>
-      <Form theme={theme} />
+      <Form theme={theme} signup={signup} />
     </Suspense>
   );
 }

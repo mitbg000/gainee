@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { AiError } from "@/lib/ai/client";
-import { bad, parseBody } from "@/lib/api";
+import { bad, parseBody, aiRefused } from "@/lib/api";
 import { finishPassage, makePassage } from "@/lib/learn";
 
 export const runtime = "nodejs";
@@ -14,7 +13,8 @@ export async function GET() {
     const p = await makePassage();
     return p ? NextResponse.json(p) : bad("too_few_words", 404);
   } catch (e) {
-    if (e instanceof AiError && e.code === "not_configured") return bad("ai_not_configured", 409);
+    const refused = aiRefused(e);
+    if (refused) return refused;
     return bad("ai_failed", 502);
   }
 }

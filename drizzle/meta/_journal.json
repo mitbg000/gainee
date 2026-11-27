@@ -71,6 +71,13 @@
       "when": 1795699085620,
       "tag": "0009_listen_speech",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1795755240399,
+      "tag": "0010_users_credits",
+      "breakpoints": true
     }
   ]
 }

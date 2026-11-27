@@ -39,18 +39,23 @@
     "writing": "Writing practice",
     "quick": "Quick study",
     "ielts": "IELTS practice",
-    "listen": "Listening"
+    "listen": "Listening",
+    "credits": "Credits",
+    "admin": "Admin"
   },
   "login": {
-    "username": "Username",
+    "username": "Email or username",
     "password": "Password",
     "submit": "Log in",
     "checking": "Checking…",
     "errors": {
       "wrong_credentials": "Wrong username or password",
       "too_many_attempts": "Too many attempts. Please wait 15 minutes.",
-      "unknown": "Login failed"
-    }
+      "unknown": "Login failed",
+      "locked": "This account is locked. Please contact the admin."
+    },
+    "noAccount": "No account yet?",
+    "register": "Sign up"
   },
   "dashboard": {
     "kicker": "Dashboard",
@@ -1048,7 +1053,8 @@
     "language": "Language",
     "quick": "Quick study",
     "quickTitle": "5-minute quick study every day",
-    "streak": "{n}-day streak"
+    "streak": "{n}-day streak",
+    "credits": "Credits left"
   },
   "sets": {
     "notebook": "Vocabulary notebook",
@@ -1770,5 +1776,154 @@
     "ieltsNone": "No Listening part has audio yet. Upload a book and its audio under IELTS first.",
     "lookupHint": "Tap a word (or select a few) in a shown sentence to look it up, ask AI and save it to your notebook. The result shows here.",
     "resize": "Drag to resize the column (double-click: default)"
+  },
+  "register": {
+    "title": "Create an account",
+    "bonus": "{n} free credits for AI when you sign up",
+    "name": "Display name (optional)",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 8 characters",
+    "submit": "Sign up",
+    "haveAccount": "Already have an account?",
+    "errors": {
+      "email_taken": "This email already has an account",
+      "too_many_attempts": "Too many tries. Please wait 15 minutes.",
+      "signup_closed": "Sign-up is not open",
+      "invalid": "Email or password is not valid",
+      "unknown": "Sign-up failed"
+    }
+  },
+  "credits": {
+    "title": "Credits",
+    "balance": "Balance",
+    "adminFree": "Admins use AI without credits",
+    "how": "Each AI use (explanations, grading, lessons, chat…) costs credits by how much text the AI reads and writes.",
+    "rates": "Prices",
+    "rate": "{in} credits / 1M input tokens · {out} / 1M output tokens",
+    "otherModels": "Other models",
+    "imageRate": "AI picture: {n} credits each",
+    "topup": "Top up",
+    "noPackages": "No top-up packages yet. Please contact the admin.",
+    "packLine": "{n} credits",
+    "status": {
+      "pending": "Waiting",
+      "done": "Added",
+      "rejected": "Declined"
+    },
+    "history": "History",
+    "kind": {
+      "signup": "Sign-up gift",
+      "topup": "Top-up",
+      "admin": "Set by admin",
+      "ai": "AI use"
+    },
+    "task": {
+      "lesson_generate": "lesson",
+      "reader_quick": "reader question",
+      "writing_grade": "writing feedback",
+      "chat": "chat",
+      "ielts_import": "IELTS book",
+      "image": "AI picture"
+    },
+    "noHistory": "Nothing yet",
+    "tooMany": "You already have 3 requests waiting",
+    "failed": "Could not send the request",
+    "sending": "Sending…",
+    "asked": "Request {code} sent. Put this code in the transfer note; the credits are added once the admin confirms the payment."
+  },
+  "admin": {
+    "title": "Admin",
+    "tabs": {
+      "users": "Users",
+      "topups": "Top-ups",
+      "pricing": "Credit prices",
+      "usage": "AI usage"
+    },
+    "user": "User",
+    "role": "Role",
+    "credits": "Credits",
+    "used": "Used, {n} days",
+    "lastLogin": "Last login",
+    "locked": "locked",
+    "roles": {
+      "student": "Learner",
+      "editor": "Editor",
+      "admin": "Admin"
+    },
+    "calls": "{n} calls",
+    "topupStatus": {
+      "done": "Added",
+      "rejected": "Declined"
+    },
+    "noTopups": "No top-up requests yet",
+    "usageHint": "Last {n} days, by task and model. Tokens: in / out.",
+    "task": "Task",
+    "callsCol": "Calls",
+    "tokens": "Tokens",
+    "recent": "Latest calls",
+    "failedCall": "failed",
+    "approve": "Payment received",
+    "reject": "Decline",
+    "approveConfirm": "Add the credits of request {code}?",
+    "rejectConfirm": "Decline this request?",
+    "forbiddenTitle": "You cannot open this page",
+    "forbiddenHint": "This page is for editors or admins.",
+    "home": "Go home",
+    "joined": "joined {date}",
+    "creditLog": "Credit changes",
+    "aiCalls": "AI calls",
+    "name": "Display name",
+    "roleHint": {
+      "student": "Learns and practises; pays for AI with credits.",
+      "editor": "A learner who can also import IELTS books and check the listening bank.",
+      "admin": "Everything: users, prices, AI providers. Not charged."
+    },
+    "lock": "Lock the account (logs out now)",
+    "newPassword": "New password",
+    "newPasswordHint": "Leave empty to keep it",
+    "features": "AI features",
+    "featuresHint": "Untick to switch one off for this user.",
+    "feature": {
+      "lesson_generate": "Lessons from a text",
+      "reader_quick": "Reader questions, look-up",
+      "writing_grade": "Writing and speaking feedback",
+      "chat": "Chat assistant",
+      "ielts_import": "Read IELTS books with AI",
+      "images": "AI pictures"
+    },
+    "save": "Save",
+    "saved": "Saved",
+    "saveError": "Could not save ({error})",
+    "creditsDone": "Credits updated",
+    "balance": "Balance",
+    "amount": "Credits",
+    "amountHint": "+100 or -20",
+    "note": "Note (optional)",
+    "giveCredits": "Add / take",
+    "pricing": {
+      "signupTitle": "Sign-up",
+      "allowSignup": "Anyone can sign up with an email",
+      "bonus": "Credits given at sign-up",
+      "ratesTitle": "Prices per model",
+      "ratesHint": "Credits per 1 million tokens the AI reads in and writes out. Models without their own price use the default.",
+      "in": "In",
+      "out": "Out",
+      "default": "Default",
+      "useDefault": "Use the default price",
+      "usesDefault": "default price",
+      "ownPrice": "Own price",
+      "image": "Credits per AI picture",
+      "packagesTitle": "Top-up packages",
+      "packagesHint": "Learners pick a package and pay by bank transfer; press \"Payment received\" under Top-ups to add the credits.",
+      "remove": "Remove",
+      "addPackage": "Add package",
+      "payInfo": "How to pay",
+      "payInfoHint": "e.g. Bank transfer to … with the request code in the note.",
+      "saving": "Saving…",
+      "save": "Save",
+      "saved": "Saved",
+      "error": "Could not save"
+    }
   }
 }

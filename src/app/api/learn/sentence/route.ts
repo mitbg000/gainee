@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { AiError } from "@/lib/ai/client";
-import { bad, parseBody } from "@/lib/api";
+import { bad, parseBody, aiRefused } from "@/lib/api";
 import { checkSentence } from "@/lib/learn";
 
 export const runtime = "nodejs";
@@ -15,7 +14,8 @@ export async function POST(req: Request) {
     const r = await checkSentence(d.wordId, d.sentence);
     return r ? NextResponse.json(r) : bad("not_found", 404);
   } catch (e) {
-    if (e instanceof AiError && e.code === "not_configured") return bad("ai_not_configured", 409);
+    const refused = aiRefused(e);
+    if (refused) return refused;
     return bad("ai_failed", 502);
   }
 }

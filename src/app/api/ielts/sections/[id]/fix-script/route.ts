@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { bad, idParam, parseBody } from "@/lib/api";
-import { AiError } from "@/lib/ai/client";
+import { bad, idParam, parseBody, aiRefused } from "@/lib/api";
 import { fixTranscript } from "@/lib/ielts/import";
 import { getSection } from "@/lib/ielts/queries";
 
@@ -18,7 +17,8 @@ export async function POST(req: Request, { params }: Ctx) {
   try {
     return NextResponse.json({ text: await fixTranscript(d.text) });
   } catch (e) {
-    if (e instanceof AiError && e.code === "not_configured") return bad("ai_not_configured", 409);
+    const refused = aiRefused(e);
+    if (refused) return refused;
     return bad(e instanceof Error ? e.message.slice(0, 300) : "error", 502);
   }
 }

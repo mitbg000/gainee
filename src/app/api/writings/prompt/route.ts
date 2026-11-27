@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { bad, parseBody } from "@/lib/api";
-import { AiError } from "@/lib/ai/client";
+import { bad, parseBody, aiRefused } from "@/lib/api";
 import { generatePrompt, Override, WRITING_KINDS } from "@/lib/writing";
 
 export const runtime = "nodejs";
@@ -13,7 +12,8 @@ export async function POST(req: Request) {
   try {
     return NextResponse.json({ prompt: await generatePrompt(data.kind, data.override) });
   } catch (e) {
-    if (e instanceof AiError && e.code === "not_configured") return bad("ai_not_configured", 409);
+    const refused = aiRefused(e);
+    if (refused) return refused;
     return bad(e instanceof Error ? e.message.slice(0, 300) : "error", 502);
   }
 }

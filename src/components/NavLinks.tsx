@@ -11,7 +11,7 @@ import * as I from "./icons";
 
 const ICONS: Record<string, (p: { className?: string }) => React.ReactElement> = {
   home: I.IconHome, book: I.IconBook, plus: I.IconPlus, dict: I.IconDict, words: I.IconWords,
-  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag, target: I.IconTarget, pen: I.IconPen, bolt: I.IconBolt, exam: I.IconClipboard, headphones: I.IconHeadphones,
+  cards: I.IconCards, chart: I.IconChart, spark: I.IconSpark, gear: I.IconGear, tag: I.IconTag, target: I.IconTarget, pen: I.IconPen, bolt: I.IconBolt, exam: I.IconClipboard, headphones: I.IconHeadphones, coin: I.IconCoin, shield: I.IconShield,
 };
 
 function isActive(path: string, href: string) {
@@ -19,7 +19,9 @@ function isActive(path: string, href: string) {
 }
 
 /** Desktop sidebar list. */
-export function SidebarNav({ tree }: { tree: TreeDoc[] }) {
+const shown = (admin: boolean) => NAV.filter((n) => admin || !n.admin);
+
+export function SidebarNav({ tree, admin = false }: { tree: TreeDoc[]; admin?: boolean }) {
   const t = useTranslations("nav");
   const path = usePathname();
   // Every page renders its own Shell, so the choice is kept in localStorage to survive navigation.
@@ -39,7 +41,7 @@ export function SidebarNav({ tree }: { tree: TreeDoc[] }) {
   const open = libOpen ?? true;
   return (
     <nav className="mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto no-scrollbar">
-      {NAV.map((n) => {
+      {shown(admin).map((n) => {
         const item = <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} />;
         if (n.href !== "/library" || !tree.length) return item;
         return (
@@ -81,7 +83,7 @@ function Item({ n, active, label, soon, onClick }: { n: NavItem; active: boolean
  * Mobile: fixed bottom tab bar (4 main sections + "More").
  * "More" opens a bottom sheet with the full menu and the extra controls passed as children.
  */
-export function MobileTabBar({ children }: { children: React.ReactNode }) {
+export function MobileTabBar({ children, admin = false }: { children: React.ReactNode; admin?: boolean }) {
   const t = useTranslations("nav");
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -136,7 +138,7 @@ export function MobileTabBar({ children }: { children: React.ReactNode }) {
           >
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-line" />
             <div className="flex flex-col gap-0.5">
-              {NAV.filter((n) => !n.mobileTab).map((n) => (
+              {shown(admin).filter((n) => !n.mobileTab).map((n) => (
                 <Item
                   key={n.key}
                   n={n}

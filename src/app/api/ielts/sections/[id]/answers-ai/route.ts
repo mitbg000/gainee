@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { bad, idParam, parseBody } from "@/lib/api";
-import { AiError } from "@/lib/ai/client";
+import { bad, idParam, parseBody, aiRefused } from "@/lib/api";
 import { answersByAi } from "@/lib/ielts/import";
 
 export const runtime = "nodejs";
@@ -18,7 +17,8 @@ export async function POST(req: Request, { params }: Ctx) {
     const answers = await answersByAi(id, d.transcript);
     return answers ? NextResponse.json({ answers }) : bad("no_source", 404);
   } catch (e) {
-    if (e instanceof AiError && e.code === "not_configured") return bad("ai_not_configured", 409);
+    const refused = aiRefused(e);
+    if (refused) return refused;
     return bad(e instanceof Error ? e.message.slice(0, 300) : "error", 502);
   }
 }

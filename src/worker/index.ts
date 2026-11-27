@@ -4,6 +4,7 @@
  */
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
+import { runAs } from "@/lib/actor";
 import { claimNext, complete, fail, requeueStale } from "@/lib/jobs";
 import { setSetting } from "@/lib/settings";
 import { handlers } from "./handlers";
@@ -36,7 +37,7 @@ async function loop() {
     const t0 = Date.now();
     try {
       if (!handler) throw new Error(`No handler for job type "${job.type}"`);
-      const result = await handler(job);
+      const result = await runAs(job.userId, () => handler(job)); // its AI calls are charged to whoever queued it
       await complete(job.id, result ?? null);
       console.log(`[worker] #${job.id} ${job.type} done in ${Date.now() - t0}ms`);
     } catch (e) {

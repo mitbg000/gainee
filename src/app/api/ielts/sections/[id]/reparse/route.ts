@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { bad, idParam } from "@/lib/api";
-import { AiError } from "@/lib/ai/client";
+import { bad, idParam, aiRefused } from "@/lib/api";
 import { reparseSection } from "@/lib/ielts/import";
 
 export const runtime = "nodejs";
@@ -15,7 +14,8 @@ export async function POST(_req: Request, { params }: Ctx) {
     const c = await reparseSection(id);
     return c ? NextResponse.json(c) : bad("not_found", 404);
   } catch (e) {
-    if (e instanceof AiError && e.code === "not_configured") return bad("ai_not_configured", 409);
+    const refused = aiRefused(e);
+    if (refused) return refused;
     return bad(e instanceof Error ? e.message.slice(0, 300) : "error", 502);
   }
 }

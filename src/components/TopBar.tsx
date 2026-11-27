@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { TreeDoc } from "@/lib/documents/queries";
+import { fmtCredits } from "@/lib/fmtCredits";
 import type { Theme } from "@/theme/config";
 import { MuteButton } from "./SoundSettings";
 import UserMenu from "./UserMenu";
@@ -12,7 +13,7 @@ import { NAV } from "./nav";
 import * as I from "./icons";
 
 /** Desktop top bar, kept minimal: where you are (breadcrumbs), quick look-up, due reviews and the user menu. */
-export default function TopBar({ tree, due, theme, streak }: { tree: TreeDoc[]; due: number; theme: Theme; streak: number }) {
+export default function TopBar({ tree, due, theme, streak, credits }: { tree: TreeDoc[]; due: number; theme: Theme; streak: number; /** null: admin, not charged */ credits: number | null }) {
   const t = useTranslations("nav");
   const tt = useTranslations("topbar");
   const path = usePathname();
@@ -82,6 +83,12 @@ export default function TopBar({ tree, due, theme, streak }: { tree: TreeDoc[]; 
           {streak}
         </span>
       </Link>
+      {credits !== null && (
+        <Link href="/credits" title={tt("credits")} className={`flex h-9 items-center gap-1.5 rounded-full bg-ink/5 px-3 text-sm font-semibold tabular-nums transition-colors hover:bg-accent/10 hover:text-accent ${credits <= 0 ? "text-red-600 dark:text-red-400" : ""}`}>
+          <I.IconCoin className="h-4 w-4" />
+          {fmtCredits(credits)}
+        </Link>
+      )}
       <Link href="/review" className="icon-btn relative" aria-label={`${t("review")}${due ? ` (${due})` : ""}`} title={t("review")}>
         <I.IconCards />
         {due > 0 && (

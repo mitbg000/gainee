@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { bad, idParam, parseBody } from "@/lib/api";
+import { bad, idParam, parseBody, aiRefused } from "@/lib/api";
 import { addXp, XP } from "@/lib/activity";
-import { AiError } from "@/lib/ai/client";
 import { getWriting, gradeWriting, Override } from "@/lib/writing";
 
 export const runtime = "nodejs";
@@ -20,7 +19,8 @@ export async function POST(req: Request, { params }: Ctx) {
     if (cur.bandOverall == null) await addXp("writing", XP.writing, { type: "writing", id }); // first grading only
     return NextResponse.json(grade);
   } catch (e) {
-    if (e instanceof AiError && e.code === "not_configured") return bad("ai_not_configured", 409);
+    const refused = aiRefused(e);
+    if (refused) return refused;
     return bad(e instanceof Error ? e.message.slice(0, 300) : "error", 502);
   }
 }

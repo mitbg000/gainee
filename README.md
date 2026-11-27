@@ -68,7 +68,7 @@ npm install
 cp .env.example .env              # set DATABASE_URL, then add secrets:
 #   SESSION_SECRET  → openssl rand -hex 32
 #   ENCRYPTION_KEY  → openssl rand -base64 32
-#   APP_USERNAME      → your login name
+#   APP_USERNAME      → the first admin's login name (used once, while there are no accounts)
 #   APP_PASSWORD_HASH → npm run -s hash-password -- yourpassword
 npm run build:scripts && npm run db:migrate
 npm run dev           # http://localhost:3000
@@ -172,8 +172,8 @@ Go to **Cron → Add task**:
 | Logs | `pm2 logs gainee-web` / `pm2 logs gainee-worker` |
 | Restart | `pm2 reload ecosystem.config.cjs --update-env` |
 | Update manually | `bash scripts/deploy.sh` |
-| Change login name | edit `APP_USERNAME` in `.env` → restart |
-| Change login password | `node dist/hash-password.js` → put the result in `APP_PASSWORD_HASH` in `.env` → restart |
+| Accounts, roles, credits | `/admin` (admins). The first login with `APP_USERNAME` / `APP_PASSWORD_HASH` creates the first admin; after that accounts live in the database |
+| Change a password | `/admin` → the user → New password |
 | Re-import / update dictionary | `node --env-file=.env dist/import-dictionary.js <zip> --name tudien` |
 | Change default language | `DEFAULT_LOCALE=en` or `vi` in `.env` → restart |
 

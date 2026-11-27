@@ -6,6 +6,7 @@ import ListenChunks from "@/components/listen/ListenChunks";
 import Practice from "@/components/listen/Practice";
 import { getSource } from "@/lib/listen/queries";
 import * as I from "@/components/icons";
+import { isEditor } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +40,11 @@ export default async function SourcePage({ params, searchParams }: { params: Pro
               <I.IconRefresh /> {t("restart")}
             </Link>
           )}
-          <Link href={`/listen/${r.source.id}/edit`} className="btn btn-sm btn-ghost ml-auto">
-            <I.IconEdit /> {t("review")}
-          </Link>
+          {(await isEditor()) && (
+            <Link href={`/listen/${r.source.id}/edit`} className="btn btn-sm btn-ghost ml-auto">
+              <I.IconEdit /> {t("review")}
+            </Link>
+          )}
           {r.saved.length > 0 && <span className="text-xs text-muted">{t("savedWords", { n: r.saved.length })}</span>}
         </div>
         {!r.source.reviewed && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t("reviewFirst")}</p>}

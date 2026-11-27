@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { bad, idParam, parseBody } from "@/lib/api";
+import { requireRole } from "@/lib/users";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -13,6 +14,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!id) return bad("invalid");
   const [data, err] = await parseBody(req, z.object({ text: z.string().trim().min(1).max(5000).optional(), hidden: z.boolean().optional() }));
   if (err) return err;
+  if (data.text !== undefined && !(await requireRole("editor"))) return bad("forbidden", 403); // learners only report it
   const db = getDb();
   await db.update(schema.listenItems).set(data).where(eq(schema.listenItems.id, id));
   if (data.hidden) {

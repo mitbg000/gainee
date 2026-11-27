@@ -4,9 +4,13 @@
  * - JSON mode with automatic retry without `response_format` for providers that reject it
  * - Streaming (SSE) for the reader panel
  * - Automatic fallback route and usage logging in `ai_calls`
+ * - Charged to the user it runs for (lib/credits): refused when their feature is off or the balance is used up
  */
 import { getDb, schema } from "@/db";
+import { actorId } from "@/lib/actor";
+import { addCredits, aiCost, getCreditConfig } from "@/lib/credits";
 import { getSetting } from "@/lib/settings";
+import { canUse, getUser, type Feature, type User } from "@/lib/users";
 import { getProvider, listProviders } from "./providers";
 import type { AiRoute, AiRouting, AiTask } from "./tasks";
 
@@ -28,7 +32,7 @@ export type ChatResult = { text: string; providerId: number; model: string; prom
 export class AiError extends Error {
   constructor(
     message: string,
-    public code: "not_configured" | "http" | "timeout" | "bad_response" = "http",
+    public code: "not_configured" | "http" | "timeout" | "bad_response" | "no_credits" | "forbidden" = "http",
     public status?: number,
   ) {
     super(message);
@@ -47,11 +51,32 @@ async function resolveRoutes(task: AiTask, override?: ChatOptions["override"]): 
 
 async function log(entry: typeof schema.aiCalls.$inferInsert) {
   try {
-    await getDb().insert(schema.aiCalls).values(entry);
+    return (await getDb().insert(schema.aiCalls).values(entry).$returningId())[0]?.id;
   } catch (e) {
     console.error("[ai] cannot log call:", e);
   }
 }
+
+/** The user this call is for, once it may run; null = the system's own work (not charged). */
+async function gate(feature: Feature): Promise<User | null> {
+  const id = await actorId();
+  if (!id) return null;
+  const u = await getUser(id);
+  if (!u || u.disabled) throw new AiError("Account locked", "forbidden", 403);
+  if (!canUse(u, feature)) throw new AiError("This AI feature is switched off for your account", "forbidden", 403);
+  if (u.role !== "admin" && u.credits <= 0) throw new AiError("Not enough credits: top up on the Credits page", "no_credits", 402);
+  return u;
+}
+
+/** Log a successful call and take its price from the user's balance (admins are not charged). */
+async function logPaid(u: User | null, entry: typeof schema.aiCalls.$inferInsert, credits: number) {
+  const callId = await log({ ...entry, userId: u?.id ?? null, credits: u ? credits : null });
+  if (u && u.role !== "admin" && credits > 0) await addCredits(u.id, -credits, "ai", entry.task, callId).catch((e) => console.error("[ai] cannot charge:", e));
+}
+
+// shortcut: streamed replies carry no token counts, so ~4 characters a token (pictures not counted); upgrade with stream_options.include_usage
+const guessTokens = (m: ChatMessage[]) =>
+  Math.ceil(m.reduce((n, x) => n + (typeof x.content === "string" ? x.content.length : x.content.reduce((k, p) => k + (p.type === "text" ? p.text.length : 0), 0)), 0) / 4);
 
 async function request(route: AiRoute, opts: ChatOptions, stream: boolean, signal?: AbortSignal) {
   const provider = await getProvider(route.providerId);
@@ -92,6 +117,7 @@ async function request(route: AiRoute, opts: ChatOptions, stream: boolean, signa
 
 /** Non-streaming completion. */
 export async function chat(opts: ChatOptions): Promise<ChatResult> {
+  const user = await gate(opts.task);
   const routes = await resolveRoutes(opts.task, opts.override);
   let lastErr: unknown;
   for (const route of routes) {
@@ -105,12 +131,13 @@ export async function chat(opts: ChatOptions): Promise<ChatResult> {
       const text = data.choices?.[0]?.message?.content;
       if (typeof text !== "string") throw new AiError("Empty response from AI", "bad_response");
       const result = { text, providerId: provider.id, model, promptTokens: data.usage?.prompt_tokens, completionTokens: data.usage?.completion_tokens };
-      await log({ providerId: provider.id, model, task: opts.task, ok: true, durationMs: Date.now() - t0, promptTokens: result.promptTokens, completionTokens: result.completionTokens });
+      const cost = aiCost(await getCreditConfig(), model, result.promptTokens ?? guessTokens(opts.messages), result.completionTokens ?? Math.ceil(text.length / 4));
+      await logPaid(user, { providerId: provider.id, model, task: opts.task, ok: true, durationMs: Date.now() - t0, promptTokens: result.promptTokens, completionTokens: result.completionTokens }, cost);
       return result;
     } catch (e) {
       lastErr = e;
       const timeout = e instanceof Error && e.name === "TimeoutError";
-      await log({ providerId: route.providerId, model: route.model, task: opts.task, ok: false, durationMs: Date.now() - t0, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+      await log({ providerId: route.providerId, userId: user?.id ?? null, model: route.model, task: opts.task, ok: false, durationMs: Date.now() - t0, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
       if (e instanceof AiError && e.code === "not_configured" && routes.length === 1) throw e;
       if (timeout) lastErr = new AiError("AI request timed out", "timeout");
     }
@@ -120,6 +147,7 @@ export async function chat(opts: ChatOptions): Promise<ChatResult> {
 
 /** Streaming completion: yields text chunks. */
 export async function* chatStream(opts: ChatOptions, signal?: AbortSignal): AsyncGenerator<string, ChatResult> {
+  const user = await gate(opts.task);
   const routes = await resolveRoutes(opts.task, opts.override);
   const route = routes[0];
   const t0 = Date.now();
@@ -151,10 +179,12 @@ export async function* chatStream(opts: ChatOptions, signal?: AbortSignal): Asyn
         }
       }
     }
-    await log({ providerId: provider.id, model, task: opts.task, ok: true, durationMs: Date.now() - t0 });
+    const pt = guessTokens(opts.messages);
+    const ct = Math.ceil(full.length / 4);
+    await logPaid(user, { providerId: provider.id, model, task: opts.task, ok: true, durationMs: Date.now() - t0, promptTokens: pt, completionTokens: ct }, aiCost(await getCreditConfig(), model, pt, ct));
     return { text: full, providerId: provider.id, model };
   } catch (e) {
-    await log({ providerId: route.providerId, model: route.model, task: opts.task, ok: false, durationMs: Date.now() - t0, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+    await log({ providerId: route.providerId, userId: user?.id ?? null, model: route.model, task: opts.task, ok: false, durationMs: Date.now() - t0, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
     throw e;
   }
 }
@@ -224,6 +254,7 @@ export async function listModels(providerId: number): Promise<string[]> {
 
 /** One picture from an OpenAI-compatible /images/generations endpoint (OpenAI gpt-image / DALL·E, xAI grok image). */
 export async function generateImage(providerId: number, model: string, prompt: string): Promise<Uint8Array> {
+  const user = await gate("images");
   const p = await getProvider(providerId);
   if (!p || !p.enabled) throw new AiError("Image provider not found or disabled", "not_configured");
   const body: Record<string, unknown> = { model, prompt, n: 1 };
@@ -243,10 +274,10 @@ export async function generateImage(providerId: number, model: string, prompt: s
     if (d?.b64_json) bytes = new Uint8Array(Buffer.from(d.b64_json, "base64"));
     else if (d?.url) bytes = new Uint8Array(await (await fetch(d.url, { signal: AbortSignal.timeout(60_000) })).arrayBuffer());
     if (!bytes?.length) throw new AiError("No image in the reply", "bad_response");
-    await log({ providerId, model, task: "image", ok: true, durationMs: Date.now() - t0 });
+    await logPaid(user, { providerId, model, task: "image", ok: true, durationMs: Date.now() - t0 }, (await getCreditConfig()).image);
     return bytes;
   } catch (e) {
-    await log({ providerId, model, task: "image", ok: false, durationMs: Date.now() - t0, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
+    await log({ providerId, userId: user?.id ?? null, model, task: "image", ok: false, durationMs: Date.now() - t0, error: e instanceof Error ? e.message.slice(0, 500) : String(e) });
     throw e;
   }
 }

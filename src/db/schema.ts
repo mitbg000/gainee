@@ -1,5 +1,5 @@
 /**
- * Gainee database schema (MySQL 5.7+/8.0 or MariaDB 10.4+, single user).
+ * Gainee database schema (MySQL 5.7+/8.0 or MariaDB 10.4+).
  *
  * Tables for later phases are defined up front so the structure stays stable.
  * Conventions:
@@ -42,6 +42,60 @@ const ts = (name: string) => datetime(name, { mode: "date", fsp: 3 });
 const createdAt = () => ts("created_at").notNull().default(sql`CURRENT_TIMESTAMP(3)`);
 const updatedAt = () =>
   ts("updated_at").notNull().default(sql`CURRENT_TIMESTAMP(3)`).$onUpdate(() => new Date());
+
+/* =====================================================================
+ * Accounts, roles, credits
+ * ===================================================================== */
+export const ROLES = ["student", "editor", "admin"] as const;
+export type Role = (typeof ROLES)[number];
+
+export const users = mysqlTable("users", {
+  id: pk(),
+  email: varchar("email", { length: 191 }).notNull().unique(), // lower-case; the first admin may be a plain username
+  name: varchar("name", { length: 100 }),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  role: mysqlEnum("role", ROLES).notNull().default("student"),
+  /** per-user switches over the role's defaults: {"chat": false, "images": true} */
+  features: jsonText<Record<string, boolean> | null>("features"),
+  credits: double("credits").notNull().default(0),
+  disabled: boolean("disabled").notNull().default(false),
+  /** raised on password change / lock: older sessions stop working */
+  sessionVersion: int("session_version").notNull().default(0),
+  lastLoginAt: ts("last_login_at"),
+  createdAt: createdAt(),
+});
+
+/** Every change of a balance: + top-up / gift / admin, − AI use. */
+export const creditLogs = mysqlTable(
+  "credit_logs",
+  {
+    id: pk(),
+    userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    amount: double("amount").notNull(),
+    balance: double("balance").notNull(), // after this change
+    kind: mysqlEnum("kind", ["signup", "topup", "admin", "ai"]).notNull(),
+    note: varchar("note", { length: 255 }),
+    aiCallId: int("ai_call_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("credit_logs_user").on(t.userId, t.createdAt)],
+);
+
+/** A learner asks for a top-up package; an admin approves it once paid (no payment gateway yet). */
+export const topups = mysqlTable(
+  "topups",
+  {
+    id: pk(),
+    userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    credits: double("credits").notNull(),
+    price: int("price").notNull(), // VND
+    status: mysqlEnum("status", ["pending", "done", "rejected"]).notNull().default("pending"),
+    note: varchar("note", { length: 255 }),
+    createdAt: createdAt(),
+    doneAt: ts("done_at"),
+  },
+  (t) => [index("topups_status").on(t.status, t.createdAt), index("topups_user").on(t.userId)],
+);
 
 /* =====================================================================
  * Settings (key/value)
@@ -365,6 +419,8 @@ export const aiCalls = mysqlTable(
   {
     id: pk(),
     providerId: int("provider_id").references(() => aiProviders.id, { onDelete: "set null" }),
+    userId: int("user_id").references(() => users.id, { onDelete: "set null" }),
+    credits: double("credits"), // charged to the user
     model: varchar("model", { length: 100 }).notNull(),
     task: varchar("task", { length: 50 }).notNull(), // lesson | explain | grade_writing | chat ...
     promptTokens: int("prompt_tokens"),
@@ -375,7 +431,7 @@ export const aiCalls = mysqlTable(
     durationMs: int("duration_ms"),
     createdAt: createdAt(),
   },
-  (t) => [index("ai_calls_created").on(t.createdAt)],
+  (t) => [index("ai_calls_created").on(t.createdAt), index("ai_calls_user").on(t.userId, t.createdAt)],
 );
 
 /* =====================================================================
@@ -387,6 +443,7 @@ export const jobs = mysqlTable(
     id: pk(),
     type: varchar("type", { length: 50 }).notNull(),
     payload: jsonText<Record<string, unknown>>("payload").notNull(),
+    userId: int("user_id"), // who queued it: its AI calls are charged to them
     status: mysqlEnum("status", ["queued", "running", "done", "failed"]).notNull().default("queued"),
     attempts: int("attempts").notNull().default(0),
     maxAttempts: int("max_attempts").notNull().default(3),
