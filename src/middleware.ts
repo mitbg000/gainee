@@ -17,6 +17,17 @@ export function needs(path: string, method: string): Session["role"] {
   return "student";
 }
 
+/**
+ * A redirect to a page of this site. Behind Nginx, req.url / req.nextUrl carry the internal origin (and Next even
+ * takes X-Forwarded-Proto for it: https://localhost:PORT), so the address is built from the proxy headers.
+ * No rewrites here for the same reason: Next would proxy them over TLS to the plain-HTTP port and fail (500).
+ */
+function redirectTo(req: NextRequest, target: string) {
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
+  return NextResponse.redirect(host ? `${proto}://${host}${target}` : new URL(target, req.url));
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   // who is asking goes to the server code only from here: a client's own x-user-* headers are dropped
@@ -28,7 +39,7 @@ export async function middleware(req: NextRequest) {
   if (s) {
     if (RANK[s.role] < RANK[needs(pathname, req.method)]) {
       if (pathname.startsWith("/api/")) return NextResponse.json({ error: "forbidden" }, { status: 403 });
-      return NextResponse.rewrite(new URL("/forbidden", req.url));
+      return redirectTo(req, "/forbidden");
     }
     headers.set("x-user-id", String(s.uid));
     headers.set("x-user-role", s.role);
@@ -39,12 +50,8 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  if (pathname === "/") return NextResponse.rewrite(new URL("/welcome", req.url), { request: { headers } }); // visitors see the landing page
-  // Behind Nginx, req.nextUrl carries the internal 127.0.0.1:PORT origin, so build the redirect from the proxy headers.
-  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
-  const target = `/login?next=${encodeURIComponent(pathname)}`;
-  return NextResponse.redirect(host ? `${proto}://${host}${target}` : new URL(target, req.url));
+  if (pathname === "/") return NextResponse.next({ request: { headers } }); // the home page shows visitors the landing page
+  return redirectTo(req, `/login?next=${encodeURIComponent(pathname)}`);
 }
 
 export const config = {

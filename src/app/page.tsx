@@ -9,6 +9,8 @@ import Shell from "@/components/Shell";
 import JobsPanel from "@/components/JobsPanel";
 import InstallPrompt from "@/components/InstallPrompt";
 import * as I from "@/components/icons";
+import Landing from "@/components/Landing";
+import { currentUser } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,7 @@ async function loadStats() {
 }
 
 export default async function DashboardPage() {
+  if (!(await currentUser())) return <Landing />; // visitors (the middleware lets "/" through without a session)
   const t = await getTranslations("dashboard");
   let stats: Awaited<ReturnType<typeof loadStats>> | null = null;
   let dbError = "";
