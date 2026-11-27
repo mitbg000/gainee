@@ -13,7 +13,7 @@ import Quiz from "./Quiz";
 import { MODES, shuffle, type Mode, type PWord } from "./questions";
 import * as I from "@/components/icons";
 
-const ACTIVITIES = ["cards", "learn", "write", "picture", "passage", "test", "match"] as const;
+const ACTIVITIES = ["learn", "cards", "write", "picture", "passage", "test", "match"] as const;
 type Activity = (typeof ACTIVITIES)[number];
 const ICON: Record<Activity, React.ReactNode> = { cards: <I.IconCards />, learn: <I.IconTarget />, write: <I.IconPen />, picture: <I.IconImage />, passage: <I.IconBook />, test: <I.IconChecklist />, match: <I.IconSpark /> };
 const ORDERS = ["recent", "random", "weak"] as const;
@@ -36,21 +36,23 @@ const keep = (key: string, v: string) => {
 /** Study hub in the manner of Quizlet (flashcards, learn, test, match), with a study suggestion from the review schedule. */
 export default function WordPractice({ words, all, due }: { words: PWord[]; all: { term: string; meaning: string }[]; due: number }) {
   const t = useTranslations("practice");
-  const [activity, setActivity] = useState<Activity>("cards");
+  const [activity, setActivity] = useState<Activity>("learn");
   const [order, setOrder] = useState<Order>("recent");
   const [mode, setMode] = useState<Mode>("mix");
   const [size, setSize] = useState(20);
   const [running, setRunning] = useState<PWord[] | null>(null);
 
   useEffect(() => {
-    setActivity(load("practice_activity", ACTIVITIES, "cards"));
     setOrder(load("practice_order", ORDERS, "recent"));
     setMode(load("practice_mode", MODES, "mix"));
   }, []);
 
   if (words.length === 0) return <p className="text-muted">{t("empty")}</p>;
 
-  function start() {
+  /** Clicking a way of studying starts it at once, with the settings above. */
+  function start(activity: Activity) {
+    setActivity(activity);
+    keep("practice_activity", activity);
     const list =
       order === "random"
         ? shuffle(words)
@@ -93,36 +95,6 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
         )}
       </div>
 
-      <div>
-        <p className="mb-2 text-sm font-semibold">{t("activityLabel")}</p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {ACTIVITIES.map((a) => (
-            <button
-              key={a}
-              onClick={() => {
-                setActivity(a);
-                keep("practice_activity", a);
-              }}
-              aria-pressed={activity === a}
-              className={`flex flex-col items-start gap-2 rounded-2xl border-2 p-4 text-left transition-colors ${activity === a ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent/50"}`}
-            >
-              <span className={`flex size-10 items-center justify-center rounded-xl [&>svg]:size-5 ${activity === a ? "bg-accent text-on-accent" : "bg-paper text-accent"}`}>{ICON[a]}</span>
-              <b>{t(`activity.${a}`)}</b>
-              <span className="text-xs leading-snug text-muted">{t(`activityHint.${a}`)}</span>
-              {a === "picture" && <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-muted">{t("withImages", { n: words.filter((w) => w.images?.length).length })}</span>}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {activity === "passage" ? (
-        <div className="rounded-2xl border border-line bg-card p-5">
-          <p className="text-sm text-muted">{t("passageNote")}</p>
-          <button onClick={start} className="btn btn-lg btn-primary mt-4">
-            <I.IconPlay /> {t("startActivity", { a: t("activity.passage") })}
-          </button>
-        </div>
-      ) : (
       <div className="grid gap-5 rounded-2xl border border-line bg-card p-5 md:grid-cols-2">
         <div>
           <p className="mb-2 text-sm font-semibold">{t("orderLabel")}</p>
@@ -151,33 +123,46 @@ export default function WordPractice({ words, all, due }: { words: PWord[]; all:
             ))}
           </div>
         </div>
-        {activity === "test" && (
-          <div className="md:col-span-2">
-            <p className="mb-2 text-sm font-semibold">{t("modeLabel")}</p>
-            <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
-              {MODES.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    setMode(m);
-                    keep("practice_mode", m);
-                  }}
-                  className={`rounded-xl border p-3 text-left transition-colors ${mode === m ? "border-accent bg-accent/10" : "border-line bg-card hover:border-accent/50"}`}
-                >
-                  <b className="text-sm">{t(`mode.${m}`)}</b>
-                  <span className="block text-xs text-muted">{t(`modeHint.${m}`)}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         <div className="md:col-span-2">
-          <button onClick={start} className="btn btn-lg btn-primary">
-            <I.IconPlay /> {t("startActivity", { a: t(`activity.${activity}`) })}
-          </button>
+          <p className="mb-2 text-sm font-semibold">{t("modeLabelTest")}</p>
+          <div className="flex flex-wrap gap-2">
+            {MODES.map((m) => (
+              <button
+                key={m}
+                onClick={() => {
+                  setMode(m);
+                  keep("practice_mode", m);
+                }}
+                title={t(`modeHint.${m}`)}
+                className={`chip ${mode === m ? "chip-on" : ""}`}
+              >
+                {t(`mode.${m}`)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-      )}
+
+      <div>
+        <p className="mb-2 text-sm font-semibold">{t("activityLabel")}</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {ACTIVITIES.map((a) => (
+            <button
+              key={a}
+              onClick={() => start(a)}
+              className={`group flex flex-col items-start gap-2 rounded-2xl border-2 p-4 text-left transition-colors ${activity === a ? "border-accent/60 bg-card" : "border-line bg-card"} hover:border-accent hover:bg-accent/5`}
+            >
+              <span className="flex w-full items-center gap-2">
+                <span className="flex size-10 items-center justify-center rounded-xl bg-paper text-accent group-hover:bg-accent group-hover:text-on-accent [&>svg]:size-5">{ICON[a]}</span>
+                <I.IconPlay className="ml-auto h-4 w-4 text-muted group-hover:text-accent" />
+              </span>
+              <b>{t(`activity.${a}`)}</b>
+              <span className="text-xs leading-snug text-muted">{t(`activityHint.${a}`)}</span>
+              {a === "picture" && <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-muted">{t("withImages", { n: words.filter((w) => w.images?.length).length })}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

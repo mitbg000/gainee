@@ -907,7 +907,6 @@
     "intro": "Học và luyện các từ đã lưu theo kiểu Quizlet. “Viết câu” và “Đoạn văn ôn tập” được tính là lần ôn trong lịch ôn; các cách còn lại thì không.",
     "all": "Tất cả",
     "empty": "Bạn chưa lưu từ nào. Hãy lưu từ khi đọc bài.",
-    "modeLabel": "Kiểu luyện",
     "sizeLabel": "Số từ",
     "allWords": "Tất cả ({n})",
     "start": "Bắt đầu",
@@ -975,7 +974,6 @@
       "random": "Ngẫu nhiên",
       "weak": "Hay quên"
     },
-    "startActivity": "Bắt đầu {a}",
     "cards": {
       "know": "Đã biết",
       "learning": "Đang học",
@@ -1026,7 +1024,6 @@
       "exit": "Thoát",
       "tooFew": "Cần ít nhất 2 từ có nghĩa để chơi."
     },
-    "passageNote": "AI tự chọn 8 từ bạn sắp quên (đến hạn ôn trong 3 ngày tới) để viết đoạn văn. Bấm vào từ được tô để xem nghĩa.",
     "withImages": "{n} từ có ảnh",
     "picture": {
       "none": "Chưa có từ nào có ảnh. Thêm ảnh cho từ trong Sổ tay hoặc khi sửa học phần.",
@@ -1040,7 +1037,8 @@
       "next": "Tiếp",
       "retryWrong": "Luyện lại câu sai",
       "typingRound": "Vòng tự gõ"
-    }
+    },
+    "modeLabelTest": "Dạng câu hỏi (cho Kiểm tra)"
   },
   "writing": {
     "title": "Luyện Writing",

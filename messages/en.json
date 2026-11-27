@@ -907,7 +907,6 @@
     "intro": "Study and practise your saved words Quizlet-style. “Write” and “Review passage” count as reviews in your schedule; the others don't.",
     "all": "All",
     "empty": "No saved words yet. Save words while reading.",
-    "modeLabel": "Practice type",
     "sizeLabel": "How many",
     "allWords": "All ({n})",
     "start": "Start",
@@ -975,7 +974,6 @@
       "random": "Random",
       "weak": "Often forgotten"
     },
-    "startActivity": "Start {a}",
     "cards": {
       "know": "Know",
       "learning": "Still learning",
@@ -1026,7 +1024,6 @@
       "exit": "Exit",
       "tooFew": "You need at least 2 words with a meaning to play."
     },
-    "passageNote": "AI picks 8 words you're about to forget (due within 3 days) and writes a passage. Tap a highlighted word to see its meaning.",
     "withImages": "{n} words with pictures",
     "picture": {
       "none": "No words have pictures yet. Add pictures in the notebook or when editing a set.",
@@ -1040,7 +1037,8 @@
       "next": "Next",
       "retryWrong": "Retry the misses",
       "typingRound": "Typing round"
-    }
+    },
+    "modeLabelTest": "Question type (for Test)"
   },
   "writing": {
     "title": "Writing practice",
