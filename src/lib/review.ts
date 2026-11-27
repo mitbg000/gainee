@@ -36,8 +36,9 @@ function preview(c: Card, now = new Date()) {
   return ([1, 2, 3, 4] as Grade[]).map((g) => r[g].card.due.getTime() - now.getTime());
 }
 
+// words already studied once; new words are learned in Quick study first
 const dueFilter = (uid: number, documentId?: number) =>
-  and(eq(words.userId, uid), eq(words.suspended, false), lte(words.due, new Date()), documentId ? eq(lessons.documentId, documentId) : undefined);
+  and(eq(words.userId, uid), eq(words.suspended, false), gt(words.state, 0), lte(words.due, new Date()), documentId ? eq(lessons.documentId, documentId) : undefined);
 
 /** Words due now (oldest first), optionally only from one text. */
 export async function dueWords(documentId?: number, limit = 50) {
@@ -61,18 +62,10 @@ export async function dueWords(documentId?: number, limit = 50) {
     mnemonic: w.mnemonic,
     context: w.context,
     state: w.state,
+    stability: w.stability,
     next: preview(toCard(w)),
     images: (images.get(w.id) ?? []).map((i) => i.url),
   }));
-}
-
-/** Words that fall due within the next day (not yet due now) – "tomorrow" on the review page. */
-export async function dueSoon() {
-  const [r] = await getDb()
-    .select({ n: count() })
-    .from(words)
-    .where(and(eq(words.userId, await myId()), eq(words.suspended, false), gt(words.due, new Date()), lte(words.due, new Date(Date.now() + 24 * 3600_000))));
-  return r?.n ?? 0;
 }
 
 /** Due counts per text (texts without due words are left out); `null` id = words not tied to a text. */
@@ -117,7 +110,7 @@ export async function gradeWord(id: number, rating: Grade, mode: LogMode, durati
 
 /** Number of words due now (badge in the top bar). */
 export async function dueCount() {
-  const [r] = await getDb().select({ n: count() }).from(words).where(and(eq(words.userId, await myId()), eq(words.suspended, false), lte(words.due, new Date())));
+  const [r] = await getDb().select({ n: count() }).from(words).where(dueFilter(await myId()));
   return r?.n ?? 0;
 }
 
@@ -173,4 +166,37 @@ export async function quickCounts() {
     db.select({ n: count() }).from(words).where(and(base, eq(words.state, 2), sql`${words.scheduledDays} >= ${LEARNED_DAYS}`)),
   ]);
   return { fresh: fresh.n, due: due.n, nextDue: next.at ? new Date(next.at) : null, learned: learned.n };
+}
+
+/**
+ * The review start screen: words due now, learned, all, and how many fall due on each of the next 7 days
+ * (day 0 = today, with everything overdue), in the app's time zone. Optionally only one text's words.
+ */
+export async function reviewForecast(documentId?: number) {
+  const uid = await myId();
+  const tz = process.env.TZ || "Asia/Ho_Chi_Minh";
+  const dayOf = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: tz });
+  const rows = await getDb()
+    .select({ due: words.due, state: words.state, scheduledDays: words.scheduledDays })
+    .from(words)
+    .leftJoin(lessons, eq(words.lessonId, lessons.id))
+    .where(and(eq(words.userId, uid), eq(words.suspended, false), documentId ? eq(lessons.documentId, documentId) : undefined));
+  const now = new Date();
+  const days = Array.from({ length: 7 }, (_, i) => ({ day: dayOf(new Date(now.getTime() + i * 86_400_000)), n: 0 }));
+  let due = 0;
+  for (const r of rows) {
+    if (r.state === 0) continue; // new words are learned in Quick study, not reviewed
+    if (r.due <= now) due++;
+    const i = r.due <= now ? 0 : days.findIndex((d) => d.day === dayOf(r.due));
+    if (i >= 0) days[i].n++;
+  }
+  const reviewed = rows.filter((r) => r.state > 0);
+  return {
+    due,
+    learned: reviewed.filter((r) => r.state === 2 && r.scheduledDays >= LEARNED_DAYS).length,
+    total: reviewed.length,
+    fresh: rows.length - reviewed.length,
+    days,
+    next: reviewed.filter((r) => r.due > now).reduce<Date | null>((m, r) => (!m || r.due < m ? r.due : m), null),
+  };
 }
