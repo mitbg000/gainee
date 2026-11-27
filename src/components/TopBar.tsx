@@ -13,7 +13,7 @@ import { NAV } from "./nav";
 import * as I from "./icons";
 
 /** Desktop top bar, kept minimal: where you are (breadcrumbs), quick look-up, due reviews and the user menu. */
-export default function TopBar({ tree, due, theme, streak, credits }: { tree: TreeDoc[]; due: number; theme: Theme; streak: number; /** null: admin, not charged */ credits: number | null }) {
+export default function TopBar({ tree, due, theme, streak, credits, me }: { tree: TreeDoc[]; due: number; theme: Theme; streak: number; /** null: admin, not charged */ credits: number | null; me: { avatar: string | null; name: string } }) {
   const t = useTranslations("nav");
   const tt = useTranslations("topbar");
   const path = usePathname();
@@ -98,7 +98,7 @@ export default function TopBar({ tree, due, theme, streak, credits }: { tree: Tr
         )}
       </Link>
       <MuteButton />
-      <UserMenu theme={theme} />
+      <UserMenu theme={theme} me={me} />
     </div>
   );
 }

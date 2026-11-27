@@ -53,6 +53,7 @@ export const users = mysqlTable("users", {
   id: pk(),
   email: varchar("email", { length: 191 }).notNull().unique(), // lower-case; the first admin may be a plain username
   name: varchar("name", { length: 100 }),
+  avatar: varchar("avatar", { length: 255 }), // picture under UPLOAD_DIR/images
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   role: mysqlEnum("role", ROLES).notNull().default("student"),
   /** per-user switches over the role's defaults: {"chat": false, "images": true} */
@@ -73,7 +74,7 @@ export const creditLogs = mysqlTable(
     userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     amount: double("amount").notNull(),
     balance: double("balance").notNull(), // after this change
-    kind: mysqlEnum("kind", ["signup", "topup", "admin", "ai"]).notNull(),
+    kind: mysqlEnum("kind", ["signup", "topup", "admin", "ai", "gift"]).notNull(),
     note: varchar("note", { length: 255 }),
     aiCallId: int("ai_call_id"),
     createdAt: createdAt(),
@@ -91,10 +92,56 @@ export const topups = mysqlTable(
     price: int("price").notNull(), // VND
     status: mysqlEnum("status", ["pending", "done", "rejected"]).notNull().default("pending"),
     note: varchar("note", { length: 255 }),
+    couponId: int("coupon_id"), // discount code used; price is already reduced
+    discount: int("discount").notNull().default(0), // VND off
     createdAt: createdAt(),
     doneAt: ts("done_at"),
   },
   (t) => [index("topups_status").on(t.status, t.createdAt), index("topups_user").on(t.userId)],
+);
+
+/**
+ * Codes: "gift" adds credits at once; "discount" lowers the price of a top-up package (percent or VND).
+ * Each user uses a code once; `maxUses` caps the uses of everyone together.
+ */
+export const coupons = mysqlTable("coupons", {
+  id: pk(),
+  code: varchar("code", { length: 40 }).notNull().unique(), // upper-case
+  kind: mysqlEnum("kind", ["gift", "discount"]).notNull(),
+  credits: double("credits").notNull().default(0), // gift
+  percent: int("percent").notNull().default(0), // discount
+  amount: int("amount").notNull().default(0), // discount, VND
+  maxUses: int("max_uses"), // null = no cap
+  used: int("used").notNull().default(0),
+  expiresAt: ts("expires_at"),
+  active: boolean("active").notNull().default(true),
+  note: varchar("note", { length: 255 }),
+  createdAt: createdAt(),
+});
+
+export const couponUses = mysqlTable(
+  "coupon_uses",
+  {
+    couponId: int("coupon_id").notNull().references(() => coupons.id, { onDelete: "cascade" }),
+    userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.couponId, t.userId] })],
+);
+
+/** Every login try, for the admin's security page. */
+export const loginLogs = mysqlTable(
+  "login_logs",
+  {
+    id: pk(),
+    userId: int("user_id"),
+    login: varchar("login", { length: 191 }).notNull(),
+    ip: varchar("ip", { length: 64 }).notNull(),
+    ok: boolean("ok").notNull(),
+    reason: varchar("reason", { length: 40 }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("login_logs_created").on(t.createdAt), index("login_logs_user").on(t.userId)],
 );
 
 /** Learner groups: which shared texts they see, and feature switches for all their members. */

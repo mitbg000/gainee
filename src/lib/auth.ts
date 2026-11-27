@@ -11,16 +11,17 @@ const WINDOW_MS = 15 * 60 * 1000;
 /** Client IP: Cloudflare's header, else the address Nginx saw. X-Forwarded-For's first entry is sent by the client, so it is not trusted. */
 export const clientIp = (req: Request) => req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "local";
 
-export function blocked(ip: string) {
+/** `global` false: a limit of its own (e.g. gift codes per user), apart from the logins' overall one. */
+export function blocked(ip: string, global = true) {
   const over = (key: string, max: number) => {
     const f = failures.get(key);
     return !!f && f.n >= max && f.until > Date.now();
   };
-  return over(ip, 5) || over("*", 50);
+  return over(ip, 5) || (global && over("*", 50));
 }
 
-export async function failed(ip: string) {
-  for (const key of [ip, "*"]) {
+export async function failed(ip: string, global = true) {
+  for (const key of global ? [ip, "*"] : [ip]) {
     const f = failures.get(key);
     const cur = f && f.until > Date.now() ? f : { n: 0, until: Date.now() + WINDOW_MS };
     cur.n++;

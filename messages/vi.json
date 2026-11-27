@@ -343,6 +343,13 @@
       "reset": "Khôi phục mặc định",
       "language": "Ngôn ngữ",
       "sound": "Âm thanh"
+    },
+    "avatar": {
+      "title": "Ảnh đại diện",
+      "change": "Đổi ảnh",
+      "remove": "Xoá ảnh",
+      "uploading": "Đang tải lên…",
+      "error": "Không tải được ảnh (PNG, JPG, WebP, GIF, tối đa 8 MB)"
     }
   },
   "import": {
@@ -1811,7 +1818,8 @@
       "too_many_attempts": "Thử quá nhiều lần. Hãy đợi 15 phút.",
       "signup_closed": "Hiện chưa mở đăng ký",
       "invalid": "Email hoặc mật khẩu chưa hợp lệ",
-      "unknown": "Đăng ký thất bại"
+      "unknown": "Đăng ký thất bại",
+      "captcha": "Hãy xác nhận bạn không phải robot rồi thử lại"
     }
   },
   "credits": {
@@ -1836,7 +1844,8 @@
       "signup": "Quà đăng ký",
       "topup": "Nạp",
       "admin": "Quản trị viên điều chỉnh",
-      "ai": "Dùng AI"
+      "ai": "Dùng AI",
+      "gift": "Mã quà"
     },
     "task": {
       "lesson_generate": "tạo bài học",
@@ -1850,7 +1859,22 @@
     "tooMany": "Bạn đang có 3 yêu cầu chờ duyệt",
     "failed": "Không gửi được yêu cầu",
     "sending": "Đang gửi…",
-    "asked": "Đã gửi yêu cầu {code}. Ghi mã này vào nội dung chuyển khoản; credit được cộng khi quản trị viên xác nhận."
+    "asked": "Đã gửi yêu cầu {code}. Ghi mã này vào nội dung chuyển khoản; credit được cộng khi quản trị viên xác nhận.",
+    "giftCode": "Mã quà tặng",
+    "redeem": "Nhận credit",
+    "redeemed": "Đã cộng credit vào tài khoản",
+    "discountCode": "Mã giảm giá",
+    "apply": "Áp dụng",
+    "applied": "Đã áp dụng mã: giá mới ở trên",
+    "saved": "tiết kiệm {n}",
+    "codeErrors": {
+      "bad_code": "Mã không đúng",
+      "expired": "Mã đã hết hạn",
+      "used_up": "Mã đã hết lượt dùng",
+      "already_used": "Bạn đã dùng mã này rồi",
+      "too_many_attempts": "Nhập sai quá nhiều lần, hãy đợi 15 phút",
+      "invalid": "Mã không hợp lệ"
+    }
   },
   "admin": {
     "title": "Quản trị",
@@ -1859,7 +1883,9 @@
       "topups": "Yêu cầu nạp",
       "pricing": "Giá credit",
       "usage": "Dùng AI",
-      "groups": "Nhóm"
+      "groups": "Nhóm",
+      "coupons": "Mã",
+      "security": "Bảo mật"
     },
     "user": "Người dùng",
     "role": "Vai trò",
@@ -1967,6 +1993,104 @@
       "deleteConfirm": "Xoá nhóm \"{name}\"? Học viên không bị xoá, chỉ rời nhóm.",
       "saved": "Đã lưu",
       "error": "Không lưu được"
+    },
+    "logoutAll": "Đăng xuất mọi thiết bị",
+    "logoutAllConfirm": "Đăng xuất người này khỏi mọi thiết bị?",
+    "loggedOut": "Đã đăng xuất khỏi mọi thiết bị",
+    "coupons": {
+      "new": "Tạo mã mới",
+      "code": "Mã",
+      "kind": "Loại",
+      "gift": "Quà credit",
+      "discount": "Giảm giá nạp",
+      "credits": "Số credit",
+      "maxUses": "Tổng số lượt",
+      "unlimited": "Không giới hạn",
+      "expires": "Hết hạn (tuỳ chọn)",
+      "note": "Ghi chú",
+      "create": "Tạo mã",
+      "oncePerUser": "Mỗi người dùng một mã một lần.",
+      "duplicate": "Mã này đã có",
+      "invalid": "Mã chưa hợp lệ (cần số credit, hoặc % / số tiền giảm)",
+      "none": "Chưa có mã nào",
+      "giftOf": "+{n} credit",
+      "usedOf": "đã dùng {n}/{max}",
+      "until": "đến {date}",
+      "pause": "Tạm dừng",
+      "resume": "Bật lại",
+      "delete": "Xoá",
+      "deleteConfirm": "Xoá mã {code}?"
+    },
+    "security": {
+      "checksTitle": "Kiểm tra bảo mật",
+      "loginsTitle": "Đăng nhập gần đây",
+      "aiTitle": "Giới hạn AI cho học viên",
+      "aiHint": "Không áp dụng cho quản trị viên. 0 = không giới hạn.",
+      "perMinute": "Lượt gọi AI tối đa mỗi phút",
+      "perDay": "Credit tối đa trong 24 giờ",
+      "maxInput": "Ký tự tối đa gửi cho AI mỗi lượt",
+      "maxOutput": "Token trả lời tối đa mỗi lượt",
+      "captchaTitle": "Captcha khi đăng ký (Cloudflare Turnstile)",
+      "captchaHint": "Tạo widget miễn phí ở dash.cloudflare.com → Turnstile, thêm tên miền của site, rồi dán Site key và Secret key vào đây.",
+      "captchaOn": "Bắt buộc captcha khi đăng ký",
+      "secretKept": "Đã lưu (để trống nếu không đổi)",
+      "needKeys": "Cần cả Site key và Secret key thì captcha mới bật.",
+      "save": "Lưu",
+      "saving": "Đang lưu…",
+      "saved": "Đã lưu",
+      "error": "Không lưu được",
+      "reason": {
+        "password": "sai mật khẩu",
+        "no_account": "không có tài khoản",
+        "locked": "tài khoản bị khoá",
+        "blocked": "bị chặn vì thử sai nhiều"
+      },
+      "check": {
+        "sessionSecret": {
+          "title": "SESSION_SECRET đủ mạnh (ký phiên đăng nhập)",
+          "fix": "Đặt SESSION_SECRET dài ít nhất 32 ký tự ngẫu nhiên trong .env (openssl rand -hex 32), rồi khởi động lại. Mọi người sẽ phải đăng nhập lại."
+        },
+        "encryptionKey": {
+          "title": "ENCRYPTION_KEY hợp lệ (mã hoá API key AI và secret captcha)",
+          "fix": "Đặt ENCRYPTION_KEY = openssl rand -base64 32 trong .env. Đổi khoá sẽ làm các API key đã lưu không đọc được."
+        },
+        "cookieSecure": {
+          "title": "Cookie đăng nhập chỉ gửi qua HTTPS",
+          "fix": "Chạy với NODE_ENV=production và không đặt COOKIE_SECURE=0."
+        },
+        "keysHidden": {
+          "title": "API key AI chỉ nằm trên server (mã hoá trong DB, trình duyệt chỉ thấy bản che)",
+          "fix": ""
+        },
+        "admins": {
+          "title": "{n} tài khoản quản trị đang hoạt động",
+          "fix": "Nên chỉ có ít tài khoản quản trị; khoá các tài khoản không dùng."
+        },
+        "signupCaptcha": {
+          "title": "Đăng ký công khai có captcha",
+          "fix": "Đang mở đăng ký mà chưa bật captcha: bot có thể tạo nhiều tài khoản (nhất là khi có credit tặng). Bật Turnstile bên dưới."
+        },
+        "aiRate": {
+          "title": "Có giới hạn số lượt gọi AI mỗi phút",
+          "fix": "Đặt giới hạn lượt gọi mỗi phút để một tài khoản không đốt hết credit/API."
+        },
+        "aiDaily": {
+          "title": "Có giới hạn credit AI mỗi ngày",
+          "fix": "Đặt mức credit tối đa trong 24 giờ để chặn dùng bất thường."
+        },
+        "aiSize": {
+          "title": "Có giới hạn độ dài mỗi yêu cầu AI",
+          "fix": "Đặt số ký tự vào và token ra tối đa cho mỗi lượt."
+        },
+        "providers": {
+          "title": "{n} nhà cung cấp AI đang bật",
+          "fix": "Chưa có nhà cung cấp AI nào bật: thêm ở Cài đặt → AI."
+        },
+        "failedLogins": {
+          "title": "{n} lần đăng nhập sai trong 24 giờ",
+          "fix": "Nhiều lần đăng nhập sai: xem danh sách bên dưới, khoá hoặc đổi mật khẩu tài khoản bị nhắm tới."
+        }
+      }
     }
   }
 }

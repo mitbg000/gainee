@@ -1,14 +1,16 @@
 "use client";
 
+import Script from "next/script";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import type { Theme } from "@/theme/config";
 
-const KNOWN = ["email_taken", "too_many_attempts", "signup_closed", "invalid"];
+const KNOWN = ["email_taken", "too_many_attempts", "signup_closed", "invalid", "captcha"];
 
-export default function RegisterForm({ theme, bonus }: { theme: Theme; bonus: number }) {
+/** `siteKey`: Cloudflare Turnstile is on (the widget puts its answer in the form field cf-turnstile-response). */
+export default function RegisterForm({ theme, bonus, siteKey }: { theme: Theme; bonus: number; siteKey: string | null }) {
   const t = useTranslations();
   const [f, setF] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
@@ -18,8 +20,11 @@ export default function RegisterForm({ theme, bonus }: { theme: Theme; bonus: nu
     e.preventDefault();
     setBusy(true);
     setError("");
-    const r = await fetch("/api/auth/register", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(f) }).catch(() => null);
+    const form = e.currentTarget as HTMLFormElement;
+    const captcha = (form.elements.namedItem("cf-turnstile-response") as HTMLInputElement | null)?.value || undefined;
+    const r = await fetch("/api/auth/register", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...f, captcha }) }).catch(() => null);
     setBusy(false);
+    if (!r?.ok) (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset(); // a token works once
     if (r?.ok) return window.location.replace("/");
     const code = (await r?.json().catch(() => ({})))?.error;
     setError(KNOWN.includes(code) ? code : "unknown");
@@ -49,6 +54,12 @@ export default function RegisterForm({ theme, bonus }: { theme: Theme; bonus: nu
       {field("email", "email", "email")}
       {field("password", "password", "new-password")}
       <p className="mt-1 text-xs text-muted">{t("register.passwordHint")}</p>
+      {siteKey && (
+        <>
+          <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+          <div className="cf-turnstile mt-4" data-sitekey={siteKey} />
+        </>
+      )}
       {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{t(`register.errors.${error}`)}</p>}
       <button type="submit" disabled={busy} className="btn btn-primary mt-5 w-full">
         {busy ? t("login.checking") : t("register.submit")}

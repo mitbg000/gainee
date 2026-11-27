@@ -9,9 +9,15 @@ export const runtime = "nodejs";
 
 const DUMMY = hashPassword("timing-only"); // checked when the account does not exist, so timing tells nothing
 
+/** Every try goes to login_logs (the admin's security page); a failed log write never blocks a login. */
+const note = (v: typeof schema.loginLogs.$inferInsert) => getDb().insert(schema.loginLogs).values({ ...v, login: v.login.slice(0, 191) }).catch(() => {});
+
 export async function POST(req: NextRequest) {
-  const ip = clientIp(req);
-  if (blocked(ip)) return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
+  const ip = clientIp(req).slice(0, 64);
+  if (blocked(ip)) {
+    await note({ login: "", ip, ok: false, reason: "blocked" });
+    return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
+  }
 
   const { username, password } = (await req.json().catch(() => ({}))) as { username?: string; password?: string };
   const login = String(username ?? "").trim().toLowerCase();
@@ -29,10 +35,15 @@ export async function POST(req: NextRequest) {
 
   const ok = verifyPassword(String(password ?? ""), u?.passwordHash ?? DUMMY) && !!u;
   if (!ok) {
+    await note({ userId: u?.id ?? null, login, ip, ok: false, reason: u ? "password" : "no_account" });
     await failed(ip);
     return NextResponse.json({ error: "wrong_credentials" }, { status: 401 });
   }
-  if (u.disabled) return NextResponse.json({ error: "locked" }, { status: 403 });
+  if (u.disabled) {
+    await note({ userId: u.id, login, ip, ok: false, reason: "locked" });
+    return NextResponse.json({ error: "locked" }, { status: 403 });
+  }
+  await note({ userId: u.id, login, ip, ok: true });
   passed(ip);
   await db.update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, u.id));
   if (u.role === "admin") await claimOrphans(u.id); // once: the one-user data becomes the first admin's

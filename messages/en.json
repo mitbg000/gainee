@@ -343,6 +343,13 @@
       "reset": "Reset to default",
       "language": "Language",
       "sound": "Sound"
+    },
+    "avatar": {
+      "title": "Profile picture",
+      "change": "Change picture",
+      "remove": "Remove",
+      "uploading": "Uploading…",
+      "error": "Could not upload (PNG, JPG, WebP, GIF, up to 8 MB)"
     }
   },
   "import": {
@@ -1811,7 +1818,8 @@
       "too_many_attempts": "Too many tries. Please wait 15 minutes.",
       "signup_closed": "Sign-up is not open",
       "invalid": "Email or password is not valid",
-      "unknown": "Sign-up failed"
+      "unknown": "Sign-up failed",
+      "captcha": "Please confirm you are not a robot and try again"
     }
   },
   "credits": {
@@ -1836,7 +1844,8 @@
       "signup": "Sign-up gift",
       "topup": "Top-up",
       "admin": "Set by admin",
-      "ai": "AI use"
+      "ai": "AI use",
+      "gift": "Gift code"
     },
     "task": {
       "lesson_generate": "lesson",
@@ -1850,7 +1859,22 @@
     "tooMany": "You already have 3 requests waiting",
     "failed": "Could not send the request",
     "sending": "Sending…",
-    "asked": "Request {code} sent. Put this code in the transfer note; the credits are added once the admin confirms the payment."
+    "asked": "Request {code} sent. Put this code in the transfer note; the credits are added once the admin confirms the payment.",
+    "giftCode": "Gift code",
+    "redeem": "Redeem",
+    "redeemed": "Credits added to your account",
+    "discountCode": "Discount code",
+    "apply": "Apply",
+    "applied": "Code applied: new prices above",
+    "saved": "you save {n}",
+    "codeErrors": {
+      "bad_code": "Wrong code",
+      "expired": "This code has expired",
+      "used_up": "This code has no uses left",
+      "already_used": "You already used this code",
+      "too_many_attempts": "Too many wrong codes, wait 15 minutes",
+      "invalid": "Invalid code"
+    }
   },
   "admin": {
     "title": "Admin",
@@ -1859,7 +1883,9 @@
       "topups": "Top-ups",
       "pricing": "Credit prices",
       "usage": "AI usage",
-      "groups": "Groups"
+      "groups": "Groups",
+      "coupons": "Codes",
+      "security": "Security"
     },
     "user": "User",
     "role": "Role",
@@ -1967,6 +1993,104 @@
       "deleteConfirm": "Delete the group \"{name}\"? Its learners are kept, they only leave it.",
       "saved": "Saved",
       "error": "Could not save"
+    },
+    "logoutAll": "Log out everywhere",
+    "logoutAllConfirm": "Log this user out on every device?",
+    "loggedOut": "Logged out on every device",
+    "coupons": {
+      "new": "New code",
+      "code": "Code",
+      "kind": "Kind",
+      "gift": "Credit gift",
+      "discount": "Top-up discount",
+      "credits": "Credits",
+      "maxUses": "Total uses",
+      "unlimited": "No limit",
+      "expires": "Expires (optional)",
+      "note": "Note",
+      "create": "Create code",
+      "oncePerUser": "Each user can use a code once.",
+      "duplicate": "This code already exists",
+      "invalid": "Not valid yet (needs credits, or a % / amount off)",
+      "none": "No codes yet",
+      "giftOf": "+{n} credits",
+      "usedOf": "used {n}/{max}",
+      "until": "until {date}",
+      "pause": "Pause",
+      "resume": "Resume",
+      "delete": "Delete",
+      "deleteConfirm": "Delete code {code}?"
+    },
+    "security": {
+      "checksTitle": "Security checks",
+      "loginsTitle": "Recent logins",
+      "aiTitle": "AI limits for learners",
+      "aiHint": "Admins are not limited. 0 = no limit.",
+      "perMinute": "AI calls per minute",
+      "perDay": "Credits in 24 hours",
+      "maxInput": "Characters sent to the AI per call",
+      "maxOutput": "Reply tokens per call",
+      "captchaTitle": "Sign-up captcha (Cloudflare Turnstile)",
+      "captchaHint": "Create a free widget at dash.cloudflare.com → Turnstile, add the site's domain, then paste the Site key and Secret key here.",
+      "captchaOn": "Require a captcha to sign up",
+      "secretKept": "Saved (leave empty to keep it)",
+      "needKeys": "Both the Site key and the Secret key are needed for the captcha to work.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Could not save",
+      "reason": {
+        "password": "wrong password",
+        "no_account": "no such account",
+        "locked": "account locked",
+        "blocked": "blocked after many failures"
+      },
+      "check": {
+        "sessionSecret": {
+          "title": "SESSION_SECRET is strong (signs login sessions)",
+          "fix": "Set SESSION_SECRET to at least 32 random characters in .env (openssl rand -hex 32) and restart. Everyone logs in again."
+        },
+        "encryptionKey": {
+          "title": "ENCRYPTION_KEY is valid (encrypts AI keys and the captcha secret)",
+          "fix": "Set ENCRYPTION_KEY = openssl rand -base64 32 in .env. Changing it makes stored API keys unreadable."
+        },
+        "cookieSecure": {
+          "title": "Login cookie is sent over HTTPS only",
+          "fix": "Run with NODE_ENV=production and without COOKIE_SECURE=0."
+        },
+        "keysHidden": {
+          "title": "AI API keys stay on the server (encrypted in the database, the browser sees a masked form)",
+          "fix": ""
+        },
+        "admins": {
+          "title": "{n} active admin accounts",
+          "fix": "Keep few admin accounts; lock the ones not in use."
+        },
+        "signupCaptcha": {
+          "title": "Public sign-up has a captcha",
+          "fix": "Sign-up is open without a captcha: bots can create many accounts (especially with free credits). Turn on Turnstile below."
+        },
+        "aiRate": {
+          "title": "AI calls per minute are limited",
+          "fix": "Set a per-minute limit so one account cannot burn the credits or the API."
+        },
+        "aiDaily": {
+          "title": "Daily AI credits are limited",
+          "fix": "Set the most credits in 24 hours to stop unusual use."
+        },
+        "aiSize": {
+          "title": "The size of one AI request is limited",
+          "fix": "Set the most characters in and tokens out per call."
+        },
+        "providers": {
+          "title": "{n} AI providers enabled",
+          "fix": "No AI provider is enabled: add one under Settings → AI."
+        },
+        "failedLogins": {
+          "title": "{n} failed logins in 24 hours",
+          "fix": "Many failed logins: check the list below, lock or change the password of the targeted account."
+        }
+      }
     }
   }
 }

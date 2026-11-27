@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import BuyPackage from "@/components/admin/BuyPackage";
+import RedeemCode from "@/components/admin/RedeemCode";
 import { fmtCredits } from "@/lib/fmtCredits";
 import { getDb, schema } from "@/db";
 import { creditHistory, getCreditConfig } from "@/lib/credits";
@@ -54,6 +55,7 @@ export default async function CreditsPage() {
           ) : (
             <p className="mt-2 text-sm text-muted">{t("noPackages")}</p>
           )}
+          <RedeemCode />
           {mine.length > 0 && (
             <ul className="mt-4 divide-y divide-line border-t border-line text-sm">
               {mine.map((r) => (
@@ -61,6 +63,7 @@ export default async function CreditsPage() {
                   <span className="font-mono text-xs text-muted">GN{r.id}</span>
                   <span className="flex-1">
                     {t("packLine", { n: fmtCredits(r.credits) })} · {vnd(r.price)}
+                    {r.discount > 0 && <span className="text-xs text-green-700 dark:text-green-400"> ({t("saved", { n: vnd(r.discount) })})</span>}
                   </span>
                   <span className={`chip ${r.status === "done" ? "chip-on" : ""}`}>{t(`status.${r.status}`)}</span>
                 </li>

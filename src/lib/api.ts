@@ -25,5 +25,7 @@ export function aiRefused(e: unknown) {
   if (code === "not_configured") return bad("ai_not_configured", 409);
   if (code === "no_credits") return bad("no_credits", 402);
   if (code === "forbidden") return bad("forbidden", 403);
+  if (code === "rate_limited" || code === "daily_limit") return bad(code, 429);
+  if (code === "too_long") return bad("too_long", 413);
   return null;
 }

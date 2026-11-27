@@ -3,8 +3,10 @@ import { getTranslations } from "next-intl/server";
 import Shell from "@/components/Shell";
 import AiSettings from "@/components/settings/AiSettings";
 import AppearanceSettings from "@/components/settings/AppearanceSettings";
+import AvatarSettings from "@/components/settings/AvatarSettings";
 import ProfileSettings from "@/components/settings/ProfileSettings";
-import { requireRole } from "@/lib/users";
+import { imageUrl } from "@/lib/images";
+import { currentUser, requireRole } from "@/lib/users";
 import { getLook, getTheme } from "@/theme/server";
 
 const TABS = ["look", "profile", "ai"] as const;
@@ -12,6 +14,7 @@ const TABS = ["look", "profile", "ai"] as const;
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const t = await getTranslations("settings");
   const q = (await searchParams).tab;
+  const me = await currentUser();
   const tabs = (await requireRole("admin")) ? TABS : TABS.filter((x) => x !== "ai"); // AI providers and keys: admins only
   const tab = tabs.find((x) => x === q) ?? "look";
   return (
@@ -27,7 +30,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       </nav>
       <div role="tabpanel" className="mt-6">
         {tab === "look" && <AppearanceSettings initial={await getLook()} theme={await getTheme()} />}
-        {tab === "profile" && <ProfileSettings />}
+        {tab === "profile" && (
+          <>
+            <AvatarSettings url={me?.avatar ? imageUrl(me.avatar) : null} name={me?.name || me?.email || null} />
+            <ProfileSettings />
+          </>
+        )}
         {tab === "ai" && <AiSettings />}
       </div>
     </Shell>

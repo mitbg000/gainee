@@ -11,9 +11,10 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import SoundSettings from "./SoundSettings";
 import ThemeSwitcher from "./ThemeSwitcher";
 import * as I from "./icons";
+import Avatar from "./Avatar";
 
 /** The user icon in the top bar: settings, appearance, light/dark, language, install and log out in one menu. */
-export default function UserMenu({ theme }: { theme: Theme }) {
+export default function UserMenu({ theme, me }: { theme: Theme; me: { avatar: string | null; name: string } }) {
   const t = useTranslations("topbar");
   const tn = useTranslations("nav");
   const path = usePathname();
@@ -42,12 +43,13 @@ export default function UserMenu({ theme }: { theme: Theme }) {
         aria-haspopup="menu"
         aria-label={t("account")}
         title={t("account")}
-        className={`flex size-9 items-center justify-center rounded-full border-2 transition-colors ${open ? "border-accent bg-accent text-on-accent" : "border-line bg-card text-muted hover:border-accent/50 hover:text-ink"}`}
+        className={`flex size-9 items-center justify-center rounded-full border-2 transition-colors ${open ? "border-accent" : "border-line hover:border-accent/50"}`}
       >
-        <I.IconUser className="h-[18px] w-[18px]" />
+        <Avatar url={me.avatar} name={me.name} className="size-8 text-sm" />
       </button>
       {open && (
         <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-line bg-card p-2 shadow-xl">
+          <p className="truncate px-3 pb-2 pt-1 text-sm font-semibold">{me.name}</p>
           <Link role="menuitem" href="/settings" className={row}>
             <I.IconGear className="h-4 w-4 text-muted" /> {tn("settings")}
           </Link>

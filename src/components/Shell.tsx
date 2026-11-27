@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { sidebarTree } from "@/lib/documents/queries";
 import { dueCount } from "@/lib/review";
 import { streak } from "@/lib/stats";
+import { imageUrl } from "@/lib/images";
 import { currentUser, mayUse } from "@/lib/users";
 import { getTheme } from "@/theme/server";
 import ChatBubble from "./ChatBubble";
@@ -49,7 +50,7 @@ export default async function Shell({ children, wide = false, full = false }: { 
       </header>
 
       <div className="min-w-0 flex-1 md:flex md:flex-col">
-        <TopBar tree={tree} due={due} theme={theme} streak={days} credits={admin ? null : me.credits} />
+        <TopBar tree={tree} due={due} theme={theme} streak={days} credits={admin ? null : me.credits} me={{ avatar: me.avatar ? imageUrl(me.avatar) : null, name: me.name || me.email }} />
         <main
           className={`min-w-0 flex-1 px-4 pt-5 md:py-8 ${full ? "md:px-5" : "md:px-10"}`}
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}

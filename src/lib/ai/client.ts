@@ -9,6 +9,8 @@
 import { getDb, schema } from "@/db";
 import { actorId } from "@/lib/actor";
 import { addCredits, aiCost, getCreditConfig } from "@/lib/credits";
+import { and, eq, gte, sql } from "drizzle-orm";
+import { getSecurity } from "@/lib/security";
 import { getSetting } from "@/lib/settings";
 import { canUse, getUser, groupSwitches, type Feature, type User } from "@/lib/users";
 import { getProvider, listProviders } from "./providers";
@@ -32,7 +34,7 @@ export type ChatResult = { text: string; providerId: number; model: string; prom
 export class AiError extends Error {
   constructor(
     message: string,
-    public code: "not_configured" | "http" | "timeout" | "bad_response" | "no_credits" | "forbidden" = "http",
+    public code: "not_configured" | "http" | "timeout" | "bad_response" | "no_credits" | "forbidden" | "rate_limited" | "daily_limit" | "too_long" = "http",
     public status?: number,
   ) {
     super(message);
@@ -55,6 +57,26 @@ async function log(entry: typeof schema.aiCalls.$inferInsert) {
   } catch (e) {
     console.error("[ai] cannot log call:", e);
   }
+}
+
+/**
+ * The admin's limits for learners (admins are not limited): calls a minute, credits in 24 hours, text size of one call;
+ * replies are cut to the output cap.
+ */
+async function limit<T extends { messages?: ChatMessage[]; maxTokens?: number }>(u: User | null, opts: T): Promise<T> {
+  if (!u || u.role === "admin") return opts;
+  const sec = await getSecurity();
+  const c = schema.aiCalls;
+  if (opts.messages && sec.maxInputChars && guessTokens(opts.messages) * 4 > sec.maxInputChars) throw new AiError("The text is too long for one AI request", "too_long", 413);
+  if (sec.aiPerMinute) {
+    const [{ n }] = await getDb().select({ n: sql<number>`count(*)` }).from(c).where(and(eq(c.userId, u.id), gte(c.createdAt, new Date(Date.now() - 60_000))));
+    if (Number(n) >= sec.aiPerMinute) throw new AiError("Too many AI requests: wait a minute", "rate_limited", 429);
+  }
+  if (sec.aiCreditsPerDay) {
+    const [{ n }] = await getDb().select({ n: sql<number>`coalesce(sum(${c.credits}), 0)` }).from(c).where(and(eq(c.userId, u.id), gte(c.createdAt, new Date(Date.now() - 86_400_000))));
+    if (Number(n) >= sec.aiCreditsPerDay) throw new AiError("Daily AI limit reached: try again tomorrow", "daily_limit", 429);
+  }
+  return sec.maxOutputTokens ? { ...opts, maxTokens: Math.min(opts.maxTokens ?? sec.maxOutputTokens, sec.maxOutputTokens) } : opts;
 }
 
 /** The user this call is for, once it may run; null = the system's own work (not charged). */
@@ -116,8 +138,9 @@ async function request(route: AiRoute, opts: ChatOptions, stream: boolean, signa
 }
 
 /** Non-streaming completion. */
-export async function chat(opts: ChatOptions): Promise<ChatResult> {
-  const user = await gate(opts.task);
+export async function chat(input: ChatOptions): Promise<ChatResult> {
+  const user = await gate(input.task);
+  const opts = await limit(user, input);
   const routes = await resolveRoutes(opts.task, opts.override);
   let lastErr: unknown;
   for (const route of routes) {
@@ -146,8 +169,9 @@ export async function chat(opts: ChatOptions): Promise<ChatResult> {
 }
 
 /** Streaming completion: yields text chunks. */
-export async function* chatStream(opts: ChatOptions, signal?: AbortSignal): AsyncGenerator<string, ChatResult> {
-  const user = await gate(opts.task);
+export async function* chatStream(input: ChatOptions, signal?: AbortSignal): AsyncGenerator<string, ChatResult> {
+  const user = await gate(input.task);
+  const opts = await limit(user, input);
   const routes = await resolveRoutes(opts.task, opts.override);
   const route = routes[0];
   const t0 = Date.now();
@@ -255,6 +279,7 @@ export async function listModels(providerId: number): Promise<string[]> {
 /** One picture from an OpenAI-compatible /images/generations endpoint (OpenAI gpt-image / DALL·E, xAI grok image). */
 export async function generateImage(providerId: number, model: string, prompt: string): Promise<Uint8Array> {
   const user = await gate("images");
+  await limit(user, {});
   const p = await getProvider(providerId);
   if (!p || !p.enabled) throw new AiError("Image provider not found or disabled", "not_configured");
   const body: Record<string, unknown> = { model, prompt, n: 1 };

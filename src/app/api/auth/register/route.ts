@@ -6,10 +6,11 @@ import { parseBody } from "@/lib/api";
 import { blocked, clientIp, failed, loggedIn } from "@/lib/auth";
 import { addCredits, getCreditConfig } from "@/lib/credits";
 import { hashPassword } from "@/lib/password";
+import { captchaOn, getSecurity, verifyTurnstile } from "@/lib/security";
 
 export const runtime = "nodejs";
 
-const Input = z.object({ email: z.string().trim().toLowerCase().email().max(191), password: z.string().min(8).max(200), name: z.string().trim().max(100).optional() });
+const Input = z.object({ email: z.string().trim().toLowerCase().email().max(191), password: z.string().min(8).max(200), name: z.string().trim().max(100).optional(), captcha: z.string().max(4000).optional() });
 
 /** Sign up as a learner (when the admin allows it), with the welcome credits. No e-mail check yet. */
 export async function POST(req: Request) {
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
   if (!cfg.allowSignup) return NextResponse.json({ error: "signup_closed" }, { status: 403 });
   const [d, err] = await parseBody(req, Input);
   if (err) return err;
+  const sec = await getSecurity();
+  if (captchaOn(sec) && !(await verifyTurnstile(sec, d.captcha, ip))) return NextResponse.json({ error: "captcha" }, { status: 400 });
   const db = getDb();
   if ((await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, d.email))).length) {
     await failed(ip); // also slows down probing which e-mails have accounts
