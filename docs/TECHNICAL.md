@@ -127,7 +127,7 @@ File tải lên: UPLOAD_DIR (ảnh, PDF sách, audio, clip câu nghe)
 | Thư viện, bài học | Dán bài/tải PDF/Word → làm sạch → chia phần → AI sinh từ vựng, bài tập, câu hỏi kiểu IELTS (job `generate_document`) | `lib/documents/*`, `lib/lessons/generate.ts`, `components/lesson/*` |
 | Khung đọc | Tra từ, highlight, ghi chú, hỏi AI về câu/từ, đo tốc độ đọc | `components/lesson/*`, `api/ai/ask` |
 | Sổ từ, ôn tập | Lưu từ (kèm ảnh), ôn FSRS nhiều kiểu (nhận diện, nhớ lại, điền, nghe, ảnh), viết câu được AI chấm | `lib/review.ts`, `lib/words.ts`, `lib/learn.ts` |
-| IELTS | Tải sách PDF + audio → AI đọc trang (OCR khi cần) → tách đề, nhóm câu, đáp án (job `ielts_import`) → biên tập viên duyệt (có "Tạo ô trả lời bằng AI") → học viên làm đề như thi máy, chấm band | `lib/ielts/import.ts`, `lib/ielts/score.ts`, `components/ielts/*` |
+| IELTS | Tải sách PDF + audio → đọc trang scan bằng Tesseract (AI chỉ đọc trang không rõ), tìm mốc Part (Moonshine, AI khi thiếu) → tách đề, nhóm câu, đáp án (job `ielts_import`) → biên tập viên duyệt (có "Tạo ô trả lời bằng AI") → học viên làm đề như thi máy, chấm band | `lib/ielts/import.ts`, `lib/ielts/score.ts`, `components/ielts/*` |
 | Kho nghe (dictation) | Video YouTube (phụ đề) và phần nghe IELTS (Whisper khớp với transcript) → tách câu, căn thời gian → chép chính tả, ôn câu sai; clip cắt sẵn cho nhanh | `lib/listen/*`, `worker/speech.ts`, `components/listen/*` |
 | Writing | Task 1/2, dịch câu; AI ra đề và chấm band theo tiêu chí | `lib/writing.ts` |
 | Trợ lý AI | Chat về bài đang học | `api/ai/chat`, `components/AssistantChat.tsx` |

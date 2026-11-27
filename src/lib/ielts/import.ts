@@ -1,6 +1,7 @@
 /**
  * Worker side of an IELTS book upload:
- *  1. OCR pages that have no text layer (scanned books) with a vision model, one page per call
+ *  1. OCR pages that have no text layer (scanned books): Tesseract here, a vision model only for the pages it cannot read
+ *     (whole-test recordings without part marks get them the same way: a speech model here, AI only for missed parts)
  *  2. outline: which pages hold each test's Listening parts, Reading passages, Writing tasks, answer keys and audioscripts
  *  3. one AI call per section → questions in the app's format (see types.ts)
  *  4. one AI call per test → answer key; audioscripts are split by "PART n" without AI
@@ -15,6 +16,7 @@ import { AiError, chat, parseJsonReply } from "@/lib/ai/client";
 import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
+import { fillMarks, goodOcr, runLocal } from "./serverRead";
 import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
 import { fitAnswers, GROUP_TYPES, splitBlanks, withoutPagePictures, type Group, type Item, type SectionContent, type Skill } from "./types";
 
@@ -48,6 +50,79 @@ async function ocrPage(p: Page): Promise<string> {
     ],
   });
   return text.trim();
+}
+
+/** Text of scanned pages: Tesseract on this server first; AI reads only the pages it got wrong, or all if it fails. */
+async function readScans(job: Job, scans: Page[]) {
+  if (!scans.length) return;
+  const db = getDb();
+  const save = async (p: Page, text: string) => {
+    await db.update(ieltsPages).set({ text, ocr: true }).where(eq(ieltsPages.id, p.id));
+    p.text = text;
+  };
+  const rough = new Map<number, string>(); // read, but not well: kept if AI cannot do better
+  let read = 0;
+  try {
+    await runLocal(["ocr", ...scans.map((p) => path.join(UPLOAD_DIR, p.imagePath!))], async (line) => {
+      const r = JSON.parse(line) as { i: number; text: string; confidence: number };
+      await setProgress(job.id, `ocr ${++read}/${scans.length}`);
+      if (goodOcr(r)) await save(scans[r.i], r.text);
+      else rough.set(scans[r.i].id, r.text);
+    });
+  } catch (e) {
+    if (e instanceof Error && e.message === CANCELLED) throw e;
+    console.warn("local OCR failed, AI reads the rest:", e);
+  }
+  const left = scans.filter((p) => EMPTY(p.text));
+  for (const [i, p] of left.entries()) {
+    await setProgress(job.id, `ocr AI ${i + 1}/${left.length}`);
+    try {
+      await save(p, await ocrPage(p));
+    } catch (e) {
+      const text = rough.get(p.id);
+      if (!text || EMPTY(text)) throw e;
+      await save(p, text);
+    }
+  }
+}
+
+/** Part marks for whole-test recordings that came without them; returns the test number each one announces. */
+async function findMissingMarks(job: Job, audio: (typeof ieltsAudio.$inferSelect)[]) {
+  const tests = new Map<number, number>();
+  const todo = audio.filter((a) => !a.marks && a.received === a.size && !audioTarget(a.name)?.part);
+  for (const [i, a] of todo.entries()) {
+    await setProgress(job.id, `marks ${i + 1}/${todo.length}`);
+    try {
+      let r = null as null | { marks: Record<string, number>; test: number | null; heard: { start: number; text: string }[] };
+      await runLocal(["marks", path.join(UPLOAD_DIR, a.path)], async (line) => void (r = JSON.parse(line)));
+      if (!r || !r.heard.length) continue; // one part only, nothing to mark
+      let marks = r.marks;
+      if (Object.keys(marks).length < 4) marks = fillMarks(marks, await guessMarks(r.heard).catch(() => ({})), r.heard.map((h) => h.start));
+      if (r.test) tests.set(a.id, r.test);
+      if (!Object.keys(marks).length) continue;
+      await getDb().update(ieltsAudio).set({ marks }).where(eq(ieltsAudio.id, a.id));
+      a.marks = marks;
+    } catch (e) {
+      // marks are a convenience: the book is still made, they can be set by hand
+      if (e instanceof Error && e.message === CANCELLED) throw e;
+      console.warn("part marks:", a.name, e);
+    }
+  }
+  return tests;
+}
+
+/** AI reads what the speech model heard (often misspelt) and names the moments where each part is announced. */
+async function guessMarks(heard: { start: number; text: string }[]) {
+  const { text } = await chat({
+    task: "ielts_import",
+    temperature: 0,
+    maxTokens: 300,
+    messages: [
+      { role: "system", content: "Reply with JSON only." },
+      { role: "user", content: `A speech model transcribed the few seconds after each pause of an IELTS Listening test recording (it mishears words). Give the second where each part (section) 1-4 starts being introduced, using only seconds from the list: {"1": s, "2": s, "3": s, "4": s}, null when unsure.\n${heard.map((h) => `${h.start.toFixed(1)}: ${h.text}`).join("\n").slice(0, 12000)}` },
+    ],
+  });
+  return parseJsonReply(text) as Record<string, unknown>;
 }
 
 type Range = { part: number; pages: [number, number] };
@@ -451,13 +526,7 @@ export async function importBook(job: Job) {
     let pages = await db.select().from(ieltsPages).where(eq(ieltsPages.bookId, bookId)).orderBy(asc(ieltsPages.page));
 
     // 1) OCR scanned pages (kept on retry: pages already read are skipped)
-    const scans = pages.filter((p) => EMPTY(p.text) && p.imagePath);
-    for (const [i, p] of scans.entries()) {
-      await setProgress(job.id, `ocr ${i + 1}/${scans.length}`);
-      const text = await ocrPage(p);
-      await db.update(ieltsPages).set({ text, ocr: true }).where(eq(ieltsPages.id, p.id));
-      p.text = text;
-    }
+    await readScans(job, pages.filter((p) => EMPTY(p.text) && p.imagePath));
     pages = pages.filter((p) => !EMPTY(p.text));
 
     // A retry after a restart, or "Continue", keeps the tests and parts already made and does only the rest,
@@ -478,11 +547,15 @@ export async function importBook(job: Job) {
     const oldSections = oldTests.length ? await db.select({ testId: ieltsSections.testId, skill: ieltsSections.skill, part: ieltsSections.part, content: ieltsSections.content }).from(ieltsSections).where(inArray(ieltsSections.testId, oldTests.map((x) => x.id))) : [];
     const lastPage = Math.max(...pages.map((p) => p.page));
     const audio = await db.select().from(ieltsAudio).where(eq(ieltsAudio.bookId, bookId));
+    const heardTest = await findMissingMarks(job, audio);
 
     // names without a test number ("ielts11.mp3", "ielts12.mp3"…): one file per test, in name order, when the counts match
     const unnamed = audio.filter((a) => !audioTarget(a.name)).sort((x, y) => x.name.localeCompare(y.name, undefined, { numeric: true }));
     const order = [...plan.tests].sort((x, y) => x.number - y.number);
     const byOrder = new Map<number, { test: number; part?: number }>(unnamed.length === order.length ? unnamed.map((a, i) => [a.id, { test: order[i].number }]) : []);
+
+    // a recording that only says its test number aloud ("Practice Test One")
+    for (const [id, test] of heardTest) if (!byOrder.has(id) && !audioTarget(audio.find((a) => a.id === id)!.name)) byOrder.set(id, { test });
 
     // books without "TEST n" headings over their audioscripts: split all of them at once, in book order
     const allScripts = textOfList(pages, plan.tests.flatMap((t) => t.scriptPages ?? []));
@@ -536,7 +609,7 @@ export async function importBook(job: Job) {
           content: { ...c, warnings } as unknown as Record<string, unknown>,
           answers,
           transcript: skill === "listening" ? await repaired(scripts[r.part]) : null,
-          // a whole-test file with part marks (found in the browser) gets this part's stretch
+          // a whole-test file with part marks gets this part's stretch
           audio: file ? (!file.to?.part && file.a.marks?.[r.part] !== undefined ? { fileId: file.a.id, start: file.a.marks[r.part], end: file.a.marks[r.part + 1] ?? null } : { fileId: file.a.id }) : null,
           pages: [range[0], range[1]],
         });

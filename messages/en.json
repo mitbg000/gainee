@@ -1416,7 +1416,7 @@
       "audioFiles": "Audio files (several allowed)",
       "audioHint": "Names like “Test 1.mp3” or “Test 1 Section 2.mp3” are attached to the right test automatically; others you attach on the review screen.",
       "localOcr": "Read scanned pages on this computer",
-      "localOcrHint": "Free and no server load, but slower (a few seconds per page). Pages it cannot read are read by AI from the picture (needs a vision model).",
+      "localOcrHint": "Free and no server load, but slower (a few seconds per page). Pages it cannot read are read by AI from the picture (needs a vision model). Unticked: the server reads them after the upload. Only pages it cannot read well go to AI (needs a vision model).",
       "start": "Upload and split",
       "keepOpen": "Keep this page open until the upload finishes. The AI step runs on the server; you can leave then.",
       "marks": "Finding part marks in {name}: {step}",
@@ -1608,7 +1608,7 @@
         "download": "Downloading audio {pct}%"
       },
       "auto": "Find where each part starts with AI (on this computer)",
-      "autoHint": "For a recording of a whole test, Moonshine runs in the browser and listens for “Part 1”, “Now turn to Part 2”… to set the marks. Free; about 1–3 minutes per file.",
+      "autoHint": "For a recording of a whole test, Moonshine runs in the browser and listens for “Part 1”, “Now turn to Part 2”… to set the marks. Free; about 1–3 minutes per file. Unticked: the server finds them after the upload; AI is asked only for parts it misses.",
       "errors": {
         "lib_timeout": "Could not load the AI library from cdn.jsdelivr.net (blocked or too slow). Try later or set marks by hand.",
         "model_timeout": "The AI model download stalled for over 90 seconds. Press “Find marks again”; what was downloaded is kept.",

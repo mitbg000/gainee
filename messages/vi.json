@@ -1416,7 +1416,7 @@
       "audioFiles": "File audio (có thể chọn nhiều)",
       "audioHint": "Đặt tên kiểu “Test 1.mp3” hoặc “Test 1 Section 2.mp3” để tự gắn vào đúng đề. File khác gắn tay ở trang duyệt.",
       "localOcr": "Đọc chữ trang scan ngay trên máy này",
-      "localOcrHint": "Miễn phí và không tốn tài nguyên server, nhưng chậm hơn (vài giây mỗi trang). Trang máy bạn đọc không ra sẽ được AI đọc từ ảnh (cần model đọc được ảnh).",
+      "localOcrHint": "Miễn phí và không tốn tài nguyên server, nhưng chậm hơn (vài giây mỗi trang). Trang máy bạn đọc không ra sẽ được AI đọc từ ảnh (cần model đọc được ảnh). Bỏ chọn: server đọc sau khi tải lên. Trang nào đọc không rõ mới dùng AI đọc từ ảnh (cần model đọc được ảnh).",
       "start": "Tải lên và tách đề",
       "keepOpen": "Giữ trang này mở cho tới khi tải xong. Bước AI chạy ở server, bạn có thể đóng trang lúc đó.",
       "marks": "Đang tìm mốc Part trong {name}: {step}",
@@ -1608,7 +1608,7 @@
         "download": "Đang tải audio {pct}%"
       },
       "auto": "Tự tìm mốc từng Part trong audio bằng AI (trên máy này)",
-      "autoHint": "Với file audio chứa cả đề, Moonshine chạy ngay trên trình duyệt sẽ nghe các câu “Part 1”, “Now turn to Part 2”… để đặt mốc. Miễn phí, mất khoảng 1–3 phút mỗi file.",
+      "autoHint": "Với file audio chứa cả đề, Moonshine chạy ngay trên trình duyệt sẽ nghe các câu “Part 1”, “Now turn to Part 2”… để đặt mốc. Miễn phí, mất khoảng 1–3 phút mỗi file. Bỏ chọn: server tự tìm sau khi tải lên; chỉ khi nghe thiếu Part mới nhờ AI.",
       "errors": {
         "lib_timeout": "Không tải được thư viện AI từ cdn.jsdelivr.net (mạng chặn hoặc quá chậm). Thử lại sau hoặc đặt mốc tay.",
         "model_timeout": "Tải model AI bị đứng hơn 90 giây. Bấm “Tìm lại mốc” để thử lại; phần đã tải được giữ lại.",
