@@ -16,7 +16,7 @@ import { AiError, chat, parseJsonReply } from "@/lib/ai/client";
 import { CANCELLED, setProgress, type Job } from "@/lib/jobs";
 import { getSetting, setSetting } from "@/lib/settings";
 import { UPLOAD_DIR } from "@/lib/storage";
-import { fillMarks, goodOcr, runLocal } from "./serverRead";
+import { fillMarks, goodOcr, partFiles, runLocal } from "./serverRead";
 import { expectedRange, gaps, inBookOrder, nameOf, numsOf, sharedPages, thinPassage } from "./coverage";
 import { fitAnswers, GROUP_TYPES, splitBlanks, withoutPagePictures, type Group, type Item, type SectionContent, type Skill } from "./types";
 
@@ -86,19 +86,28 @@ async function readScans(job: Job, scans: Page[]) {
   }
 }
 
-/** Part marks for whole-test recordings that came without them; returns the test number each one announces. */
-async function findMissingMarks(job: Job, audio: (typeof ieltsAudio.$inferSelect)[]) {
-  const tests = new Map<number, number>();
-  const todo = audio.filter((a) => !a.marks && a.received === a.size && !audioTarget(a.name)?.part);
+/**
+ * Files whose names do not say where they belong, heard on this server: whole-test recordings get their part marks
+ * (and the test they announce), one-part files ("Track05.mp3") the test and part they announce. Returns those targets.
+ */
+async function findMissingMarks(job: Job, audio: (typeof ieltsAudio.$inferSelect)[], firstTest: number) {
+  const to = new Map<number, { test: number; part?: number }>();
+  const parts: { id: number; test: number | null; part: number }[] = [];
+  const todo = audio.filter((a) => !a.marks && a.received === a.size && !audioTarget(a.name)?.part).sort((x, y) => x.id - y.id);
   for (const [i, a] of todo.entries()) {
     await setProgress(job.id, `marks ${i + 1}/${todo.length}`);
     try {
-      let r = null as null | { marks: Record<string, number>; test: number | null; heard: { start: number; text: string }[] };
+      let r = null as null | { marks: Record<string, number>; test: number | null; part: number | null; heard: { start: number; text: string }[] };
       await runLocal(["marks", path.join(UPLOAD_DIR, a.path)], async (line) => void (r = JSON.parse(line)));
-      if (!r || !r.heard.length) continue; // one part only, nothing to mark
+      if (!r || !r.heard.length) continue;
+      if (r.part) {
+        // one part: where it goes is all we need (names with a test number keep it)
+        if (!audioTarget(a.name)) parts.push({ id: a.id, test: r.test, part: r.part });
+        continue;
+      }
       let marks = r.marks;
       if (Object.keys(marks).length < 4) marks = fillMarks(marks, await guessMarks(r.heard).catch(() => ({})), r.heard.map((h) => h.start));
-      if (r.test) tests.set(a.id, r.test);
+      if (r.test) to.set(a.id, { test: r.test });
       if (!Object.keys(marks).length) continue;
       await getDb().update(ieltsAudio).set({ marks }).where(eq(ieltsAudio.id, a.id));
       a.marks = marks;
@@ -108,7 +117,8 @@ async function findMissingMarks(job: Job, audio: (typeof ieltsAudio.$inferSelect
       console.warn("part marks:", a.name, e);
     }
   }
-  return tests;
+  for (const [id, x] of partFiles(parts, firstTest)) to.set(id, x);
+  return to;
 }
 
 /** AI reads what the speech model heard (often misspelt) and names the moments where each part is announced. */
@@ -547,15 +557,14 @@ export async function importBook(job: Job) {
     const oldSections = oldTests.length ? await db.select({ testId: ieltsSections.testId, skill: ieltsSections.skill, part: ieltsSections.part, content: ieltsSections.content }).from(ieltsSections).where(inArray(ieltsSections.testId, oldTests.map((x) => x.id))) : [];
     const lastPage = Math.max(...pages.map((p) => p.page));
     const audio = await db.select().from(ieltsAudio).where(eq(ieltsAudio.bookId, bookId));
-    const heardTest = await findMissingMarks(job, audio);
 
     // names without a test number ("ielts11.mp3", "ielts12.mp3"…): one file per test, in name order, when the counts match
     const unnamed = audio.filter((a) => !audioTarget(a.name)).sort((x, y) => x.name.localeCompare(y.name, undefined, { numeric: true }));
     const order = [...plan.tests].sort((x, y) => x.number - y.number);
     const byOrder = new Map<number, { test: number; part?: number }>(unnamed.length === order.length ? unnamed.map((a, i) => [a.id, { test: order[i].number }]) : []);
 
-    // a recording that only says its test number aloud ("Practice Test One")
-    for (const [id, test] of heardTest) if (!byOrder.has(id) && !audioTarget(audio.find((a) => a.id === id)!.name)) byOrder.set(id, { test });
+    // names that do not tell: what the recording says ("Test 7", "Section 2") comes before the order of the names
+    const heardTo = await findMissingMarks(job, audio, order[0].number);
 
     // books without "TEST n" headings over their audioscripts: split all of them at once, in book order
     const allScripts = textOfList(pages, plan.tests.flatMap((t) => t.scriptPages ?? []));
@@ -575,7 +584,7 @@ export async function importBook(job: Job) {
       const sp = t.scriptPages?.length ? [Math.min(...t.scriptPages) - 1, Math.max(...t.scriptPages) + 1] : [];
       const wide = textOfList(pages, sp);
       const scripts = scriptOrder.get(t.number) ?? (/^\s*TEST\s+\d{1,2}\s*$/m.test(wide) ? splitScript(wide, t.number) : splitScript(textOfList(pages, t.scriptPages)));
-      const files = audio.map((a) => ({ a, to: audioTarget(a.name) ?? byOrder.get(a.id) ?? null })).filter((x) => x.to?.test === t.number);
+      const files = audio.map((a) => ({ a, to: audioTarget(a.name) ?? heardTo.get(a.id) ?? byOrder.get(a.id) ?? null })).filter((x) => x.to?.test === t.number);
 
       const list = sharedPages(inBookOrder((["listening", "reading", "writing"] as const).flatMap((skill) => (t[skill] ?? []).map((r) => ({ skill, part: Number(r.part), pages: [Number(r.pages[0]), Number(r.pages[1] ?? r.pages[0])] as [number, number] })))), lastPage);
       const lastQ: Record<string, number> = {}; // last question number of the parts read so far, per skill

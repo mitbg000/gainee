@@ -1615,7 +1615,7 @@
         "download": "Downloading audio {pct}%"
       },
       "auto": "Find where each part starts with AI (on this computer)",
-      "autoHint": "For a recording of a whole test, Moonshine runs in the browser and listens for “Part 1”, “Now turn to Part 2”… to set the marks. Free; about 1–3 minutes per file. Unticked: the server finds them after the upload; AI is asked only for parts it misses.",
+      "autoHint": "For a recording of a whole test, Moonshine runs in the browser and listens for “Part 1”, “Now turn to Part 2”… to set the marks. Free; about 1–3 minutes per file. Unticked: the server finds them after the upload; AI is asked only for parts it misses. Files holding one part (under 15 minutes) are skipped: the server hears their first seconds to tell which test and part they are.",
       "errors": {
         "lib_timeout": "Could not load the AI library from cdn.jsdelivr.net (blocked or too slow). Try later or set marks by hand.",
         "model_timeout": "The AI model download stalled for over 90 seconds. Press “Find marks again”; what was downloaded is kept.",

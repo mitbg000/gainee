@@ -93,6 +93,15 @@ function stalled<T>(p: Promise<T>, lastActivity: () => number, ms: number, code:
 const CLIP = 7; // seconds heard after each pause: "Part 2. You will hear a…" fits easily
 
 export async function findPartMarks(src: Blob | string, onProgress: (msg: string, pct: number) => void): Promise<{ marks: PartMarks; test: number | null }> {
+  onProgress("decode", 0);
+  const bytes = typeof src === "string" ? await (await fetch(src)).arrayBuffer() : await src.arrayBuffer();
+  const ctx = new AudioContext({ sampleRate: RATE });
+  const buf = await ctx.decodeAudioData(bytes);
+  void ctx.close();
+  // one part per file (under 15 minutes): no marks to find; the server hears which part it is when the book is read
+  if (buf.duration < 15 * 60) return { marks: {}, test: null };
+  const pcm = buf.getChannelData(0); // first channel is enough for speech
+
   onProgress("lib", 0);
   const lib = await withTimeout(import(/* webpackIgnore: true */ LIB), 90_000, "lib_timeout");
   // model files come through our own server (it downloads them from huggingface.co once and keeps them)
@@ -111,13 +120,6 @@ export async function findPartMarks(src: Blob | string, onProgress: (msg: string
   // WASM on purpose: quantised speech models give garbage text on WebGPU in some browsers
   const loading = lib.pipeline("automatic-speech-recognition", MODEL, { device: "wasm", dtype: "q8", progress_callback });
   const asr: Asr = await stalled(loading, () => last, 90_000, "model_timeout");
-
-  onProgress("decode", 0);
-  const bytes = typeof src === "string" ? await (await fetch(src)).arrayBuffer() : await src.arrayBuffer();
-  const ctx = new AudioContext({ sampleRate: RATE });
-  const buf = await ctx.decodeAudioData(bytes);
-  void ctx.close();
-  const pcm = buf.getChannelData(0); // first channel is enough for speech
 
   // only the few seconds after each pause are transcribed: a full transcription would take many minutes in a browser
   const starts = speechAfterPauses(pcm);

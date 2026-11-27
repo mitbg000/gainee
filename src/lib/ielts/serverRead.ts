@@ -23,6 +23,26 @@ export function fillMarks(found: Record<string, number>, guess: Record<string, u
   return out;
 }
 
+/** Seconds from which a recording is a whole test (four parts), not one part. */
+export const WHOLE_TEST = 15 * 60;
+
+/**
+ * One-part files (in upload order) with the part each one announces → their test. A file that names its test keeps it;
+ * otherwise a part number not above the last one starts the next test, from `firstTest`.
+ */
+export function partFiles(files: { id: number; test: number | null; part: number }[], firstTest: number) {
+  const out = new Map<number, { test: number; part: number }>();
+  let test = firstTest - 1;
+  let prev = Infinity;
+  for (const f of files) {
+    if (f.test) test = f.test;
+    else if (f.part <= prev) test++;
+    prev = f.part;
+    out.set(f.id, { test, part: f.part });
+  }
+  return out;
+}
+
 /** Run dist/speech.js; each line it prints goes to `onLine`. A thrown `onLine` (job cancelled) stops the child. */
 export function runLocal(args: string[], onLine: (line: string) => Promise<void>): Promise<void> {
   return new Promise((ok, no) => {
