@@ -1546,7 +1546,13 @@
       "transcribeConfirm": "Thay transcript hiện có bằng bản Whisper nghe được?",
       "transcribed": "Đã có transcript từ âm thanh (chưa có tên người nói). Kiểm tra, có thể bấm \"Sửa transcript bằng AI\", rồi Lưu.",
       "transcribeFailed": "Không tạo được transcript: {error}",
-      "tableHint": "Bảng: mỗi hàng của bảng viết trên một dòng \"| … | … |\". Nhiều dòng trong cùng một ô thì nối bằng <br>, ví dụ \"• Expensive<br>• Leaves [[13]]\"."
+      "tableHint": "Bảng: mỗi hàng của bảng viết trên một dòng \"| … | … |\". Nhiều dòng trong cùng một ô thì nối bằng {br}, ví dụ \"• Expensive{br}• Leaves [[13]]\".",
+      "questionsText": "Câu hỏi",
+      "aiBlanks": "Tạo ô trả lời bằng AI",
+      "aiBlanksFromPicture": "AI đọc ảnh đã cắt của nhóm này và viết lại câu hỏi với đúng các ô trả lời",
+      "aiBlanksFromPages": "AI đọc chữ trên các trang sách của phần này và viết lại câu hỏi với đúng các ô trả lời (bảng, ghi chú…)",
+      "aiBlanksConfirm": "Thay nội dung câu hỏi của nhóm này bằng bản AI viết lại?",
+      "noPageText": "Phần này chưa có chữ trang sách để đọc. Hãy cắt ảnh câu hỏi (nút Cắt ảnh) rồi bấm lại."
     },
     "result": {
       "noAi": "Chưa cấu hình AI để chấm Writing.",

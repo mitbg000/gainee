@@ -557,33 +557,33 @@ export async function importBook(job: Job) {
   }
 }
 
-/** Questions printed as a picture (notes in handwriting style, a form on a scan): AI writes them as gap text with [[n]] blanks. */
-export async function readPicture(url: string, from: number, to: number, instructions: string, answers: Record<string, string> = {}): Promise<{ text: string; wrong: number[] }> {
-  const dir = path.join(UPLOAD_DIR, "images");
-  const abs = path.join(UPLOAD_DIR, url.replace(/^\/api\//, ""));
-  if (!url.startsWith("/api/images/") || !abs.startsWith(dir + path.sep)) throw new Error("bad_image");
-  const bytes = await fs.readFile(abs);
-  const type = path.extname(abs).slice(1).toLowerCase() === "png" ? "png" : "webp";
+/**
+ * A completion group written as gap text with [[n]] blanks by AI, from a picture of the questions (notes in handwriting
+ * style, a form on a scan) or from the text of the book's pages. Checked: each number from–to exactly once, else one retry.
+ */
+async function copyBlanks(source: { image: { type: string; base64: string } } | { pages: string }, from: number, to: number, instructions: string, answers: Record<string, string>): Promise<{ text: string; wrong: number[] }> {
   const want = Array.from({ length: Math.max(0, to - from + 1) }, (_, k) => from + k);
   // the answer key tells the AI which words each printed number stands for: "from 2 £… to £…" is ONE blank (250 to 500)
   const key = want.filter((n) => answers[n]).map((n) => `${n}: ${answers[n]}`).join("\n");
+  const where = "image" in source ? `This picture holds IELTS questions ${from}-${to}` : `The book pages below hold IELTS questions ${from}-${to}; copy only those questions (not the instructions, not other questions)`;
   const ask = async (again: string) => {
+    const rules = `${where} ("${instructions}"). Copy every word in reading order. Each PRINTED question number ${from}-${to} becomes exactly one blank [[n]] that replaces the number and its dotted line(s) – so there are exactly ${want.length} blanks, numbered as printed. A dotted line without a printed number is part of the blank before it (e.g. "from 2 £…… to £…… a month" with answer "250 to 500" → "from [[2]] a month").
+Keep the layout: one printed line per line; "Label: text" when a line starts with a label, and lines printed under the same label (no label of their own) indented with two spaces; "# heading" for a heading, "- " for a bullet. Tables: one line per table row "| a | b |", every row with as many cells as the header, several printed lines or bullets inside one cell joined with "<br>" (never split one cell over two rows). Leave out the Example line.${key ? `\nAnswer key (only to place the blanks – do not write the answers):\n${key}` : ""}${again}`;
     const { text } = await chat({
       task: "ielts_import",
       temperature: 0,
       maxTokens: 3000,
       messages: [
-        { role: "system", content: "You copy IELTS completion questions from a picture into text exactly. Reply with the text only." },
+        { role: "system", content: "You copy IELTS completion questions into text exactly. Reply with the text only." },
         {
           role: "user",
-          content: [
-            {
-              type: "text",
-              text: `This picture holds IELTS questions ${from}-${to} ("${instructions}"). Copy every word in reading order. Each PRINTED question number ${from}-${to} becomes exactly one blank [[n]] that replaces the number and its dotted line(s) – so there are exactly ${want.length} blanks, numbered as printed. A dotted line without a printed number is part of the blank before it (e.g. "from 2 £…… to £…… a month" with answer "250 to 500" → "from [[2]] a month").
-Keep the layout: one printed line per line; "Label: text" when a line starts with a label, and lines printed under the same label (no label of their own) indented with two spaces; "# heading" for a heading, "- " for a bullet, table rows as "| a | b |" (one line per row; several lines inside one cell joined with "<br>"). Leave out the Example line.${key ? `\nAnswer key (only to place the blanks – do not write the answers):\n${key}` : ""}${again}`,
-            },
-            { type: "image_url", image_url: { url: `data:image/${type};base64,${bytes.toString("base64")}` } },
-          ],
+          content:
+            "image" in source
+              ? [
+                  { type: "text", text: rules },
+                  { type: "image_url", image_url: { url: `data:image/${source.image.type};base64,${source.image.base64}` } },
+                ]
+              : `${rules}\n\nBook pages:\n${source.pages.slice(0, 30000)}`,
         },
       ],
     });
@@ -597,6 +597,34 @@ Keep the layout: one printed line per line; "Label: text" when a line starts wit
   if (!first.wrong.length) return { text: first.text, wrong: [] };
   const second = await ask(`\nYour last copy had the blanks ${first.got.join(", ") || "none"}; it must have ${from}-${to}, each once, in printed order.`);
   return second.wrong.length <= first.wrong.length ? { text: second.text, wrong: second.wrong } : { text: first.text, wrong: first.wrong };
+}
+
+/** Questions printed as a picture (cropped on the review screen): AI writes them as gap text with [[n]] blanks. */
+export async function readPicture(url: string, from: number, to: number, instructions: string, answers: Record<string, string> = {}) {
+  const dir = path.join(UPLOAD_DIR, "images");
+  const abs = path.join(UPLOAD_DIR, url.replace(/^\/api\//, ""));
+  if (!url.startsWith("/api/images/") || !abs.startsWith(dir + path.sep)) throw new Error("bad_image");
+  const bytes = await fs.readFile(abs);
+  const type = path.extname(abs).slice(1).toLowerCase() === "png" ? "png" : "webp";
+  return copyBlanks({ image: { type, base64: bytes.toString("base64") } }, from, to, instructions, answers);
+}
+
+/** The same from the text of the section's book pages (no picture needed): for tables and notes the import got wrong. */
+export async function blanksFromPages(sectionId: number, from: number, to: number, instructions: string, answers: Record<string, string> = {}) {
+  const db = getDb();
+  const [s] = await db.select().from(ieltsSections).where(eq(ieltsSections.id, sectionId));
+  if (!s) return null;
+  if (!s.pages?.length) throw new Error("no_page_text"); // a part made by hand: no book pages to read
+  const [t] = await db.select().from(ieltsTests).where(eq(ieltsTests.id, s.testId));
+  const [a, b = a] = s.pages;
+  const pages = await db
+    .select()
+    .from(ieltsPages)
+    .where(and(eq(ieltsPages.bookId, t.bookId), inArray(ieltsPages.page, Array.from({ length: Math.max(0, b - a) + 1 }, (_, k) => a + k))))
+    .orderBy(asc(ieltsPages.page));
+  const text = textOf(pages, [a, b]);
+  if (!text.trim()) throw new Error("no_page_text");
+  return copyBlanks({ pages: text }, from, to, instructions, answers);
 }
 
 /**

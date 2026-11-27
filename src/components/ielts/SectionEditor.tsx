@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { formatAnswers, formatItems, formatOptions, GROUP_TYPES, parseAnswers, parseItems, parseOptions, type Group, type GroupType, type SectionContent, type Skill } from "@/lib/ielts/types";
 import Questions, { Passage } from "./Questions";
 import * as I from "@/components/icons";
+import Info from "@/components/Info";
 
 type EditGroup = { type: GroupType; from: number; to: number; instructions: string; text: string; optionsTitle: string; options: string; items: string; image?: string; itemImages: Record<number, string> };
 export type EditorData = {
@@ -145,14 +146,19 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
     setIntro(c.intro ?? "");
     setPrompt(c.prompt ?? "");
   }
-  /** AI copies a group's cropped picture into its text, blanks as [[n]]. */
-  async function readPicture(i: number) {
+  /** AI writes a completion group again with [[n]] blanks: from its cropped picture, else from the book's pages. */
+  async function aiBlanks(i: number) {
     const g = groups[i];
+    if (g.text.trim() && !confirm(t("aiBlanksConfirm"))) return;
     setBusy(`picture${i}`);
     setMsg(null);
-    const r = await fetch("/api/ielts/read-picture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ image: g.image, from: Number(g.from), to: Number(g.to), instructions: g.instructions, answers: parseAnswers(answers) }) }).catch(() => null);
+    const body = JSON.stringify({ image: g.image, from: Number(g.from), to: Number(g.to), instructions: g.instructions, answers: parseAnswers(answers) });
+    const r = await fetch(g.image ? "/api/ielts/read-picture" : `/api/ielts/sections/${data.id}/blanks`, { method: "POST", headers: { "content-type": "application/json" }, body }).catch(() => null);
     setBusy(null);
-    if (!r?.ok) return setMsg(r?.status === 409 ? t("noAi") : t("readPictureFailed"));
+    if (!r?.ok) {
+      const e = ((await r?.json().catch(() => ({}))) as { error?: string } | undefined)?.error;
+      return setMsg(r?.status === 409 ? t("noAi") : e === "no_page_text" ? t("noPageText") : t("readPictureFailed"));
+    }
     const d = (await r.json()) as { text: string; wrong: number[] };
     setG(i, { text: d.text });
     if (d.wrong.length) setMsg(t("readPictureCheck", { nums: d.wrong.join(", ") }));
@@ -309,12 +315,14 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                   <label className="block text-sm font-semibold">{t("intro")}</label>
                   <input value={intro} onChange={(e) => setIntro(e.target.value)} className="field field-sm mt-1 w-full" />
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <label className="flex-1 text-sm font-semibold">{t("passage")}</label>
+                    <span className="flex flex-1 items-center gap-1.5">
+                      <label className="text-sm font-semibold">{t("passage")}</label>
+                      <Info label={t("passage")} text={t("passageHint")} />
+                    </span>
                     <button onClick={() => startCrop({ at: passageBox.current?.selectionStart ?? passage.length })} className="btn btn-sm btn-ghost">
                       <I.IconImage /> {t("cropPassage")}
                     </button>
                   </div>
-                  <p className="text-xs text-muted">{t("passageHint")}</p>
                   <textarea ref={passageBox} value={passage} onChange={(e) => setPassage(e.target.value)} rows={14} className="field mt-1 w-full py-2 font-serif" />
                 </div>
               )}
@@ -347,12 +355,13 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                   {g.type === "gap" ? (
                     <>
                       <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
-                        <span className="flex-1">{t("gapHint")}</span>
-                        {g.image && (
-                          <button onClick={() => readPicture(i)} disabled={!!busy} className="btn btn-sm btn-ghost">
-                            <I.IconSpark /> {busy === `picture${i}` ? t("readingPicture") : t("readPicture")}
-                          </button>
-                        )}
+                        <span className="flex flex-1 items-center gap-1.5 font-medium">
+                          {t("questionsText")}
+                          <Info label={t("questionsText")} text={`${t("gapHint")} ${t("tableHint", { br: "<br>" })}`} />
+                        </span>
+                        <button onClick={() => aiBlanks(i)} disabled={!!busy} className="btn btn-sm btn-secondary" title={g.image ? t("aiBlanksFromPicture") : t("aiBlanksFromPages")}>
+                          <I.IconSpark /> {busy === `picture${i}` ? t("readingPicture") : t("aiBlanks")}
+                        </button>
                         {/* plain answer lines "9. [[9]]" for every number: the questions are read on the picture */}
                         <button
                           onClick={() => (!g.text.trim() || confirm(t("simpleBlanksConfirm"))) && setG(i, { text: Array.from({ length: Math.max(0, Number(g.to) - Number(g.from) + 1) }, (_, k) => `${Number(g.from) + k}. [[${Number(g.from) + k}]]`).join("\n") })}
@@ -362,7 +371,6 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                         </button>
                       </p>
                       <textarea value={g.text} onChange={(e) => setG(i, { text: e.target.value })} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
-                      {g.text.includes("|") && <p className="mt-1 text-xs text-muted">{t("tableHint")}</p>}
 
                     </>
                   ) : (
@@ -373,7 +381,10 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                           <textarea value={g.options} onChange={(e) => setG(i, { options: e.target.value })} rows={4} placeholder={t("optionsHint")} className="field mt-1 w-full py-2 font-mono text-sm" />
                         </>
                       )}
-                      <p className="mt-2 text-xs text-muted">{t(g.type === "mcq" || g.type === "multi" ? "itemsHintChoice" : "itemsHint")}</p>
+                      <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-muted">
+                        {t("questionsText")}
+                        <Info label={t("questionsText")} text={t(g.type === "mcq" || g.type === "multi" ? "itemsHintChoice" : "itemsHint")} />
+                      </p>
                       <textarea value={g.items} onChange={(e) => setG(i, { items: e.target.value })} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
                       {/* a picture for one question: a chart whose columns are the options, drawings A–C… */}
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -417,7 +428,10 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
               </button>
               <div className="rounded-2xl border border-line bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <label className="flex-1 text-sm font-semibold">{t("answers")}</label>
+                  <span className="flex flex-1 items-center gap-1.5">
+                    <label className="text-sm font-semibold">{t("answers")}</label>
+                    <Info label={t("answers")} text={t("answersHint")} />
+                  </span>
                   <button onClick={readKey} disabled={!!busy} className="btn btn-sm btn-ghost">
                     <I.IconSpark /> {busy === "key" ? t("readingKey") : t("readKey")}
                   </button>
@@ -425,12 +439,14 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                     <I.IconSpark /> {busy === "aiKey" ? t("aiKeyWorking") : t("aiKey")}
                   </button>
                 </div>
-                <p className="text-xs text-muted">{t("answersHint")}</p>
                 <textarea value={answers} onChange={(e) => setAnswers(e.target.value)} rows={8} className="field mt-1 w-full py-2 font-mono text-sm" />
               </div>
               {data.skill === "listening" && (
                 <div className="space-y-3 rounded-2xl border border-line bg-card p-4">
-                  <label className="block text-sm font-semibold">{t("audio")}</label>
+                  <span className="flex items-center gap-1.5">
+                    <label className="text-sm font-semibold">{t("audio")}</label>
+                    <Info label={t("audio")} text={t("audioHint")} />
+                  </span>
                   <select value={audio?.fileId ?? ""} onChange={(e) => setAudio(e.target.value ? { fileId: Number(e.target.value), start: audio?.start ?? null, end: audio?.end ?? null } : null)} className="field field-sm w-full">
                     <option value="">{t("noAudio")}</option>
                     {data.audioFiles.map((f) => (
@@ -442,7 +458,6 @@ export default function SectionEditor({ data, next }: { data: EditorData; next: 
                   {audio && (
                     <>
                       <audio ref={player} src={`/api/ielts/audio/${audio.fileId}`} controls preload="metadata" className="w-full" />
-                      <p className="text-xs text-muted">{t("audioHint")}</p>
                       <div className="flex flex-wrap items-center gap-2 text-sm">
                         {(["start", "end"] as const).map((k) => (
                           <span key={k} className="flex items-center gap-1">

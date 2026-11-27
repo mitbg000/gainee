@@ -1546,7 +1546,13 @@
       "transcribeConfirm": "Replace the current transcript with what Whisper hears?",
       "transcribed": "Transcript made from the audio (no speaker names yet). Check it, maybe use \"Fix transcript with AI\", then Save.",
       "transcribeFailed": "Could not make a transcript: {error}",
-      "tableHint": "Tables: each table row on one line \"| … | … |\". Several lines inside one cell are joined with <br>, e.g. \"• Expensive<br>• Leaves [[13]]\"."
+      "tableHint": "Tables: each table row on one line \"| … | … |\". Several lines inside one cell are joined with {br}, e.g. \"• Expensive{br}• Leaves [[13]]\".",
+      "questionsText": "Questions",
+      "aiBlanks": "Make answer boxes with AI",
+      "aiBlanksFromPicture": "AI reads this group's cropped picture and writes the questions again with the right answer boxes",
+      "aiBlanksFromPages": "AI reads the text of this part's book pages and writes the questions again with the right answer boxes (tables, notes…)",
+      "aiBlanksConfirm": "Replace this group's questions with the AI's version?",
+      "noPageText": "This part has no book page text to read. Crop the questions' picture (Crop) and try again."
     },
     "result": {
       "noAi": "AI is not set up to grade Writing.",
