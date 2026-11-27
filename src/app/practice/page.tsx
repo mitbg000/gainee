@@ -16,7 +16,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
   const t = await getTranslations("practice");
   const doc = Number((await searchParams).doc) || null;
   const rows = await getDb()
-    .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, context: words.context, example: words.example, mnemonic: words.mnemonic, lapses: words.lapses, reps: words.reps, docId: documents.id, docTitle: documents.title })
+    .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, context: words.context, example: words.example, mnemonic: words.mnemonic, lapses: words.lapses, reps: words.reps, state: words.state, scheduledDays: words.scheduledDays, due: words.due, docId: documents.id, docTitle: documents.title })
     .from(words)
     .leftJoin(lessons, eq(words.lessonId, lessons.id))
     .leftJoin(documents, eq(lessons.documentId, documents.id))

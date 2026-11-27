@@ -791,7 +791,7 @@
       "month": "{n} tháng",
       "year": "{n} năm"
     },
-    "keysShow": "Space/Enter: lật thẻ · ←/→: thẻ trước/tiếp · R: nghe",
+    "keysShow": "Space/Enter: lật thẻ · 1 Quên · 2 Khó · 3 Nhớ · 4 Dễ · ←/→: thẻ trước/tiếp · R: nghe",
     "keysRate": "1 Quên · 2 Khó · 3 Nhớ · 4 Dễ · Space: Nhớ · ←/→: thẻ trước/tiếp",
     "doneTip": "Hệ thống (FSRS, giống Anki) sẽ đưa từ quay lại đúng lúc bạn sắp quên. Muốn luyện thêm thì dùng Luyện từ – không ảnh hưởng lịch ôn.",
     "toPractice": "Luyện thêm",
@@ -842,7 +842,8 @@
       "kind_mc": "Trắc nghiệm 4 đáp án",
       "kind_type": "Tự gõ",
       "autoNext": "Tự chuyển câu khi trả lời đúng",
-      "done": "Xong"
+      "done": "Xong",
+      "autoRead": "Tự động đọc từ"
     }
   },
   "progress": {
@@ -1074,7 +1075,8 @@
     },
     "settings": "Cài đặt luyện tập",
     "close": "Đóng",
-    "done": "Xong"
+    "done": "Xong",
+    "autoRead": "Tự động đọc từ"
   },
   "writing": {
     "title": "Luyện Writing",

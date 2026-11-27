@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { autoSpeak, speak } from "@/lib/speech";
 import * as I from "@/components/icons";
-import { sfx } from "@/lib/sound";
+import { setSoundPrefs, sfx, soundPrefs } from "@/lib/sound";
 import { norm, shuffle } from "@/components/practice/questions";
 import { answerOk } from "./answer";
 import QuickMix, { type QWord } from "@/components/learn/QuickMix";
@@ -83,7 +83,11 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
   const started = useRef(Date.now());
   const auto = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => setPrefs(loadPrefs()), []);
+  const [autoRead, setAutoRead] = useState(true);
+  useEffect(() => {
+    setPrefs(loadPrefs());
+    setAutoRead(soundPrefs().autoSpeak);
+  }, []);
   const save = (p: Prefs) => {
     setPrefs(p);
     try {
@@ -202,7 +206,7 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
         e.preventDefault();
         if (!shown) flip();
         else rate(3);
-      } else if (!answering && shown && ["1", "2", "3", "4"].includes(e.key)) rate(Number(e.key) as 1 | 2 | 3 | 4);
+      } else if (!answering && ["1", "2", "3", "4"].includes(e.key)) rate(Number(e.key) as 1 | 2 | 3 | 4);
       else if (answering && !shown && options.length && ["1", "2", "3", "4"].includes(e.key)) check(options[Number(e.key) - 1]);
       else if (answering && shown && e.key === "Enter") grade(right);
       else if (e.key.toLowerCase() === "r" && card) speak(card.term);
@@ -279,6 +283,18 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
             </label>
           </>
         )}
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={autoRead}
+            onChange={(e) => {
+              setAutoRead(e.target.checked);
+              setSoundPrefs({ autoSpeak: e.target.checked });
+            }}
+            className="size-4"
+          />
+          {t("settings.autoRead")}
+        </label>
         <button onClick={() => setSettings(false)} className="btn btn-primary w-full">
           {t("settings.done")}
         </button>
@@ -379,7 +395,11 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
   /* ---------- mixed questions, as in Quick study ---------- */
   if (prefs.method === "mix")
     return mixWords.length ? (
-      <QuickMix kind="review" words={mixWords} others={pool} onDone={() => setPhase("end")} doneLabel={t("continue")} />
+      <div>
+        {settingsBox}
+        <div className="mx-auto mb-2 flex max-w-2xl justify-end">{gear}</div>
+        <QuickMix kind="review" words={mixWords} others={pool} onDone={() => setPhase("end")} doneLabel={t("continue")} />
+      </div>
     ) : (
       endScreen(0)
     );
@@ -570,7 +590,8 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
       </div>
 
       {/* rate (flip) or go on (answer) */}
-      {!old && !answering && shown && (
+      {/* always there: you may know it without flipping */}
+      {!old && !answering && (
         <div className="mt-4">
           <p className="mb-2 text-center text-sm text-muted">{t("howWell")}</p>
           <div className="grid grid-cols-4 gap-2">

@@ -8,7 +8,7 @@ import { addWord, updateWord } from "./words";
 
 const { words, wordSets, wordSetItems, lessons, documents } = schema;
 
-export const CARD_FIELDS = { id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, example: words.example, note: words.note, context: words.context, lapses: words.lapses, reps: words.reps, state: words.state };
+export const CARD_FIELDS = { id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, example: words.example, note: words.note, context: words.context, lapses: words.lapses, reps: words.reps, state: words.state, scheduledDays: words.scheduledDays, due: words.due };
 
 /** All sets with their size, most recently changed first. */
 export async function listSets() {

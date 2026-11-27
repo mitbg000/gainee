@@ -11,6 +11,7 @@ import Match from "./Match";
 import Quiz from "./Quiz";
 import { MODES, shuffle, type Mode, type PWord } from "./questions";
 import * as I from "@/components/icons";
+import { setSoundPrefs, soundPrefs } from "@/lib/sound";
 
 const ACTIVITIES = ["learn", "cards", "write", "passage", "test", "match"] as const;
 type Activity = (typeof ACTIVITIES)[number];
@@ -41,10 +42,12 @@ export default function WordPractice({ words, all, due, title, children }: { wor
   const [size, setSize] = useState(20);
   const [running, setRunning] = useState<PWord[] | null>(null);
   const [settings, setSettings] = useState(false);
+  const [autoRead, setAutoRead] = useState(true);
 
   useEffect(() => {
     setOrder(load("practice_order", ORDERS, "recent"));
     setMode(load("practice_mode", MODES, "mix"));
+    setAutoRead(soundPrefs().autoSpeak);
   }, []);
 
   if (words.length === 0)
@@ -164,6 +167,18 @@ export default function WordPractice({ words, all, due, title, children }: { wor
                 (m) => t(`mode.${m}`),
               ),
             )}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={autoRead}
+                onChange={(e) => {
+                  setAutoRead(e.target.checked);
+                  setSoundPrefs({ autoSpeak: e.target.checked });
+                }}
+                className="size-4"
+              />
+              {t("autoRead")}
+            </label>
             <button onClick={() => setSettings(false)} className="btn btn-primary w-full">
               {t("done")}
             </button>

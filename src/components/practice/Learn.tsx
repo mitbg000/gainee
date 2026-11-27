@@ -8,6 +8,7 @@ import * as I from "@/components/icons";
 import { sfx } from "@/lib/sound";
 
 const ROUND = 7;
+const LEARNED_DAYS = 21; // as in lib/review
 type Q = { w: PWord; kind: "mcMeaning" | "mcTerm" | "write"; options?: string[]; answer: string };
 
 /**
@@ -16,8 +17,12 @@ type Q = { w: PWord; kind: "mcMeaning" | "mcTerm" | "write"; options?: string[];
  */
 export default function Learn({ words, all, onExit }: { words: PWord[]; all: { term: string; meaning: string }[]; onExit: () => void }) {
   const t = useTranslations("practice.learn");
-  const [level, setLevel] = useState<Record<number, number>>({}); // 0 new, 1 passed multiple choice, 2 mastered
-  const [queue, setQueue] = useState<Q[]>(() => round({}));
+  // 0 new, 1 passed multiple choice, 2 mastered – starting from the review schedule: studied words skip the
+  // multiple choice, learned ones (next review 21+ days away) are not asked
+  const [start] = useState(() => Object.fromEntries(words.filter((w) => w.state).map((w) => [w.id, w.state === 2 && (w.scheduledDays ?? 0) >= LEARNED_DAYS ? 2 : 1])) as Record<number, number>);
+  const [level, setLevel] = useState<Record<number, number>>(start);
+  const [queue, setQueue] = useState<Q[]>(() => round(start));
+  const missed = useRef(new Set<number>());
   const [roundNo, setRoundNo] = useState(1);
   const [given, setGiven] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
@@ -71,6 +76,14 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
     if (!q || a === null) return;
     const l = lv(q.w);
     const nextLevel = ok ? Math.min(2, l + 1) : l;
+    if (!ok) missed.current.add(q.w.id);
+    // a new word, or one due for review, typed right: the review schedule learns of it (Good, or Hard after a miss)
+    if (nextLevel === 2 && l < 2 && (!q.w.state || (q.w.due && new Date(q.w.due).getTime() <= Date.now())))
+      void fetch(`/api/review/${q.w.id}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ rating: missed.current.has(q.w.id) ? 2 : 3, mode: "recall" }),
+      }).catch(() => {});
     const lvls = { ...level, [q.w.id]: nextLevel };
     setLevel(lvls);
     const rest = queue.slice(1);
