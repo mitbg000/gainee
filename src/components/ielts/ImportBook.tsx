@@ -55,11 +55,28 @@ function Chosen({ files, onChange, disabled, remove }: { files: File[]; onChange
   );
 }
 
+/** Full pdf.js (unpdf's build has no JBIG2 / JPEG 2000 decoders, so scanned pages came out blank); same version as unpdf's. */
+const PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/";
+type PdfDoc = Awaited<ReturnType<typeof import("unpdf").getDocumentProxy>>;
+
+async function pdfOpener(): Promise<(data: Uint8Array) => Promise<PdfDoc>> {
+  try {
+    const lib = await import(/* webpackIgnore: true */ `${PDFJS}build/pdf.min.mjs`);
+    lib.GlobalWorkerOptions.workerSrc = `${PDFJS}build/pdf.worker.min.mjs`;
+    return (data) => lib.getDocument({ data, wasmUrl: `${PDFJS}wasm/`, cMapUrl: `${PDFJS}cmaps/`, cMapPacked: true, standardFontDataUrl: `${PDFJS}standard_fonts/` }).promise;
+  } catch (e) {
+    // shortcut: without the CDN, PDFs with a text layer still work; scans in JBIG2 render blank
+    console.warn("full pdf.js not loaded, scanned pages may come out blank:", e);
+    const { getDocumentProxy } = await import("unpdf");
+    return (data) => getDocumentProxy(data);
+  }
+}
+
 /** The chosen PDFs, opened: one book made of all their pages, in the order of the list. */
 export async function openPdfs(files: File[]) {
-  const { getDocumentProxy } = await import("unpdf");
+  const open = await pdfOpener();
   const docs = [];
-  for (const f of files) docs.push({ name: f.name, doc: await getDocumentProxy(new Uint8Array(await f.arrayBuffer())) });
+  for (const f of files) docs.push({ name: f.name, doc: await open(new Uint8Array(await f.arrayBuffer())) });
   return { docs, n: docs.reduce((sum, d) => sum + d.doc.numPages, 0) };
 }
 
