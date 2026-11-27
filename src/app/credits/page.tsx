@@ -53,6 +53,8 @@ export default async function CreditsPage() {
             </p>
           )}
         </div>
+        {/* how credits are counted and each model's price: for the admin only */}
+        {admin && (
         <details className="w-full text-xs text-muted">
           <summary className="cursor-pointer select-none">{t("howTitle")}</summary>
           <p className="mt-2">{t("how")}</p>
@@ -69,6 +71,7 @@ export default async function CreditsPage() {
             {cfg.image > 0 && <li>{t("imageRate", { n: cfg.image })}</li>}
           </ul>
         </details>
+        )}
       </section>
 
       {/* requests still waiting for the transfer */}
