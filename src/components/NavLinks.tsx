@@ -23,7 +23,7 @@ const shown = (admin: boolean, hidden: string[] = []) => NAV.filter((n) => !n.hi
 /** Group heading before the first item of each group (a thin line when the sidebar is an icon rail). */
 const groupStart = (list: NavItem[], i: number) => (list[i].group && list[i].group !== list[i - 1]?.group ? list[i].group : null);
 
-export function SidebarNav({ tree, admin = false, hidden }: { tree: TreeDoc[]; admin?: boolean; hidden?: string[] }) {
+export function SidebarNav({ tree, admin = false, hidden, badges = {} }: { tree: TreeDoc[]; admin?: boolean; hidden?: string[]; /** href → count (due reviews) */ badges?: Record<string, number> }) {
   const t = useTranslations("nav");
   const path = usePathname();
   // Every page renders its own Shell, so the choice is kept in localStorage to survive navigation.
@@ -46,7 +46,7 @@ export function SidebarNav({ tree, admin = false, hidden }: { tree: TreeDoc[]; a
       {shown(admin, hidden).map((n, i, list) => {
         const g = groupStart(list, i);
         const head = g && <GroupHead key={`g-${g}`} label={t(`group.${g}`)} />;
-        const item = <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} />;
+        const item = <Item key={n.key} n={n} active={isActive(path, n.href)} label={t(n.key)} soon={n.phase ? t("phase", { n: n.phase }) : undefined} badge={badges[n.href]} />;
         if (n.href !== "/library" || !tree.length) return head ? [head, item] : item;
         return [
           head,
@@ -79,7 +79,7 @@ function GroupHead({ label }: { label: string }) {
   );
 }
 
-function Item({ n, active, label, soon, onClick }: { n: NavItem; active: boolean; label: string; soon?: string; onClick?: () => void }) {
+function Item({ n, active, label, soon, onClick, badge }: { n: NavItem; active: boolean; label: string; soon?: string; onClick?: () => void; badge?: number }) {
   const Icon = ICONS[n.icon];
   const cls = `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm group-data-[collapsed=true]/sb:justify-center ${
     soon ? "pointer-events-none text-muted/60" : active ? "bg-accent/10 font-semibold text-accent" : "hover:bg-paper"
@@ -89,6 +89,7 @@ function Item({ n, active, label, soon, onClick }: { n: NavItem; active: boolean
       <Icon />
       <span className="flex-1 group-data-[collapsed=true]/sb:hidden">{label}</span>
       {soon && <span className="rounded bg-paper px-1.5 text-[10px] group-data-[collapsed=true]/sb:hidden">{soon}</span>}
+      {!!badge && <span className="min-w-5 rounded-full bg-accent px-1.5 text-center text-[11px] font-bold leading-5 tabular-nums text-on-accent group-data-[collapsed=true]/sb:hidden">{badge > 99 ? "99+" : badge}</span>}
     </Link>
   );
 }

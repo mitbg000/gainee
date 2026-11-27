@@ -8,6 +8,7 @@ import { imageUrl } from "@/lib/images";
 import { currentUser, mayUse } from "@/lib/users";
 import { getTheme } from "@/theme/server";
 import ChatBubble from "./ChatBubble";
+import SidebarAccount from "./SidebarAccount";
 import CollapsibleSidebar from "./CollapsibleSidebar";
 import InstallApp from "./InstallApp";
 import LogoutButton from "./LogoutButton";
@@ -37,7 +38,8 @@ export default async function Shell({ children, wide = false, full = false }: { 
           <span className="hidden text-center group-data-[collapsed=true]/sb:block">{t("app.name").charAt(0)}</span>
         </Link>
         <p className="text-xs text-muted group-data-[collapsed=true]/sb:hidden">{t("app.tagline")}</p>
-        <SidebarNav tree={tree} admin={admin} hidden={hidden} />
+        <SidebarNav tree={tree} admin={admin} hidden={hidden} badges={{ "/review": due }} />
+        <SidebarAccount name={me.name || me.email} avatar={me.avatar ? imageUrl(me.avatar) : null} credits={admin ? null : me.credits} />
       </CollapsibleSidebar>
 
       {/* Mobile top bar */}

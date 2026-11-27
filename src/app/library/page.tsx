@@ -3,6 +3,8 @@ import { asc, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
+import * as I from "@/components/icons";
+import { mayUse } from "@/lib/users";
 import Shell from "@/components/Shell";
 import LibraryFilters from "@/components/library/LibraryFilters";
 import LibraryList from "@/components/library/LibraryList";
@@ -12,6 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LibraryPage({ searchParams }: { searchParams: Promise<{ q?: string; label?: string | string[] }> }) {
   const t = await getTranslations("library");
+  const tn = await getTranslations("nav");
   const sp = await searchParams;
   const labelIds = [sp.label ?? []].flat().map(Number).filter((n) => n > 0);
   const [docs, labels] = await Promise.all([
@@ -30,9 +33,16 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
           <p className="text-xs font-bold uppercase tracking-widest text-accent2">{t("kicker")}</p>
           <h1 className="mt-1 font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
         </div>
-        <Link href="/import" className="btn btn-primary">
-          + {t("add")}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/labels" className="btn btn-secondary">
+            <I.IconTag className="h-4 w-4" /> {tn("labels")}
+          </Link>
+          {(await mayUse("add_documents")) && (
+            <Link href="/import" className="btn btn-primary">
+              + {t("add")}
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="mt-5">

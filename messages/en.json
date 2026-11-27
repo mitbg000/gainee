@@ -47,8 +47,11 @@
       "read": "Reading",
       "words": "Vocabulary",
       "skills": "Skills",
-      "me": "Me"
-    }
+      "me": "Me",
+      "learn": "Learn",
+      "manage": "Manage"
+    },
+    "creditsLeft": "{n} credits"
   },
   "login": {
     "username": "Email or username",
@@ -1909,7 +1912,19 @@
     "customTitle": "Or enter an amount",
     "customBuy": "Top up → {n} credits",
     "customHelp": "At least {min} ₫ · {rate} ₫ per credit",
-    "belowMin": "The minimum is {min} ₫"
+    "belowMin": "The minimum is {min} ₫",
+    "howTitle": "How are credits counted?",
+    "tokensLeft": "≈ {n} AI tokens",
+    "waitingLine": "{code} · {credits} credits · {price} waiting for payment",
+    "payContinue": "Pay now",
+    "best": "Best value",
+    "otherAmount": "Other amount",
+    "fromMin": "from {min}",
+    "youGet": "You get",
+    "youPay": "You pay",
+    "payNow": "Pay",
+    "haveDiscount": "Have a discount code?",
+    "again": "Choose another"
   },
   "admin": {
     "title": "Admin",

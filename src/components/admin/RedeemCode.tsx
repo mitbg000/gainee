@@ -23,11 +23,11 @@ export default function RedeemCode() {
   }
 
   return (
-    <form onSubmit={redeem} className="mt-4 border-t border-line pt-4">
+    <form onSubmit={redeem}>
       <label className="text-sm font-semibold" htmlFor="gift">
         {t("giftCode")}
       </label>
-      <div className="mt-1 flex gap-2">
+      <div className="mt-1 flex max-w-sm gap-2">
         <input id="gift" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={40} autoComplete="off" className="field min-w-0 flex-1 font-mono" />
         <button disabled={code.trim().length < 3} className="btn btn-secondary">
           {t("redeem")}

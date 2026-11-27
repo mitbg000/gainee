@@ -5,6 +5,7 @@ import Shell from "@/components/Shell";
 import WordPractice from "@/components/practice/WordPractice";
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
+import * as I from "@/components/icons";
 import { dueByDocument } from "@/lib/review";
 import { imagesForWords } from "@/lib/images";
 
@@ -14,6 +15,7 @@ const { words, lessons, documents } = schema;
 /** Free practice with saved words (quizzes); unlike "Today's review" it does not change the review schedule. */
 export default async function PracticePage({ searchParams }: { searchParams: Promise<{ doc?: string }> }) {
   const t = await getTranslations("practice");
+  const tn = await getTranslations("nav");
   const doc = Number((await searchParams).doc) || null;
   const rows = await getDb()
     .select({ id: words.id, term: words.term, ipa: words.ipa, pos: words.pos, meaningVi: words.meaningVi, definitionEn: words.definitionEn, context: words.context, example: words.example, mnemonic: words.mnemonic, lapses: words.lapses, reps: words.reps, docId: documents.id, docTitle: documents.title })
@@ -33,8 +35,15 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
 
   return (
     <Shell>
-      <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("intro")}</p>
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
+          <p className="mt-1 text-sm text-muted">{t("intro")}</p>
+        </div>
+        <Link href="/quick" className="btn btn-secondary">
+          <I.IconBolt className="h-4 w-4" /> {tn("quick")}
+        </Link>
+      </div>
       {groups.size > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
           <Link href="/practice" className={chip(!doc)}>

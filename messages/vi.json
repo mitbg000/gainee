@@ -47,8 +47,11 @@
       "read": "Đọc",
       "words": "Từ vựng",
       "skills": "Kỹ năng",
-      "me": "Của tôi"
-    }
+      "me": "Của tôi",
+      "learn": "Học",
+      "manage": "Quản lý"
+    },
+    "creditsLeft": "{n} credit"
   },
   "login": {
     "username": "Email hoặc tên đăng nhập",
@@ -1909,7 +1912,19 @@
     "customTitle": "Hoặc tự nhập số tiền",
     "customBuy": "Nạp → {n} credit",
     "customHelp": "Tối thiểu {min} ₫ · {rate} ₫ cho 1 credit",
-    "belowMin": "Số tiền tối thiểu là {min} ₫"
+    "belowMin": "Số tiền tối thiểu là {min} ₫",
+    "howTitle": "Credit được tính thế nào?",
+    "tokensLeft": "≈ {n} token AI",
+    "waitingLine": "{code} · {credits} credit · {price} đang chờ thanh toán",
+    "payContinue": "Thanh toán tiếp",
+    "best": "Lợi nhất",
+    "otherAmount": "Số tiền khác",
+    "fromMin": "từ {min}",
+    "youGet": "Nhận",
+    "youPay": "Trả",
+    "payNow": "Thanh toán",
+    "haveDiscount": "Có mã giảm giá?",
+    "again": "Chọn mức khác"
   },
   "admin": {
     "title": "Quản trị",
