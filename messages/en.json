@@ -1044,7 +1044,8 @@
       "progress": "Mastered {done}/{total} words",
       "finished": "You've mastered all {n} words!",
       "finishedTip": "They'll come back in Review just before you'd forget them.",
-      "again": "Learn again"
+      "again": "Learn again",
+      "copy": "Type the right answer to continue"
     },
     "match": {
       "best": "Best: {s}s",

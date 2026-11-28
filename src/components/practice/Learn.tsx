@@ -57,7 +57,7 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
   const right = given !== null && (overridden || norm(given) === norm(q?.answer ?? ""));
 
   useEffect(() => {
-    if (q?.kind === "write" && given === null) setTimeout(() => input.current?.focus(), 30);
+    if (q?.kind === "write") setTimeout(() => input.current?.focus(), 30);
   }, [q, given]);
   useEffect(() => {
     if (q?.kind === "mcMeaning") autoSpeak(q.w.term);
@@ -67,6 +67,7 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
     if (!q || given !== null) return;
     setGiven(a);
     sfx(norm(a) === norm(q.answer) ? "correct" : "wrong");
+    if (q.kind === "write" && norm(a) !== norm(q.answer)) setTyped(""); // the same box now takes the right answer
     if (q.kind !== "mcMeaning") autoSpeak(q.w.term);
     // a right multiple-choice answer moves on by itself, as in Quizlet
     if (q.kind !== "write" && norm(a) === norm(q.answer)) auto.current = setTimeout(() => advance(true, a), 700);
@@ -167,6 +168,9 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
 
   /* ---------- question ---------- */
   const w = q.w;
+  // a typed word missed (or not known) must be typed right once before going on, as in Quizlet
+  const mustCopy = q.kind === "write" && given !== null && !right;
+  const copied = norm(typed) === norm(q.answer);
   return (
     <div className="mx-auto max-w-2xl">
       {bars}
@@ -207,7 +211,7 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
             onSubmit={(e) => {
               e.preventDefault();
               if (given === null) answer(typed);
-              else advance();
+              else if (!mustCopy || copied) advance();
             }}
             className="mt-4"
           >
@@ -215,12 +219,12 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
               ref={input}
               value={typed}
               onChange={(e) => setTyped(e.target.value)}
-              readOnly={given !== null}
+              readOnly={given !== null && !mustCopy}
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder={t("typeHere")}
-              className={`min-h-14 w-full rounded-2xl border-2 bg-paper px-4 text-lg outline-none ${given === null ? "border-line focus:border-accent" : right ? "border-green-500" : "border-red-400"}`}
+              placeholder={mustCopy ? t("copy") : t("typeHere")}
+              className={`min-h-14 w-full rounded-2xl border-2 bg-paper px-4 text-lg outline-none ${given === null ? "border-line focus:border-accent" : right || copied ? "border-green-500" : "border-red-400"}`}
             />
             {given === null && (
               <div className="mt-3 flex justify-between gap-2">
@@ -244,8 +248,9 @@ export default function Learn({ words, all, onExit }: { words: PWord[]; all: { t
               <span>{meaningOf(w)}</span>
             </p>
             {!right && <p className="mt-1 text-sm text-muted">{t("comesBack")}</p>}
+            {mustCopy && <p className="mt-1 text-sm font-medium">{t("copy")}</p>}
             <div className="mt-3 flex flex-wrap gap-2">
-              <button onClick={() => advance()} autoFocus className="btn btn-primary">
+              <button onClick={() => advance()} autoFocus={!mustCopy} disabled={mustCopy && !copied} className="btn btn-primary">
                 {t("continue")} <I.IconEnter />
               </button>
               {q.kind === "write" && given && !right && (

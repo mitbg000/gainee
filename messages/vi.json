@@ -1044,7 +1044,8 @@
       "progress": "Đã thành thạo {done}/{total} từ",
       "finished": "Bạn đã thành thạo cả {n} từ!",
       "finishedTip": "Các từ này sẽ quay lại trong Ôn tập đúng lúc bạn sắp quên.",
-      "again": "Học lại từ đầu"
+      "again": "Học lại từ đầu",
+      "copy": "Gõ lại đáp án đúng để tiếp tục"
     },
     "match": {
       "best": "Kỷ lục: {s}s",
