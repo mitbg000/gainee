@@ -44,3 +44,4 @@ next-env.d.ts
 # dữ liệu & build
 /data
 /dist
+/.next-check/

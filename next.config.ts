@@ -6,6 +6,8 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   serverExternalPackages: ["mysql2", "sharp"],
   poweredByHeader: false,
+  // a check build next to a running `next dev` goes to its own folder, so the dev server keeps working
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   // Keep visited pages in the browser for a short while so moving between pages does not refetch every time.
   // router.refresh() (used after edits) still clears it.
   experimental: { staleTimes: { dynamic: 60, static: 300 } },
