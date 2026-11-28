@@ -741,7 +741,9 @@
       },
       "download": "Download ({n} words)",
       "copy": "Copy to paste",
-      "copied": "Copied"
+      "copied": "Copied",
+      "button": "Export",
+      "close": "Close"
     },
     "aiShorten": "Shorten with AI",
     "aiBusy": "AI is shortening…",

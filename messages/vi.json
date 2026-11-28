@@ -741,7 +741,9 @@
       },
       "download": "Tải file ({n} từ)",
       "copy": "Copy để dán",
-      "copied": "Đã copy"
+      "copied": "Đã copy",
+      "button": "Export",
+      "close": "Đóng"
     },
     "aiShorten": "Rút gọn bằng AI",
     "aiBusy": "AI đang rút gọn…",

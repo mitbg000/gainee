@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import * as I from "@/components/icons";
 
 export type ExportWord = { term: string; ipa: string | null; pos: string | null; meaningVi: string | null; definitionEn: string | null; example: string | null };
 export type ExportGroup = { key: string; doc: string; part: string | null; words: ExportWord[] };
@@ -48,6 +49,7 @@ export default function ExportWords({ groups }: { groups: ExportGroup[] }) {
   const [on, setOn] = useState(() => new Set(groups.map((g) => g.key)));
   const [format, setFormat] = useState<Format>("anki");
   const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
   const chosen = useMemo(() => groups.filter((g) => on.has(g.key)), [groups, on]);
   const n = chosen.reduce((a, g) => a + g.words.length, 0);
   const docs = [...new Set(groups.map((g) => g.doc))];
@@ -77,9 +79,20 @@ export default function ExportWords({ groups }: { groups: ExportGroup[] }) {
   }
 
   return (
-    <details className="mt-3 rounded-xl border border-line bg-card">
-      <summary className="cursor-pointer px-4 py-2.5 text-sm font-semibold">{t("open")}</summary>
-      <div className="space-y-4 border-t border-line p-4">
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="btn btn-sm btn-secondary">
+        <I.IconArrowDown /> {t("button")}
+      </button>
+      {open && (
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 p-3 sm:items-center" onClick={() => setOpen(false)}>
+      <div role="dialog" aria-modal="true" aria-label={t("open")} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl bg-card p-5 shadow-xl">
+        <div className="flex items-center">
+          <h2 className="flex-1 font-bold">{t("open")}</h2>
+          <button type="button" onClick={() => setOpen(false)} className="icon-btn" aria-label={t("close")}>
+            <I.IconX />
+          </button>
+        </div>
+        {groups.length > 1 && (
         <div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="font-semibold">{t("parts")}</span>
@@ -116,6 +129,7 @@ export default function ExportWords({ groups }: { groups: ExportGroup[] }) {
             })}
           </div>
         </div>
+        )}
 
         <div>
           <p className="text-sm font-semibold">{t("format")}</p>
@@ -140,6 +154,8 @@ export default function ExportWords({ groups }: { groups: ExportGroup[] }) {
           )}
         </div>
       </div>
-    </details>
+    </div>
+      )}
+    </>
   );
 }

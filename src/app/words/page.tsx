@@ -2,7 +2,6 @@ import Link from "next/link";
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import ExportWords from "@/components/ExportWords";
-import ShortenWords from "@/components/ShortenWords";
 import Shell from "@/components/Shell";
 import Notebook from "@/components/words/Notebook";
 import DeleteSet from "@/components/words/DeleteSet";
@@ -111,7 +110,6 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
   const title = q ? t("results", { q }) : source ? (source.kind === "other" ? t("other") : source.title) : t("all");
   const setId = source?.kind === "set" ? Number(source.key.slice(4)) : null;
   const textId = source?.kind === "text" ? Number(source.key.slice(5)) : null;
-  const long = rows.filter((w) => (w.meaningVi?.length ?? 0) > 40 || (w.definitionEn?.length ?? 0) > 120).map((w) => w.id);
 
   return (
     <Shell>
@@ -120,6 +118,7 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
       </Link>
       <div className="mt-1 flex flex-wrap items-center gap-2">
         <h1 className="min-w-0 flex-1 font-serif text-2xl font-bold md:text-3xl">{title}</h1>
+        {rows.length > 0 && <ExportWords groups={[{ key: "list", doc: title, part: null, words: rows }]} />}
         {setId && (
           <>
             <Link href={`/words/sets/${setId}/edit`} className="btn btn-sm btn-secondary">
@@ -138,19 +137,10 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
       {rows.length > 0 && <CardViewer cards={rows.map((r) => ({ ...r, images: images.get(r.id) ?? [] }))} />}
 
       {rows.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Link href={`/practice${source ? `?src=${source.key}` : ""}`} className="btn btn-primary">
+        <div className="mt-4 flex justify-center">
+          <Link href={`/practice${source ? `?src=${source.key}` : ""}`} className="btn btn-lg btn-primary">
             <I.IconPlay /> {t("learn")}
           </Link>
-          <details className="relative">
-            <summary className="btn btn-secondary list-none [&::-webkit-details-marker]:hidden" aria-label={t("more")}>
-              ⋯
-            </summary>
-            <div className="absolute left-0 z-20 mt-2 w-[min(22rem,calc(100vw-2rem))] space-y-2 rounded-2xl border border-line bg-card p-3 shadow-xl">
-              <ExportWords groups={[{ key: "list", doc: title, part: null, words: rows }]} />
-              <ShortenWords ids={long} />
-            </div>
-          </details>
         </div>
       )}
 
