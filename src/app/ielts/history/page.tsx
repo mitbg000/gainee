@@ -18,7 +18,6 @@ export default async function IeltsHistoryPage({ searchParams }: { searchParams:
   return (
     <Shell wide>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("historyPage.intro")}</p>
       <IeltsTabs active="history" />
       <div className="mt-4 mb-3 flex gap-1.5">
         {[undefined, "mock", "practice"].map((m) => (

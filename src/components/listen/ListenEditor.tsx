@@ -149,7 +149,6 @@ export default function ListenEditor({ sourceId, title: title0, shift: shift0, m
               <span className="w-14 text-center font-mono">{shift > 0 ? "+" : ""}{shift.toFixed(2)}s</span>
               {nudge("+0.25", () => (setShift((s) => r2(s + 0.25)), setDirty(true)))}
             </span>
-            <span className="mt-1 block text-xs text-muted">{t("shiftHint")}</span>
           </label>
           {captions === "auto" && <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t("autoCaptions")}</p>}
           {low > 0 && (

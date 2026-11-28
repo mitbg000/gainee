@@ -8,7 +8,6 @@ export default async function LabelsPage() {
     <Shell>
       <p className="text-xs font-bold uppercase tracking-widest text-accent2">{t("kicker")}</p>
       <h1 className="mt-1 font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-2 text-sm text-muted">{t("intro")}</p>
       <div className="mt-6">
         <LabelManager />
       </div>

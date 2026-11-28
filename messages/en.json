@@ -76,7 +76,6 @@
   "dashboard": {
     "kicker": "Dashboard",
     "greeting": "Hello",
-    "intro": "Import an article, read it in short parts, and keep your streak going.",
     "stats": {
       "documents": "Texts",
       "lessons": "Lessons",
@@ -167,7 +166,6 @@
   "labels": {
     "kicker": "Organize",
     "title": "Categories",
-    "intro": "Create your own topics, sources and labels, then attach them to texts and words to filter and review by group.",
     "kinds": {
       "topic": {
         "title": "Topics",
@@ -373,13 +371,11 @@
       "name": "Display name",
       "save": "Save",
       "saved": "Saved"
-    },
-    "deviceHint": "For this browser: theme, language, how texts look, and sounds."
+    }
   },
   "import": {
     "kicker": "Library",
     "heading": "Add a new text",
-    "intro": "Upload a PDF / Word file or paste an article. It is cleaned, split into short lessons, and the AI prepares vocabulary and exercises for each part.",
     "mode": {
       "file": "Upload file",
       "paste": "Paste text"
@@ -797,7 +793,6 @@
     "toPractice": "Practise more",
     "nothingNow": "No cards are due right now.",
     "continue": "Continue",
-    "intro": "Review the words you saved, just before you would forget them (FSRS schedule). Choose how with the ⚙ button.",
     "stop": "End",
     "dueTag": "Due",
     "tapToFlip": "Tap the card to flip it",
@@ -1080,7 +1075,6 @@
   },
   "writing": {
     "title": "Writing practice",
-    "intro": "Write IELTS Task 1, Task 2, free writing, translate a Vietnamese text into English, or translate short sentences. AI sets the task and scores it.",
     "history": "Your writing",
     "new": "New",
     "noHistory": "Nothing yet.",
@@ -1271,7 +1265,6 @@
     },
     "quick": {
       "title": "Quick study (5 minutes)",
-      "intro": "Part 1 reviews the words that are due, part 2 teaches a few new ones. Pick an answer; it is marked for you and the next review is scheduled. Now: {due} to review · {fresh} new · {learned} learned.",
       "part": {
         "review": "Review ({n})",
         "learn": "New words ({n})"
@@ -1329,7 +1322,6 @@
   },
   "ielts": {
     "title": "IELTS practice",
-    "intro": "Computer-style mock tests, and practice by part or question type, from the test books you upload.",
     "mistakes": "Mistakes ({n})",
     "upload": "Upload a test book",
     "emptyTitle": "No test books yet",
@@ -1407,7 +1399,6 @@
     },
     "review": {
       "title": "Mistakes",
-      "intro": "Questions you got wrong on your latest try. Get one right and it leaves the list. The chart shows your weakest question types.",
       "byType": "Accuracy by question type",
       "none": "No mistakes left. Do more tests for more data.",
       "redo": "Redo this group"
@@ -1471,7 +1462,6 @@
     },
     "import": {
       "heading": "Upload an IELTS test book",
-      "intro": "The PDF is read in your browser: text, a picture of each page, and OCR of scanned pages. The server only receives small page images; then AI splits it into tests, questions and answers.",
       "opening": "Opening the PDF…",
       "page": "Processing page {p}/{n}",
       "ocr": "Reading scanned page {p}/{n} (on this computer)",
@@ -1656,7 +1646,6 @@
     },
     "historyPage": {
       "title": "History",
-      "intro": "Every mock test and practice round with answers, scores, bands and AI feedback.",
       "all": "See all",
       "filterAll": "All",
       "aiNotes": "{n} AI",
@@ -1695,7 +1684,6 @@
   },
   "listen": {
     "title": "Listening & dictation",
-    "intro": "Hear one sentence, type it. Sentences from YouTube videos and IELTS Listening tests; wrong ones come back on a schedule.",
     "sources": "Recordings ({n})",
     "empty": "Nothing yet. Add a YouTube video, or open an IELTS Listening part and press \"Add to listening bank\".",
     "count": "{n} sentences",
@@ -1723,8 +1711,7 @@
       "number": "Numbers",
       "name": "Names",
       "other": "Other words",
-      "none": "No data yet: practise a few sentences to see what you miss.",
-      "hint": "Counted from each sentence's first check. Many small words or -s/-ed endings: try shadowing and 0.75× speed."
+      "none": "No data yet: practise a few sentences to see what you miss."
     },
     "session": {
       "review": "Today's review",
@@ -1750,17 +1737,14 @@
       "kinds": {
         "dictation": "Whole sentence",
         "gaps": "Fill the gaps"
-      },
-      "hint": "Review, Random and Mix take sentences from the IELTS tests; practise and review YouTube videos one at a time under \"One recording\" (a new video for each sentence would reload the player). No sentence repeats until every one in the scope was shown (then a new round). Wrong ones come back after 1 day, 3 days, then longer."
+      }
     },
     "add": {
       "title": "Add a YouTube video",
       "add": "Get captions",
       "addPasted": "Add with the pasted transcript",
       "working": "Getting captions and cutting sentences…",
-      "pasteHint": "Paste a transcript with times: on YouTube press \"…More\" → \"Show transcript\", select all and copy. The text of an .srt or .vtt file works too.",
       "pasteInstead": "Or paste a transcript",
-      "hint": "The video plays in YouTube's own player. Automatic captions get punctuation from AI to find sentences; review them before practice.",
       "errors": {
         "captions_blocked": "YouTube refused the captions right now. Paste the transcript below.",
         "no_captions": "This video has no English captions. Paste the transcript below.",
@@ -1786,7 +1770,6 @@
       "notYet": "Not all right yet: fix it and press Enter to check again.",
       "rightFirst": "Right first time!",
       "right": "Right.",
-      "revealedHint": "The answer (you still type it right to go on):",
       "next": "Next",
       "check": "Check",
       "hintLetters": "First letters",
@@ -1795,7 +1778,6 @@
       "edit": "Fix this sentence",
       "report": "Report & skip",
       "reportConfirm": "Hide this sentence from the bank (wrong captions or cut) until you review it?",
-      "editHint": "Correct the words to what is said (for the whole bank).",
       "save": "Save",
       "cancel": "Cancel",
       "relearn": "Wrong ones again at the end",
@@ -1820,7 +1802,6 @@
       "intro": "Listen to each sentence, fix words, move start/end by 0.25 s, join or split. Yellow ones are where the machine was unsure.",
       "title": "Title",
       "shift": "Shift for the whole recording",
-      "shiftHint": "When every sentence starts equally early or late.",
       "autoCaptions": "YouTube's automatic captions: some words may be wrong and sentences cut oddly.",
       "onlyLow": "Show only the {n} to check",
       "saveReviewed": "Save & mark reviewed",
@@ -1880,7 +1861,6 @@
         "speech_bad_output": "Speech recognition gave a broken result, try again."
       }
     },
-    "ieltsPartsHint": "Press \"Add to listening bank\" on a part, or \"Add the whole book\". The server listens to the audio to time each sentence (in the background, you can close the page); then the part gets its practice button and appears in the list above.",
     "tabs": {
       "practice": "Practice",
       "library": "Recordings",
@@ -1894,8 +1874,6 @@
       "seen": "Done",
       "sources": "Recordings"
     },
-    "draftsToReview": "{n} recordings not reviewed: listen and fix them before practice",
-    "practiceHint": "Tip: review due sentences first, then random practice. To go through a whole video in order, open it in Recordings.",
     "filters": {
       "all": "All",
       "youtube": "YouTube",
@@ -1904,15 +1882,11 @@
     },
     "noneInFilter": "Nothing here.",
     "addSteps": {
-      "title": "Steps",
-      "one": "Paste a YouTube link with English captions (or paste the transcript if they cannot be fetched).",
-      "two": "On the review screen: Clean up (or Clean up with AI), listen to a few sentences, fix cuts, then Save & mark reviewed.",
-      "three": "Practise: the whole video in order, listen in pieces, or random practice from the bank.",
       "ielts": "Add from IELTS Listening tests"
     },
     "ieltsNone": "No Listening part has audio yet. Upload a book and its audio under IELTS first.",
-    "lookupHint": "Tap a word (or select a few) in a shown sentence to look it up, ask AI and save it to your notebook. The result shows here.",
-    "resize": "Drag to resize the column (double-click: default)"
+    "resize": "Drag to resize the column (double-click: default)",
+    "draftsShort": "{n, plural, one {# recording} other {# recordings}} not checked yet"
   },
   "register": {
     "title": "Create an account",

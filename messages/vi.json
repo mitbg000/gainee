@@ -76,7 +76,6 @@
   "dashboard": {
     "kicker": "Tổng quan",
     "greeting": "Chào bạn",
-    "intro": "Nhập một bài báo, đọc từng phần ngắn và giữ chuỗi ngày học.",
     "stats": {
       "documents": "Bài đọc",
       "lessons": "Bài học",
@@ -167,7 +166,6 @@
   "labels": {
     "kicker": "Sắp xếp",
     "title": "Phân loại",
-    "intro": "Tự tạo chủ đề, nguồn và nhãn riêng, rồi gắn vào bài đọc và từ vựng để lọc và ôn tập theo nhóm.",
     "kinds": {
       "topic": {
         "title": "Chủ đề",
@@ -373,13 +371,11 @@
       "name": "Tên hiển thị",
       "save": "Lưu",
       "saved": "Đã lưu"
-    },
-    "deviceHint": "Áp dụng cho trình duyệt này: giao diện, ngôn ngữ, cách hiển thị bài đọc và âm thanh."
+    }
   },
   "import": {
     "kicker": "Thư viện",
     "heading": "Thêm bài đọc mới",
-    "intro": "Tải file PDF / Word hoặc dán bài báo. Hệ thống làm sạch văn bản, chia thành các bài ngắn và AI chuẩn bị từ vựng, bài tập cho từng phần.",
     "mode": {
       "file": "Tải file",
       "paste": "Dán văn bản"
@@ -797,7 +793,6 @@
     "toPractice": "Luyện thêm",
     "nothingNow": "Không có thẻ nào đến hạn lúc này.",
     "continue": "Tiếp tục",
-    "intro": "Ôn các từ bạn đã lưu, đúng lúc sắp quên (lịch FSRS). Chọn cách ôn ở nút ⚙.",
     "stop": "Kết thúc",
     "dueTag": "Đến hạn",
     "tapToFlip": "Chạm vào thẻ để lật",
@@ -1080,7 +1075,6 @@
   },
   "writing": {
     "title": "Luyện Writing",
-    "intro": "Viết bài IELTS Task 1, Task 2, viết tự do, dịch bài Việt → Anh hoặc dịch câu ngắn. AI ra đề và chấm điểm.",
     "history": "Bài đã viết",
     "new": "Bài mới",
     "noHistory": "Chưa có bài nào.",
@@ -1271,7 +1265,6 @@
     },
     "quick": {
       "title": "Học nhanh 5 phút",
-      "intro": "Phần 1 ôn các từ đến hạn, phần 2 học vài từ mới. Bấm chọn đáp án, máy tự chấm và hẹn ngày ôn lại. Đang có {due} từ cần ôn · {fresh} từ mới · {learned} từ đã thuộc.",
       "part": {
         "review": "Ôn từ ({n})",
         "learn": "Học từ mới ({n})"
@@ -1329,7 +1322,6 @@
   },
   "ielts": {
     "title": "Luyện thi IELTS",
-    "intro": "Thi thử giống thi trên máy, luyện từng phần hoặc từng dạng câu hỏi từ bộ đề bạn upload.",
     "mistakes": "Ôn câu sai ({n})",
     "upload": "Tải bộ đề lên",
     "emptyTitle": "Chưa có bộ đề nào",
@@ -1407,7 +1399,6 @@
     },
     "review": {
       "title": "Ôn câu sai",
-      "intro": "Những câu lần làm gần nhất còn sai. Làm lại đúng thì câu tự rời danh sách. Biểu đồ cho thấy dạng câu hỏi nào bạn yếu nhất.",
       "byType": "Độ chính xác theo dạng câu hỏi",
       "none": "Không còn câu sai nào. Làm thêm đề để có dữ liệu.",
       "redo": "Làm lại nhóm câu"
@@ -1471,7 +1462,6 @@
     },
     "import": {
       "heading": "Tải bộ đề IELTS",
-      "intro": "PDF được đọc ngay trên trình duyệt của bạn: lấy chữ, chụp từng trang, đọc chữ trang scan. Server chỉ nhận ảnh trang đã thu nhỏ, sau đó AI tách đề, câu hỏi và đáp án.",
       "opening": "Đang mở PDF…",
       "page": "Đang xử lý trang {p}/{n}",
       "ocr": "Đang đọc chữ trang scan {p}/{n} (trên máy này)",
@@ -1656,7 +1646,6 @@
     },
     "historyPage": {
       "title": "Lịch sử làm bài",
-      "intro": "Mọi lần thi thử và luyện tập, kèm câu trả lời, điểm, band và nhận xét của AI.",
       "all": "Xem tất cả",
       "filterAll": "Tất cả",
       "aiNotes": "{n} AI",
@@ -1695,7 +1684,6 @@
   },
   "listen": {
     "title": "Luyện nghe & chính tả",
-    "intro": "Nghe từng câu rồi gõ lại. Câu từ video YouTube và đề IELTS Listening, ôn lại câu sai theo lịch.",
     "sources": "Bài nghe ({n})",
     "empty": "Chưa có bài nào. Thêm một video YouTube, hoặc mở một Part Listening IELTS và bấm \"Đưa vào kho luyện nghe\".",
     "count": "{n} câu",
@@ -1723,8 +1711,7 @@
       "number": "Số",
       "name": "Tên riêng",
       "other": "Từ khác",
-      "none": "Chưa có dữ liệu: luyện vài câu để xem bạn hay nghe sót gì.",
-      "hint": "Tính từ lần chấm đầu của mỗi câu. Từ nhỏ đọc lướt và đuôi -s/-ed cao là dấu hiệu nên luyện nghe nhại (shadowing) và nghe chậm 0.75×."
+      "none": "Chưa có dữ liệu: luyện vài câu để xem bạn hay nghe sót gì."
     },
     "session": {
       "review": "Ôn hôm nay",
@@ -1750,17 +1737,14 @@
       "kinds": {
         "dictation": "Chép cả câu",
         "gaps": "Điền từ"
-      },
-      "hint": "Ôn, Ngẫu nhiên và Trộn lấy câu từ các đề IELTS; video YouTube thì luyện và ôn từng video ở mục \"Một bài\" (đổi video mỗi câu phải tải lại trình phát). Không lặp câu nào cho tới khi đã làm hết phạm vi (sang vòng mới). Câu sai được ôn lại sau 1 ngày, 3 ngày, rồi giãn dần."
+      }
     },
     "add": {
       "title": "Thêm video YouTube",
       "add": "Lấy phụ đề",
       "addPasted": "Thêm với transcript đã dán",
       "working": "Đang lấy và chia câu…",
-      "pasteHint": "Dán transcript có mốc thời gian: trên YouTube bấm \"…Thêm\" → \"Hiện bản chép lời\", chọn hết rồi copy. Cũng nhận nội dung file .srt hoặc .vtt.",
       "pasteInstead": "Hoặc dán transcript",
-      "hint": "Video được phát bằng trình phát của YouTube. Phụ đề tự động được AI thêm dấu câu để chia câu; nên duyệt lại trước khi luyện.",
       "errors": {
         "captions_blocked": "YouTube không cho lấy phụ đề lúc này. Hãy dán transcript bên dưới.",
         "no_captions": "Video không có phụ đề tiếng Anh. Hãy dán transcript bên dưới.",
@@ -1786,7 +1770,6 @@
       "notYet": "Chưa đúng hết: sửa rồi bấm Enter để chấm lại.",
       "rightFirst": "Đúng ngay lần đầu!",
       "right": "Đúng rồi.",
-      "revealedHint": "Đáp án (vẫn cần tự gõ đúng mới sang câu tiếp):",
       "next": "Câu tiếp",
       "check": "Chấm",
       "hintLetters": "Chữ cái đầu",
@@ -1795,7 +1778,6 @@
       "edit": "Sửa câu này",
       "report": "Báo sai & bỏ qua",
       "reportConfirm": "Ẩn câu này khỏi kho (phụ đề sai hoặc cắt lệch) cho tới khi bạn duyệt lại?",
-      "editHint": "Sửa chữ của câu cho đúng với lời nói (áp dụng cho cả kho).",
       "save": "Lưu",
       "cancel": "Huỷ",
       "relearn": "Câu sai: làm lại cuối buổi",
@@ -1820,7 +1802,6 @@
       "intro": "Nghe thử từng câu, sửa chữ, dịch đầu/cuối câu 0.25 giây, gộp hoặc tách câu. Câu viền vàng là chỗ máy không chắc.",
       "title": "Tên bài",
       "shift": "Lệch thời gian cả bài",
-      "shiftHint": "Dùng khi mọi câu đều bắt đầu sớm hoặc muộn như nhau.",
       "autoCaptions": "Phụ đề tự động của YouTube: có thể sai vài từ và chia câu chưa chuẩn.",
       "onlyLow": "Chỉ hiện {n} câu cần xem",
       "saveReviewed": "Lưu & đánh dấu đã duyệt",
@@ -1880,7 +1861,6 @@
         "speech_bad_output": "Bước nhận dạng giọng nói trả kết quả hỏng, thử lại."
       }
     },
-    "ieltsPartsHint": "Bấm \"Đưa vào kho luyện nghe\" ở một Part, hoặc \"Đưa cả sách\". Server tự nghe audio để tìm thời điểm từng câu (chạy nền, có thể đóng trang), xong Part hiện nút Luyện và có trong danh sách bài ở trên.",
     "tabs": {
       "practice": "Luyện tập",
       "library": "Bài nghe",
@@ -1894,8 +1874,6 @@
       "seen": "Đã làm",
       "sources": "Bài nghe"
     },
-    "draftsToReview": "{n} bài chưa duyệt: nên nghe thử và sửa trước khi luyện",
-    "practiceHint": "Mẹo: ôn câu đến hạn trước, rồi luyện ngẫu nhiên. Muốn làm lần lượt cả một video, mở nó trong tab Bài nghe.",
     "filters": {
       "all": "Tất cả",
       "youtube": "YouTube",
@@ -1904,15 +1882,11 @@
     },
     "noneInFilter": "Không có bài nào trong mục này.",
     "addSteps": {
-      "title": "Các bước",
-      "one": "Dán link video YouTube có phụ đề tiếng Anh (hoặc dán transcript nếu không lấy được).",
-      "two": "Ở màn Duyệt: bấm Làm sạch (hoặc Làm sạch bằng AI), nghe thử vài câu, sửa chỗ lệch, rồi Lưu & đánh dấu đã duyệt.",
-      "three": "Luyện: chép cả video lần lượt, nghe từng đoạn, hoặc để câu vào kho luyện ngẫu nhiên.",
       "ielts": "Thêm từ đề IELTS Listening"
     },
     "ieltsNone": "Chưa có Part Listening nào có audio. Tải sách và audio trong mục IELTS trước.",
-    "lookupHint": "Chạm vào một từ (hoặc bôi đen vài từ) trong câu đã hiện để tra nghĩa, hỏi AI và lưu vào sổ từ. Kết quả hiện ở đây.",
-    "resize": "Kéo để đổi độ rộng cột (bấm đúp: về mặc định)"
+    "resize": "Kéo để đổi độ rộng cột (bấm đúp: về mặc định)",
+    "draftsShort": "{n} bài chưa duyệt"
   },
   "register": {
     "title": "Tạo tài khoản",

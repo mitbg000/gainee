@@ -16,7 +16,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   return (
     <Shell>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("deviceHint")}</p>
       <div className="mt-6">
         <AppearanceSettings initial={await getLook()} theme={await getTheme()} />
       </div>

@@ -38,7 +38,6 @@ export default async function DashboardPage() {
     <Shell>
       <p className="text-xs font-bold uppercase tracking-widest text-accent2">{t("kicker")}</p>
       <h1 className="mt-1 font-serif text-3xl font-bold md:text-4xl">{t("greeting")}</h1>
-      <p className="mt-2 text-muted">{t("intro")}</p>
 
       <InstallPrompt />
 

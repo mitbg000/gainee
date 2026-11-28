@@ -168,7 +168,7 @@ export function ListenLayout({ media, video, children, side }: { media: React.Re
       <aside className="relative min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100dvh-6rem)]">
         <div className="hidden xl:block">{sideHandle(-1, "-left-4", t("resize"))}</div>
         <div className="xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto">
-          {side || <p className="hidden rounded-2xl border border-dashed border-line p-4 text-sm text-muted xl:block">{t("lookupHint")}</p>}
+          {side}
         </div>
       </aside>
     </div>

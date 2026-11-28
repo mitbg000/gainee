@@ -42,13 +42,12 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
   return (
     <Shell wide>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("intro")}</p>
 
-      <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 backdrop-blur md:top-14 md:mx-0 md:px-0">
+      <div role="tablist" className="sticky top-[calc(env(safe-area-inset-top)+3rem)] z-20 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-line bg-paper/95 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-4 backdrop-blur md:top-14 md:mx-0 md:px-0">
         {tabs.map((k) => (
-          <Link key={k} href={`/listen?tab=${k}`} role="tab" aria-selected={tab === k} className="tab" scroll={false}>
+          <Link key={k} href={`/listen?tab=${k}`} role="tab" aria-selected={tab === k} aria-label={t(`tabs.${k}`)} title={t(`tabs.${k}`)} className="tab" scroll={false}>
             {ICON[k]}
-            {t(`tabs.${k}`)}
+            <span className={tab === k ? "" : "hidden sm:inline"}>{t(`tabs.${k}`)}</span>
             {badge[k] !== undefined && <span className={`rounded-full px-1.5 text-xs tabular-nums ${k === "practice" ? "bg-accent text-on-accent" : "bg-ink/5 text-muted"}`}>{badge[k]}</span>}
           </Link>
         ))}
@@ -58,26 +57,23 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
       <RefreshWhile active={running > 0} />
       <div className="mt-5">
         {tab === "practice" && (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="mx-auto max-w-2xl space-y-3">
+            <div className="grid grid-cols-3 gap-2">
+              <Stat label={t("stat.due")} value={due} accent={due > 0} />
+              <Stat label={t("stat.sentences")} value={total} />
+              <Stat label={t("stat.seen")} value={`${total ? Math.round((seen / total) * 100) : 0}%`} />
+            </div>
+            {drafts > 0 && (
+              <Link href="/listen?tab=library&filter=draft" className="flex items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                <I.IconAlert className="h-4 w-4 flex-none" /> <span className="min-w-0 flex-1">{t("draftsShort", { n: drafts })}</span>
+                <I.IconArrowRight className="h-4 w-4 flex-none" />
+              </Link>
+            )}
             {total ? (
               <Launcher due={due} sources={sources.filter((s) => s.n).map((s) => ({ id: s.id, title: s.title }))} />
             ) : (
               <p className="rounded-2xl border border-dashed border-line p-6 text-sm text-muted">{t("empty")}</p>
             )}
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <Stat label={t("stat.due")} value={due} accent={due > 0} />
-                <Stat label={t("stat.sentences")} value={total} />
-                <Stat label={t("stat.seen")} value={`${total ? Math.round((seen / total) * 100) : 0}%`} />
-              </div>
-              {drafts > 0 && (
-                <Link href="/listen?tab=library&filter=draft" className="flex items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                  <I.IconAlert className="h-4 w-4 flex-none" /> {t("draftsToReview", { n: drafts })}
-                  <I.IconArrowRight className="ml-auto h-4 w-4" />
-                </Link>
-              )}
-              <p className="text-xs text-muted">{t("practiceHint")}</p>
-            </div>
           </div>
         )}
 
@@ -96,39 +92,42 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
             {shown.length === 0 && <p className="mt-4 text-sm text-muted">{sources.length ? t("noneInFilter") : t("empty")}</p>}
             <ul className="mt-3 space-y-2">
               {shown.map((s) => (
-                <li key={s.id} className="flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-card p-3">
-                  {s.kind === "youtube" ? <I.IconPlay className="h-5 w-5 flex-none text-red-600" /> : <I.IconHeadphones className="h-5 w-5 flex-none text-accent" />}
-                  <div className="min-w-0 flex-1">
-                    <Link href={`/listen/${s.id}`} className="line-clamp-1 font-semibold hover:underline">
-                      {s.title}
-                    </Link>
-                    <div className="mt-1 flex items-center gap-2">
-                      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-line/70">
-                        <div className="h-full rounded-full bg-accent" style={{ width: `${s.n ? Math.round((s.seen / s.n) * 100) : 0}%` }} />
-                      </div>
-                      <div className="flex flex-wrap gap-x-3 text-xs text-muted">
-                        <span>{t("count", { n: s.n - s.hidden })}</span>
-                        <span>{t("seen", { pct: s.n ? Math.round((s.seen / s.n) * 100) : 0 })}</span>
+                <li key={s.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-line bg-card p-3">
+                  <div className="flex min-w-0 flex-1 basis-56 items-start gap-3">
+                    {s.kind === "youtube" ? <I.IconPlay className="mt-0.5 h-5 w-5 flex-none text-red-600" /> : <I.IconHeadphones className="mt-0.5 h-5 w-5 flex-none text-accent" />}
+                    <div className="min-w-0 flex-1">
+                      <Link href={`/listen/${s.id}`} className="line-clamp-1 font-semibold hover:underline">
+                        {s.title}
+                      </Link>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                        <span className="h-1.5 w-14 overflow-hidden rounded-full bg-line/70">
+                          <span className="block h-full rounded-full bg-accent" style={{ width: `${s.n ? Math.round((s.seen / s.n) * 100) : 0}%` }} />
+                        </span>
+                        <span className="tabular-nums">
+                          {t("count", { n: s.n - s.hidden })} · {s.n ? Math.round((s.seen / s.n) * 100) : 0}%
+                        </span>
                         {s.due > 0 && <span className="font-semibold text-accent">{t("due", { n: s.due })}</span>}
                         {s.captions === "auto" && <span>{t("autoCaptions")}</span>}
                         {!s.reviewed && <span className="font-semibold text-amber-700 dark:text-amber-400">{t("notReviewed")}{s.low ? ` · ${t("low", { n: s.low })}` : ""}</span>}
                       </div>
                     </div>
                   </div>
-                  <Link href={`/listen/${s.id}?kind=listen`} className="btn btn-sm btn-ghost" title={t("modes.listen")}>
-                    <I.IconHeadphones /> <span className="hidden sm:inline">{t("modes.listen")}</span>
-                  </Link>
-                  <Link href={`/listen/${s.id}`} className="btn btn-sm btn-secondary" title={t("modes.dictation")}>
-                    <I.IconPen /> <span className="hidden sm:inline">{t("modes.dictation")}</span>
-                  </Link>
-                  {editor && (
-                    <>
-                      <Link href={`/listen/${s.id}/edit`} className={`btn btn-sm ${s.reviewed ? "btn-ghost" : "btn-secondary"}`} title={t("review")}>
-                        <I.IconEdit /> <span className="hidden sm:inline">{t("review")}</span>
-                      </Link>
-                      <DeleteSource id={s.id} title={s.title} />
-                    </>
-                  )}
+                  <div className="ml-auto flex items-center gap-1">
+                    <Link href={`/listen/${s.id}?kind=listen`} className="btn btn-sm btn-ghost" title={t("modes.listen")}>
+                      <I.IconHeadphones /> <span className="hidden sm:inline">{t("modes.listen")}</span>
+                    </Link>
+                    <Link href={`/listen/${s.id}`} className="btn btn-sm btn-secondary" title={t("modes.dictation")}>
+                      <I.IconPen /> <span className="hidden sm:inline">{t("modes.dictation")}</span>
+                    </Link>
+                    {editor && (
+                      <>
+                        <Link href={`/listen/${s.id}/edit`} className={`btn btn-sm ${s.reviewed ? "btn-ghost" : "btn-secondary"}`} title={t("review")}>
+                          <I.IconEdit /> <span className="hidden sm:inline">{t("review")}</span>
+                        </Link>
+                        <DeleteSource id={s.id} title={s.title} />
+                      </>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -136,27 +135,18 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
         )}
 
         {tab === "add" && (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="mx-auto max-w-2xl space-y-3">
             <AddYoutube />
-            <div className="space-y-2 rounded-2xl border border-line bg-card p-4 text-sm">
-              <p className="font-semibold">{t("addSteps.title")}</p>
-              <ol className="list-decimal space-y-1 pl-5 text-muted">
-                <li>{t("addSteps.one")}</li>
-                <li>{t("addSteps.two")}</li>
-                <li>{t("addSteps.three")}</li>
-              </ol>
-              <Link href="/listen?tab=ielts" className="inline-flex items-center gap-1 text-accent underline">
-                {t("addSteps.ielts")} <I.IconArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+            <Link href="/listen?tab=ielts" className="inline-flex items-center gap-1 text-sm text-accent">
+              <I.IconClipboard className="h-4 w-4" /> {t("addSteps.ielts")} <I.IconArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         )}
 
         {tab === "ielts" && (
           <div className="rounded-2xl border border-line bg-card p-4">
-            <p className="text-sm text-muted">{t("ieltsPartsHint")}</p>
             {problem && (
-              <p className="mt-2 rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+              <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
                 {t("ielts.problem", { parts: problem.parts, error: t.has(`ielts.errors.${problem.error}`) ? t(`ielts.errors.${problem.error}`) : problem.error })}
               </p>
             )}
@@ -215,7 +205,6 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
                   })}
                 </ul>
               )}
-              <p className="mt-3 text-xs text-muted">{t("misses.hint")}</p>
             </div>
           </div>
         )}
@@ -226,9 +215,9 @@ export default async function ListenPage({ searchParams }: { searchParams: Promi
 
 function Stat({ label, value, accent = false }: { label: string; value: number | string; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl border p-3 ${accent ? "border-accent bg-accent/5" : "border-line bg-card"}`}>
-      <div className="text-xs text-muted">{label}</div>
-      <div className="mt-0.5 text-2xl font-bold tabular-nums">{value}</div>
+    <div className={`rounded-2xl border px-3 py-2.5 ${accent ? "border-accent bg-accent/5" : "border-line bg-card"}`}>
+      <div className="truncate text-xs text-muted">{label}</div>
+      <div className="mt-0.5 text-xl font-bold tabular-nums md:text-2xl">{value}</div>
     </div>
   );
 }

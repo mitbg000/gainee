@@ -31,19 +31,19 @@ export default function Launcher({ due, sources }: { due: number; sources: { id:
 
   return (
     <div className="space-y-3 rounded-2xl border border-line bg-card p-4">
-      <div className="flex flex-wrap gap-2">
-        <Link href={href("review")} className={`btn ${due ? "btn-primary" : "btn-secondary"}`} aria-disabled={!due}>
-          <I.IconCards /> {t("review", { n: due })}
-        </Link>
-        <Link href={href("random")} className="btn btn-secondary">
+      <Link href={href("review")} className={`btn btn-lg w-full ${due ? "btn-primary" : "btn-secondary"}`} aria-disabled={!due}>
+        <I.IconCards /> {t("review", { n: due })}
+      </Link>
+      <div className="grid grid-cols-2 gap-2">
+        <Link href={href("random")} className={`btn ${due ? "btn-secondary" : "btn-primary"}`}>
           <I.IconBolt /> {t("random")}
         </Link>
         <Link href={href("mix")} className="btn btn-secondary">
           <I.IconRefresh /> {t("mix")}
         </Link>
       </div>
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <select value={scope} onChange={(e) => setScope(e.target.value)} className="field field-sm w-auto max-w-full" aria-label={t("scope")}>
+      <div className="grid grid-cols-2 gap-2 border-t border-line pt-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <select value={scope} onChange={(e) => setScope(e.target.value)} className="field field-sm col-span-2 w-full min-w-0 sm:col-span-1" aria-label={t("scope")}>
           {SCOPES.map((s) => (
             <option key={s} value={s}>
               {t(`scopes.${s}`)}
@@ -59,19 +59,18 @@ export default function Launcher({ due, sources }: { due: number; sources: { id:
             </optgroup>
           )}
         </select>
-        <select value={n} onChange={(e) => setN(Number(e.target.value))} className="field field-sm w-auto" aria-label={t("size")}>
+        <select value={n} onChange={(e) => setN(Number(e.target.value))} className="field field-sm w-full" aria-label={t("size")}>
           {SIZES.map((s) => (
             <option key={s} value={s}>
               {t("sentences", { n: s })}
             </option>
           ))}
         </select>
-        <select value={kind} onChange={(e) => setKind(e.target.value as "dictation" | "gaps")} className="field field-sm w-auto" aria-label={t("kind")}>
+        <select value={kind} onChange={(e) => setKind(e.target.value as "dictation" | "gaps")} className="field field-sm w-full" aria-label={t("kind")}>
           <option value="dictation">{t("kinds.dictation")}</option>
           <option value="gaps">{t("kinds.gaps")}</option>
         </select>
       </div>
-      <p className="text-xs text-muted">{t("hint")}</p>
     </div>
   );
 }

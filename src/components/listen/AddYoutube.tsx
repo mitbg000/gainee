@@ -43,7 +43,6 @@ export default function AddYoutube() {
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       {paste !== null && (
         <div>
-          <p className="text-sm text-muted">{t("pasteHint")}</p>
           <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={6} placeholder={"0:00\nHello and welcome…\n0:04\nToday we…"} className="field mt-2 w-full font-mono text-sm" />
         </div>
       )}
@@ -52,7 +51,6 @@ export default function AddYoutube() {
           {t("pasteInstead")}
         </button>
       )}
-      <p className="text-xs text-muted">{t("hint")}</p>
     </div>
   );
 }

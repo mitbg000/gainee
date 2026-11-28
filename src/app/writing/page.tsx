@@ -22,7 +22,6 @@ export default async function WritingPage({ searchParams }: { searchParams: Prom
   return (
     <Shell wide>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("intro")}</p>
       <div className="mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-6">
         <WritingStudio key={id ?? `new-${kind}`} initial={initial} kind={kind} />
         <aside className="mt-8 lg:mt-0">

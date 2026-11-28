@@ -6,8 +6,7 @@ export default async function IeltsImportPage() {
   const t = await getTranslations("ielts.import");
   return (
     <Shell>
-      <h1 className="font-serif text-3xl font-bold">{t("heading")}</h1>
-      <p className="mt-1 mb-5 text-sm text-muted">{t("intro")}</p>
+      <h1 className="mb-5 font-serif text-3xl font-bold">{t("heading")}</h1>
       <ImportBook />
     </Shell>
   );

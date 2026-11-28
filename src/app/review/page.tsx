@@ -25,7 +25,6 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
   return (
     <Shell>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("intro")}</p>
       {groups.some((g) => g.id) && (
         <div className="mt-4 flex flex-wrap gap-1.5">
           <Link href="/review" className={chip(!doc)}>

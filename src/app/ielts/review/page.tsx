@@ -25,7 +25,6 @@ export default async function IeltsReviewPage() {
         ← {t("title")}
       </Link>
       <h1 className="mt-1 font-serif text-3xl font-bold">{t("review.title")}</h1>
-      <p className="mt-1 text-sm text-muted">{t("review.intro")}</p>
 
       {types.length > 0 && (
         <section className="mt-5 rounded-2xl border border-line bg-card p-5">

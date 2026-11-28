@@ -440,7 +440,6 @@ export default function Practice(p: Props) {
                   <I.IconCheck className="inline-block h-4 w-4 align-[-0.2em]" /> {cur.firstOk && !cur.hinted ? t("rightFirst") : t("right")}
                 </p>
               )}
-              {!cur.done && <p className="mb-1 text-xs text-muted">{t("revealedHint")}</p>}
               <LookupText text={text} onLookup={look.setTool} className="font-serif text-lg leading-relaxed" />
             </div>
           )}
@@ -484,7 +483,6 @@ export default function Practice(p: Props) {
             </>
           ) : (
             <div className="w-full space-y-2">
-              <p className="text-xs text-muted">{t("editHint")}</p>
               <textarea value={editing} onChange={(e) => setEditing(e.target.value)} rows={2} className="field w-full" />
               <div className="flex gap-2">
                 <button onClick={saveEdit} className="btn btn-sm btn-primary">

@@ -23,7 +23,6 @@ export default async function IeltsPage() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-0 flex-1">
           <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted">{t("intro")}</p>
         </div>
         <Link href="/ielts/review" className="btn btn-secondary">
           <I.IconTarget /> {t("mistakes", { n: wrong.wrong.length })}

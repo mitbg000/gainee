@@ -28,7 +28,6 @@ export default async function QuickPage({ searchParams }: { searchParams: Promis
   return (
     <Shell>
       <h1 className="font-serif text-3xl font-bold md:text-4xl">{t("title")}</h1>
-      <p className="mt-1 text-muted">{t("intro", { due: counts.due, fresh: counts.fresh, learned: counts.learned })}</p>
       <div className="mt-6">
         {/* a new set after "again": the page data changes, so the session starts over */}
         <QuickSession key={ids.join(",")} skip={skip} review={review.words} learn={learn.words} others={[...review.others, ...learn.others]} streak={s} activeToday={!!act && (act.xp > 0 || act.minutes > 0)} learned={counts.learned} />
