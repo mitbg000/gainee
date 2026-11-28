@@ -200,7 +200,7 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
         e.preventDefault();
         return grade(true);
       }
-      if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable]")) return;
+      if (e.target instanceof Element && e.target.closest("input,textarea,select,[contenteditable]")) return;
       if (e.key === "ArrowLeft") back();
       else if (e.key === "ArrowRight") forward();
       else if (view !== null) return;

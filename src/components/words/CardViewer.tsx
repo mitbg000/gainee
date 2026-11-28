@@ -22,7 +22,7 @@ export default function CardViewer({ cards }: { cards: Card[] }) {
   };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).closest("input,textarea,select,button")) return;
+      if (e.target instanceof Element && e.target.closest("input,textarea,select,button")) return;
       if (e.key === "ArrowRight") go(1);
       else if (e.key === "ArrowLeft") go(-1);
       else if (e.key === " ") {
