@@ -2478,6 +2478,12 @@
     "moved": "Đã chuyển {n} từ vào học phần",
     "removed": "Đã bỏ {n} từ khỏi học phần",
     "failed": "Không làm được, thử lại",
-    "listen": "Nghe"
+    "listen": "Nghe",
+    "flip": "Lật thẻ",
+    "prev": "Thẻ trước",
+    "next": "Thẻ tiếp",
+    "newTerm": "Từ mới",
+    "newMeaning": "Nghĩa (không bắt buộc)",
+    "addWord": "Thêm"
   }
 }

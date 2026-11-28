@@ -2478,6 +2478,12 @@
     "moved": "{n, plural, one {# word} other {# words}} moved to the set",
     "removed": "{n, plural, one {# word} other {# words}} removed from the set",
     "failed": "That didn't work, try again",
-    "listen": "Listen"
+    "listen": "Listen",
+    "flip": "Flip the card",
+    "prev": "Previous card",
+    "next": "Next card",
+    "newTerm": "New word",
+    "newMeaning": "Meaning (optional)",
+    "addWord": "Add"
   }
 }

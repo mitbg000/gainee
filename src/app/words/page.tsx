@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
-import AddWord from "@/components/AddWord";
 import ExportWords from "@/components/ExportWords";
 import ShortenWords from "@/components/ShortenWords";
 import Shell from "@/components/Shell";
 import Notebook from "@/components/words/Notebook";
 import DeleteSet from "@/components/words/DeleteSet";
+import AddHere from "@/components/words/AddHere";
+import CardViewer from "@/components/words/CardViewer";
+import { InlineRename } from "@/components/ielts/BookTitle";
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
 import { imagesForWords } from "@/lib/images";
-import { notebookSources, sourceWhere, statusCounts, statusWhere, STATUSES, type Source, type SourceKind } from "@/lib/notebook";
+import { notebookSources, sourceWhere, statusCounts, type Source, type SourceKind } from "@/lib/notebook";
 import * as I from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -21,14 +23,14 @@ const GROUPS: SourceKind[] = ["set", "text", "listen", "ielts", "other"];
 
 /**
  * Vocabulary notebook. Without ?src: the sets only – your own, then one per reading text, video, IELTS test and
- * "other words". With ?src (or a search ?q): that set's words, to read, edit, learn and put into other sets.
+ * "other words". With ?src (or a search ?q): that set as flashcards and a word list, edited in place.
  */
-export default async function WordsPage({ searchParams }: { searchParams: Promise<{ q?: string; src?: string; status?: string; tab?: string }> }) {
+export default async function WordsPage({ searchParams }: { searchParams: Promise<{ q?: string; src?: string; tab?: string }> }) {
   const sp = await searchParams;
   const sources = await notebookSources();
   const q = (sp.q ?? "").trim().slice(0, 100);
   if (!sp.src && !q && sp.tab !== "terms") return <SetsHome sources={sources} />;
-  return <SetDetail sources={sources} src={sp.src} q={q} status={STATUSES.find((s) => s === sp.status)} />;
+  return <SetDetail sources={sources} src={sp.src} q={q} />;
 }
 
 async function SetsHome({ sources }: { sources: Source[] }) {
@@ -78,21 +80,17 @@ async function SetsHome({ sources }: { sources: Source[] }) {
         );
       })}
 
-      <div className="mt-6">
-        <AddWord />
-      </div>
     </Shell>
   );
 }
 
-async function SetDetail({ sources, src, q, status }: { sources: Source[]; src?: string; q: string; status?: string }) {
+async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string; q: string }) {
   const t = await getTranslations("notebook");
   const uid = await myId();
   const source = sources.find((s) => s.key === src);
   const like_ = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
-  const where = and(eq(words.userId, uid), sourceWhere(source?.key, uid), statusWhere(status), q ? or(like(words.term, like_), like(words.meaningVi, like_), like(words.context, like_)) : undefined);
-  const [rows, counts] = await Promise.all([
-    getDb()
+  const where = and(eq(words.userId, uid), sourceWhere(source?.key, uid), q ? or(like(words.term, like_), like(words.meaningVi, like_), like(words.context, like_)) : undefined);
+  const rows = await getDb()
       .select({
         id: words.id,
         term: words.term,
@@ -110,12 +108,9 @@ async function SetDetail({ sources, src, q, status }: { sources: Source[]; src?:
       .from(words)
       .where(where)
       .orderBy(desc(words.id))
-      .limit(2000),
-    statusCounts(source?.key),
-  ]);
+      .limit(2000);
   const images = await imagesForWords(rows.map((r) => r.id));
   const title = q ? t("results", { q }) : source ? (source.kind === "other" ? t("other") : source.title) : t("all");
-  const href = (s?: string) => `/words?${new URLSearchParams({ ...(source ? { src: source.key } : {}), ...(q ? { q } : {}), ...(s ? { status: s } : {}) })}`;
   const setId = source?.kind === "set" ? Number(source.key.slice(4)) : null;
   const textId = source?.kind === "text" ? Number(source.key.slice(5)) : null;
   const long = rows.filter((w) => (w.meaningVi?.length ?? 0) > 40 || (w.definitionEn?.length ?? 0) > 120).map((w) => w.id);
@@ -126,7 +121,7 @@ async function SetDetail({ sources, src, q, status }: { sources: Source[]; src?:
         <I.IconArrowLeft className="h-4 w-4" /> {t("title")}
       </Link>
       <div className="mt-1 flex flex-wrap items-center gap-2">
-        <h1 className="min-w-0 flex-1 font-serif text-2xl font-bold md:text-3xl">{title}</h1>
+        <h1 className="flex min-w-0 flex-1 font-serif text-2xl font-bold md:text-3xl">{setId ? <InlineRename url={`/api/sets/${setId}`} method="PUT" title={title} /> : title}</h1>
         {setId && (
           <>
             <Link href={`/words/sets/${setId}/edit`} className="icon-btn" aria-label={t("edit")} title={t("edit")}>
@@ -142,19 +137,10 @@ async function SetDetail({ sources, src, q, status }: { sources: Source[]; src?:
         )}
       </div>
 
-      <div className="mt-3 flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Link href={href()} className={`chip flex-none ${!status ? "chip-on" : ""}`}>
-          {t("state.all")} · {counts.all}
-        </Link>
-        {STATUSES.map((s) => (
-          <Link key={s} href={href(s)} className={`chip flex-none ${status === s ? "chip-on" : ""}`}>
-            {t(`state.${s}`)} · {counts[s]}
-          </Link>
-        ))}
-      </div>
+      {rows.length > 0 && <CardViewer cards={rows.map((r) => ({ ...r, images: images.get(r.id) ?? [] }))} />}
 
       {rows.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <Link href={`/practice${source ? `?src=${source.key}` : ""}`} className="btn btn-primary">
             <I.IconPlay /> {t("learn")}
           </Link>
@@ -167,6 +153,12 @@ async function SetDetail({ sources, src, q, status }: { sources: Source[]; src?:
               <ShortenWords ids={long} />
             </div>
           </details>
+        </div>
+      )}
+
+      {(setId || source?.kind === "other") && (
+        <div className="mt-4">
+          <AddHere setId={setId ?? undefined} />
         </div>
       )}
 

@@ -3,7 +3,7 @@
  * each IELTS test (book · test, listening and reading together) and "other words" (dictionary, added by hand).
  * A source key ("set:3", "text:7", "listen:12", "ielts:5", "other") filters the notebook and the practice page.
  */
-import { and, count, desc, eq, gt, inArray, isNull, lte, sql, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
 import { LEARNED_DAYS } from "@/lib/review";
@@ -13,8 +13,6 @@ const { words, wordSets, wordSetItems, lessons, listenSources, ieltsSections, ie
 
 export type SourceKind = "set" | "text" | "listen" | "ielts" | "other";
 export type Source = { key: string; kind: SourceKind; title: string; n: number };
-export const STATUSES = ["due", "new", "learning", "learned"] as const;
-export type Status = (typeof STATUSES)[number];
 
 /** Words in none of the user's sets and from no text, recording or test. */
 const otherWords = (uid: number) =>
@@ -38,15 +36,6 @@ export function sourceWhere(key: string | undefined, uid: number): SQL | undefin
   if (kind === "ielts")
     return sql`(${words.ieltsSectionId} in (select s.id from ${ieltsSections} s where s.test_id = ${id})
       or ${words.listenSourceId} in (select ls.id from ${listenSources} ls join ${ieltsSections} s on s.id = ls.section_id where s.test_id = ${id}))`;
-  return undefined;
-}
-
-/** A status (from the review schedule) as a condition on `words`. */
-export function statusWhere(status: string | undefined): SQL | undefined {
-  if (status === "due") return and(gt(words.state, 0), lte(words.due, new Date()));
-  if (status === "new") return eq(words.state, 0);
-  if (status === "learned") return and(eq(words.state, 2), sql`${words.scheduledDays} >= ${LEARNED_DAYS}`);
-  if (status === "learning") return and(gt(words.state, 0), sql`not (${words.state} = 2 and ${words.scheduledDays} >= ${LEARNED_DAYS})`);
   return undefined;
 }
 
