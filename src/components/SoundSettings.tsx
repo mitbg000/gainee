@@ -37,27 +37,52 @@ function Switch({ on, onChange, label, hint, disabled }: { on: boolean; onChange
   );
 }
 
-/** Sound on/off, study effects, reading words aloud automatically (+ a test). Used in the user menu and Settings. */
+/** Sound on/off, study effects, reading words aloud automatically; in Settings also the reading voice. Used in the user menu and Settings. */
 export default function SoundSettings({ compact = false }: { compact?: boolean }) {
   const t = useTranslations("sound");
   const [p, set] = useSoundPrefs();
-  return (
-    <div className="space-y-3">
+  const switches = (
+    <div className="space-y-4">
       <Switch on={!p.muted} onChange={(v) => set({ muted: !v })} label={t("all")} hint={compact ? undefined : t("allHint")} />
-      <Switch on={p.effects} onChange={(v) => set({ effects: v })} label={t("effects")} hint={compact ? undefined : t("effectsHint")} disabled={p.muted} />
+      <Switch on={p.effects} onChange={(v) => (set({ effects: v }), v && sfx("correct"))} label={t("effects")} hint={compact ? undefined : t("effectsHint")} disabled={p.muted} />
       <Switch on={p.autoSpeak} onChange={(v) => set({ autoSpeak: v })} label={t("autoSpeak")} hint={compact ? undefined : t("autoSpeakHint")} disabled={p.muted} />
-      {!compact && (
-        <button
-          type="button"
-          onClick={() => {
-            sfx("correct");
-            setTimeout(() => !soundPrefs().muted && speak("Hello"), 400);
-          }}
-          className="btn btn-sm btn-secondary"
-        >
-          <I.IconVolume /> {t("test")}
-        </button>
-      )}
+    </div>
+  );
+  if (compact) return switches;
+  const sample = (v: SoundPrefs["voice"]) => {
+    set({ voice: v });
+    speak("Hello, how are you today?");
+  };
+  return (
+    <div className="grid max-w-3xl gap-4 md:grid-cols-2 md:items-start">
+      <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
+        <h2 className="mb-3 font-semibold">{t("auto")}</h2>
+        {switches}
+      </section>
+      <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
+        <h2 className="font-semibold">{t("voice")}</h2>
+        <p className="mt-0.5 text-sm text-muted">{t("voiceHint")}</p>
+        <div role="radiogroup" aria-label={t("voice")} className="mt-3 grid grid-cols-2 gap-3">
+          {(["female", "male"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={p.voice === v}
+              onClick={() => sample(v)}
+              className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-colors ${p.voice === v ? "border-accent bg-accent/10" : "border-line bg-paper hover:border-accent/50"}`}
+            >
+              <span className={`flex size-9 flex-none items-center justify-center rounded-full ${p.voice === v ? "bg-accent text-on-accent" : "bg-card text-muted"}`}>
+                <I.IconPlay />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-semibold">{t(`voices.${v}`)}</span>
+                <span className="block text-xs text-muted">{t("american")}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

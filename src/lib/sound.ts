@@ -2,10 +2,11 @@
  * Sound while studying: short effects (synthesised with Web Audio – no files to load) and reading words aloud
  * automatically. Settings are per device (localStorage) and shared by every page through a window event.
  */
-export type SoundPrefs = { muted: boolean; effects: boolean; autoSpeak: boolean };
+/** voice: the server voice that reads words aloud */
+export type SoundPrefs = { muted: boolean; effects: boolean; autoSpeak: boolean; voice: "female" | "male" };
 const KEY = "rl_sound";
 const EVENT = "rl-sound";
-export const DEFAULT_SOUND: SoundPrefs = { muted: false, effects: true, autoSpeak: true };
+export const DEFAULT_SOUND: SoundPrefs = { muted: false, effects: true, autoSpeak: true, voice: "female" };
 
 export function soundPrefs(): SoundPrefs {
   try {

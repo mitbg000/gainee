@@ -300,7 +300,9 @@
     "tabs": {
       "look": "Appearance",
       "profile": "Learning profile",
-      "ai": "AI"
+      "ai": "AI",
+      "sound": "Sound",
+      "text": "Text"
     },
     "look": {
       "mode": "Light / dark mode",
@@ -361,8 +363,7 @@
       "sampleSecondary": "Save word",
       "sampleChip": "Selected",
       "reset": "Reset to default",
-      "language": "Language",
-      "sound": "Sound"
+      "language": "Language"
     },
     "avatar": {
       "title": "Account",
@@ -1322,9 +1323,16 @@
     "effectsHint": "Sounds for right/wrong answers, flipping cards, matching, finishing a round.",
     "autoSpeak": "Read words aloud",
     "autoSpeakHint": "Pronounce the word when a new card appears or when the answer is shown.",
-    "test": "Test",
     "mute": "Mute",
-    "unmute": "Unmute"
+    "unmute": "Unmute",
+    "voice": "Voice",
+    "voices": {
+      "female": "Female",
+      "male": "Male"
+    },
+    "auto": "Automatic sounds",
+    "voiceHint": "Used by the speaker button and when words are read aloud. Tap to listen.",
+    "american": "American English"
   },
   "ielts": {
     "title": "IELTS practice",

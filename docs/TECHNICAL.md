@@ -19,7 +19,8 @@ Tài liệu cho AI viết code (tiếng Anh, viết từ giai đoạn đầu, m�
 | Việc chạy nền | Worker Node riêng (PM2), hàng đợi job lưu trong bảng `jobs` (không cần Redis) |
 | AI | Mọi API dạng OpenAI (DeepSeek, OpenAI, Gemini, xAI, tuỳ chỉnh) qua một client chung |
 | Nhận dạng giọng nói | Whisper chạy tại máy (`@huggingface/transformers`, ONNX) trong tiến trình con, ưu tiên CPU thấp |
-| Âm thanh | ffmpeg (cắt đoạn, đọc audio) |
+| Âm thanh | ffmpeg (cắt đoạn, đọc audio, nén mp3) |
+| Đọc từ (TTS) | Kokoro-82M (`kokoro-js`, q8, CPU) trong tiến trình con `dist/tts.js`; giọng nữ `af_heart`, nam `am_michael` |
 | PDF / Word / ảnh | unpdf, mammoth, tesseract.js (OCR dự phòng), sharp (nén ảnh) |
 | Ôn tập | ts-fsrs (thuật toán FSRS như Anki hiện đại) |
 | Kiểm tra dữ liệu | zod ở mọi API |
@@ -70,8 +71,15 @@ Trình duyệt ──HTTPS──▶ Cloudflare ──▶ Nginx (aaPanel) ──H
                                                                    ▼
                                        gainee-worker (dist/worker.js) ◀──▶ MySQL ◀── bảng jobs (hàng đợi)
                                          └─ dist/speech.js (Whisper, tiến trình con, nice 19)
-File tải lên: UPLOAD_DIR (ảnh, PDF sách, audio, clip câu nghe)
+gainee-web └─ dist/tts.js (Kokoro, tiến trình con, nice 10, tự tắt sau 10 phút rảnh)
+File tải lên: UPLOAD_DIR (ảnh, PDF sách, audio, clip câu nghe, tts/<giọng>/…mp3, hf-cache/ model)
 ```
+
+- **Đọc từ:** `GET /api/tts?t=<chữ>&v=female|male` trả mp3 (tối đa 300 ký tự). Mỗi câu/giọng chỉ tạo một lần rồi
+  lưu ở `UPLOAD_DIR/tts`, ai cũng dùng chung, cache trình duyệt 1 năm. Từ mới lưu được tạo trước cả hai giọng
+  (`warmAudio` trong `addWord`). Trên trình duyệt `speak()` phát file này; nếu sau 1,5 s chưa có thì dùng giọng
+  có sẵn của trình duyệt. Người dùng chọn giọng nam/nữ ở Cài đặt → Âm thanh.
+  Máy chủ cần `ffmpeg` và vào được huggingface.co lần đầu (tải model ~90 MB); tiến trình dùng ~380 MB RAM khi chạy.
 
 - **Web** chỉ trả trang và API. Việc nặng (sinh bài học bằng AI, đọc sách IELTS, nghe bằng Whisper, cắt audio)
   được đưa vào bảng `jobs`; **worker** lấy ra làm lần lượt, ghi tiến độ, thử lại tối đa vài lần.

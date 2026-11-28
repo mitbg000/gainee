@@ -300,7 +300,9 @@
     "tabs": {
       "look": "Giao diện",
       "profile": "Hồ sơ học",
-      "ai": "AI"
+      "ai": "AI",
+      "sound": "Âm thanh",
+      "text": "Chữ & ngôn ngữ"
     },
     "look": {
       "mode": "Chế độ sáng / tối",
@@ -361,8 +363,7 @@
       "sampleSecondary": "Lưu từ",
       "sampleChip": "Đang chọn",
       "reset": "Khôi phục mặc định",
-      "language": "Ngôn ngữ",
-      "sound": "Âm thanh"
+      "language": "Ngôn ngữ"
     },
     "avatar": {
       "title": "Tài khoản",
@@ -1322,9 +1323,16 @@
     "effectsHint": "Tiếng khi trả lời đúng/sai, lật thẻ, ghép cặp, xong vòng học.",
     "autoSpeak": "Tự đọc từ",
     "autoSpeakHint": "Tự phát âm từ khi hiện thẻ mới hoặc khi hiện đáp án.",
-    "test": "Nghe thử",
     "mute": "Tắt âm thanh",
-    "unmute": "Bật âm thanh"
+    "unmute": "Bật âm thanh",
+    "voice": "Giọng đọc",
+    "voices": {
+      "female": "Nữ",
+      "male": "Nam"
+    },
+    "auto": "Âm thanh tự phát",
+    "voiceHint": "Dùng khi bấm loa và khi tự đọc từ. Bấm để nghe thử.",
+    "american": "Giọng Mỹ"
   },
   "ielts": {
     "title": "Luyện thi IELTS",

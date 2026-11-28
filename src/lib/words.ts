@@ -6,6 +6,7 @@ import { myId } from "@/lib/owner";
 import { addXp, bumpActivity, XP } from "./activity";
 import { chat } from "./ai/client";
 import { CARD_RULES } from "./ai/prompts";
+import { warmAudio } from "./tts";
 
 const { words, lessonVocab, lessons, documents, documentLabels, wordLabels } = schema;
 
@@ -77,6 +78,7 @@ export async function addWord(input: z.infer<typeof WordInput>): Promise<number>
   }
   await bumpActivity({ wordsAdded: 1 });
   await addXp("word_saved", XP.wordSaved, { type: "word", id });
+  warmAudio(values.term); // read aloud ahead, so studying it plays at once
   return id;
 }
 
