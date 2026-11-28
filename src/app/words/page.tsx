@@ -6,9 +6,7 @@ import ShortenWords from "@/components/ShortenWords";
 import Shell from "@/components/Shell";
 import Notebook from "@/components/words/Notebook";
 import DeleteSet from "@/components/words/DeleteSet";
-import AddHere from "@/components/words/AddHere";
 import CardViewer from "@/components/words/CardViewer";
-import { InlineRename } from "@/components/ielts/BookTitle";
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
 import { imagesForWords } from "@/lib/images";
@@ -23,7 +21,7 @@ const GROUPS: SourceKind[] = ["set", "text", "listen", "ielts", "other"];
 
 /**
  * Vocabulary notebook. Without ?src: the sets only – your own, then one per reading text, video, IELTS test and
- * "other words". With ?src (or a search ?q): that set as flashcards and a word list, edited in place.
+ * "other words". With ?src (or a search ?q): that set as flashcards and a word list; "Edit" opens the set editor.
  */
 export default async function WordsPage({ searchParams }: { searchParams: Promise<{ q?: string; src?: string; tab?: string }> }) {
   const sp = await searchParams;
@@ -121,18 +119,18 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
         <I.IconArrowLeft className="h-4 w-4" /> {t("title")}
       </Link>
       <div className="mt-1 flex flex-wrap items-center gap-2">
-        <h1 className="flex min-w-0 flex-1 font-serif text-2xl font-bold md:text-3xl">{setId ? <InlineRename url={`/api/sets/${setId}`} method="PUT" title={title} /> : title}</h1>
+        <h1 className="min-w-0 flex-1 font-serif text-2xl font-bold md:text-3xl">{title}</h1>
         {setId && (
           <>
-            <Link href={`/words/sets/${setId}/edit`} className="icon-btn" aria-label={t("edit")} title={t("edit")}>
-              <I.IconEdit />
+            <Link href={`/words/sets/${setId}/edit`} className="btn btn-sm btn-secondary">
+              <I.IconEdit /> {t("edit")}
             </Link>
             <DeleteSet id={setId} title={title} />
           </>
         )}
         {textId && (
-          <Link href={`/words/text/${textId}/edit`} className="icon-btn" aria-label={t("edit")} title={t("edit")}>
-            <I.IconEdit />
+          <Link href={`/words/text/${textId}/edit`} className="btn btn-sm btn-secondary">
+            <I.IconEdit /> {t("edit")}
           </Link>
         )}
       </div>
@@ -153,12 +151,6 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
               <ShortenWords ids={long} />
             </div>
           </details>
-        </div>
-      )}
-
-      {(setId || source?.kind === "other") && (
-        <div className="mt-4">
-          <AddHere setId={setId ?? undefined} />
         </div>
       )}
 

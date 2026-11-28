@@ -61,14 +61,6 @@ export default function Notebook({ rows, sets, source }: { rows: NoteWord[]; set
     if (!r?.ok) return toast(t("failed"), "error");
     done(t(moving ? "moved" : "added", { n: wordIds.length }));
   }
-  async function removeOne(id: number) {
-    if (!inSet) return;
-    setBusy(true);
-    const r = await fetch(`/api/sets/${inSet}/items`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ wordIds: [id], remove: true }) }).catch(() => null);
-    setBusy(false);
-    if (!r?.ok) return toast(t("failed"), "error");
-    router.refresh();
-  }
   async function removeFromSet() {
     if (!inSet) return;
     setBusy(true);
@@ -118,11 +110,6 @@ export default function Notebook({ rows, sets, source }: { rows: NoteWord[]; set
               <button onClick={() => speak(w.term)} className="icon-btn flex-none" aria-label={t("listen")}>
                 <I.IconSpeaker />
               </button>
-              {inSet && !picking && (
-                <button onClick={() => removeOne(w.id)} disabled={busy} className="icon-btn flex-none text-muted hover:text-red-600" aria-label={t("removeFromSet")} title={t("removeFromSet")}>
-                  <I.IconX />
-                </button>
-              )}
               {!picking && (
                 <button onClick={() => setOpen(open === w.id ? null : w.id)} className="icon-btn flex-none" aria-label={t("more")} aria-expanded={open === w.id}>
                   <I.IconChevronDown className={`transition-transform ${open === w.id ? "rotate-180" : ""}`} />

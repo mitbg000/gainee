@@ -2481,9 +2481,6 @@
     "listen": "Listen",
     "flip": "Flip the card",
     "prev": "Previous card",
-    "next": "Next card",
-    "newTerm": "New word",
-    "newMeaning": "Meaning (optional)",
-    "addWord": "Add"
+    "next": "Next card"
   }
 }

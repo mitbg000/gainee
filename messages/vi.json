@@ -2481,9 +2481,6 @@
     "listen": "Nghe",
     "flip": "Lật thẻ",
     "prev": "Thẻ trước",
-    "next": "Thẻ tiếp",
-    "newTerm": "Từ mới",
-    "newMeaning": "Nghĩa (không bắt buộc)",
-    "addWord": "Thêm"
+    "next": "Thẻ tiếp"
   }
 }
