@@ -338,6 +338,8 @@ export const words = mysqlTable(
     lessonVocabId: int("lesson_vocab_id").references(() => lessonVocab.id, { onDelete: "set null" }),
     /** saved while practising listening: the video / IELTS part it was heard in */
     listenSourceId: int("listen_source_id").references((): AnyMySqlColumn => listenSources.id, { onDelete: "set null" }),
+    /** saved while doing an IELTS test: the part it was read in (the notebook groups these by book and test) */
+    ieltsSectionId: int("ielts_section_id").references((): AnyMySqlColumn => ieltsSections.id, { onDelete: "set null" }),
     // FSRS card state
     due: ts("due").notNull().default(sql`CURRENT_TIMESTAMP(3)`),
     stability: double("stability").notNull().default(0),

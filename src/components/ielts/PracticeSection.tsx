@@ -253,7 +253,7 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
 
       {data.skill === "reading" ? (
         <div className="grid gap-5 lg:grid-cols-2">
-          <ReaderLookup className="rounded-2xl border border-line bg-card p-5 font-serif text-[17px] lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
+          <ReaderLookup saveTo={{ ieltsSectionId: data.id }} className="rounded-2xl border border-line bg-card p-5 font-serif text-[17px] lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
             <div data-ask>
               <Passage text={c.passage ?? ""} intro={c.intro} />
             </div>
@@ -265,7 +265,7 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
         </div>
       ) : (
         <div className="space-y-4">
-          <ReaderLookup className="rounded-2xl border border-line bg-card p-5">{questions}</ReaderLookup>
+          <ReaderLookup saveTo={{ ieltsSectionId: data.id }} className="rounded-2xl border border-line bg-card p-5">{questions}</ReaderLookup>
           {data.transcript && (
             <div className="rounded-2xl border border-line bg-card p-5">
               <button onClick={() => setShowScript(!showScript)} className="btn btn-sm btn-secondary">
@@ -273,7 +273,7 @@ export default function PracticeSection({ data, only }: { data: PracticeData; on
               </button>
               {!marks && !showScript && <span className="ml-2 text-xs text-muted">{t("scriptSpoiler")}</span>}
               {showScript && (
-                <ReaderLookup className="mt-3 whitespace-pre-line font-serif text-[16px] leading-relaxed">
+                <ReaderLookup saveTo={{ ieltsSectionId: data.id }} className="mt-3 whitespace-pre-line font-serif text-[16px] leading-relaxed">
                   <p data-ask>{data.transcript}</p>
                 </ReaderLookup>
               )}

@@ -161,7 +161,9 @@
     "openDictionary": "Mở trong từ điển",
     "askAi": "Hỏi AI",
     "saveWord": "Lưu từ",
-    "soon": "GĐ 1"
+    "soon": "GĐ 1",
+    "savedWord": "Đã lưu",
+    "saveFailed": "Lưu không được, thử lại"
   },
   "labels": {
     "kicker": "Sắp xếp",
@@ -2430,5 +2432,52 @@
         "failed": "Không lưu được, hãy thử lại"
       }
     }
+  },
+  "notebook": {
+    "title": "Sổ tay từ vựng",
+    "newSet": "Tạo học phần",
+    "search": "Tìm trong {n} từ…",
+    "searchBtn": "Tìm",
+    "words": "{n} từ",
+    "other": "Các từ khác",
+    "all": "Tất cả từ",
+    "results": "Kết quả: “{q}”",
+    "group": {
+      "set": "Học phần của tôi",
+      "text": "Bài đọc",
+      "listen": "Luyện nghe",
+      "ielts": "Đề IELTS",
+      "other": "Khác"
+    },
+    "state": {
+      "all": "Tất cả",
+      "due": "Đến hạn",
+      "new": "Mới",
+      "learning": "Đang học",
+      "learned": "Đã thuộc"
+    },
+    "learn": "Học các từ này",
+    "more": "Thêm",
+    "edit": "Sửa",
+    "deleteSet": "Xoá học phần",
+    "deleteConfirm": "Xoá học phần “{title}”? Các từ vẫn còn trong sổ tay.",
+    "empty": "Chưa có từ nào ở đây.",
+    "noResults": "Không tìm thấy từ nào.",
+    "select": "Chọn",
+    "selectToMove": "Chọn để chuyển",
+    "selectAll": "Chọn hết",
+    "selectNone": "Bỏ chọn",
+    "cancel": "Huỷ",
+    "picked": "Đã chọn {n} từ",
+    "addToSet": "Thêm vào học phần",
+    "moveToSet": "Chuyển vào học phần",
+    "removeFromSet": "Bỏ khỏi học phần",
+    "newSetName": "Tên học phần mới",
+    "create": "Tạo",
+    "added": "Đã thêm {n} từ vào học phần",
+    "moved": "Đã chuyển {n} từ vào học phần",
+    "removed": "Đã bỏ {n} từ khỏi học phần",
+    "failed": "Không làm được, thử lại",
+    "listen": "Nghe"
   }
 }

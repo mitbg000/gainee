@@ -1,16 +1,6 @@
-import { notFound } from "next/navigation";
-import Shell from "@/components/Shell";
-import SetView from "@/components/sets/SetView";
-import { allWordsLight, getSet } from "@/lib/sets";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
+/** A set opens in the notebook (its words, learn, edit). */
 export default async function SetPage({ params }: { params: Promise<{ id: string }> }) {
-  const [set, all] = await Promise.all([getSet(Number((await params).id) || 0), allWordsLight()]);
-  if (!set) notFound();
-  return (
-    <Shell>
-      <SetView setId={set.id} title={set.title} description={set.description} cards={set.cards} all={all.map((w) => ({ term: w.term, meaning: w.meaningVi || w.definitionEn || "" }))} />
-    </Shell>
-  );
+  redirect(`/words?src=set:${Number((await params).id) || 0}`);
 }

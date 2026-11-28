@@ -78,10 +78,12 @@ function sentenceAround(range: Range): string {
   return (before + word + after).trim();
 }
 
-export default function ReaderLookup({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+/** `saveTo`: where a saved word comes from (an IELTS test part); without it the look-up cannot save words. */
+export default function ReaderLookup({ children, className = "", saveTo }: { children: React.ReactNode; className?: string; saveTo?: { ieltsSectionId: number } }) {
   const t = useTranslations("reader");
   const root = useRef<HTMLDivElement>(null);
   const [hit, setHit] = useState<Hit | null>(null);
+  const [saved, setSaved] = useState<Record<string, "busy" | "done" | "error">>({});
   const [result, setResult] = useState<DictResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -191,6 +193,18 @@ export default function ReaderLookup({ children, className = "" }: { children: R
           onClose={close}
           onLookup={(w) => open(w, hit.rect, hit.sentence, true)}
           t={t}
+          saveState={saveTo ? (saved[hit.text.toLowerCase()] ?? "idle") : null}
+          onSave={async (term, definition) => {
+            if (!saveTo) return;
+            const key = hit.text.toLowerCase();
+            setSaved((s) => ({ ...s, [key]: "busy" }));
+            const r = await fetch("/api/words", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ term: term.slice(0, 191), context: hit.sentence.slice(0, 2000) || undefined, definitionEn: definition || undefined, ieltsSectionId: saveTo.ieltsSectionId }),
+            }).catch(() => null);
+            setSaved((s) => ({ ...s, [key]: r?.ok ? "done" : "error" }));
+          }}
         />
       )}
     </>
@@ -207,6 +221,8 @@ function LookupCard({
   onClose,
   onLookup,
   t,
+  saveState,
+  onSave,
 }: {
   hit: Hit;
   result: DictResult | null;
@@ -217,6 +233,8 @@ function LookupCard({
   onClose: () => void;
   onLookup: (w: string) => void;
   t: ReturnType<typeof useTranslations>;
+  saveState: "idle" | "busy" | "done" | "error" | null;
+  onSave: (term: string, definition: string) => void;
 }) {
   const card = useRef<HTMLDivElement>(null);
   const entryBox = useRef<HTMLDivElement>(null);
@@ -299,9 +317,21 @@ function LookupCard({
         <button disabled title={t("soon")} className="btn btn-sm btn-secondary">
           <I.IconSpark className="inline-block h-4 w-4 align-[-0.2em]" /> {t("askAi")} <span className="text-[10px]">· {t("soon")}</span>
         </button>
-        <button disabled title={t("soon")} className="btn btn-sm btn-secondary">
-          <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" /> {t("saveWord")}
-        </button>
+        {saveState !== null && (
+          <button
+            onClick={() => {
+              const first = result?.entries[0];
+              // the entry as plain text, short: the card's meaning until it is edited in the notebook
+              const definition = first ? new DOMParser().parseFromString(first.html, "text/html").body.textContent?.replace(/\s+/g, " ").trim().slice(0, 300) ?? "" : "";
+              onSave(entry?.headword || hit.text, definition);
+            }}
+            disabled={saveState === "busy" || saveState === "done"}
+            className={`btn btn-sm ${saveState === "done" ? "btn-ghost text-green-700 dark:text-green-400" : "btn-primary"}`}
+          >
+            {saveState === "done" ? <I.IconCheck className="inline-block h-4 w-4 align-[-0.2em]" /> : <I.IconStar className="inline-block h-4 w-4 align-[-0.2em]" />}{" "}
+            {saveState === "done" ? t("savedWord") : saveState === "error" ? t("saveFailed") : t("saveWord")}
+          </button>
+        )}
       </div>
     </>
   );

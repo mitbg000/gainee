@@ -161,7 +161,9 @@
     "openDictionary": "Open in dictionary",
     "askAi": "Ask AI",
     "saveWord": "Save word",
-    "soon": "Phase 1"
+    "soon": "Phase 1",
+    "savedWord": "Saved",
+    "saveFailed": "Couldn't save, try again"
   },
   "labels": {
     "kicker": "Organize",
@@ -2430,5 +2432,52 @@
         "failed": "Could not save, please try again"
       }
     }
+  },
+  "notebook": {
+    "title": "Vocabulary notebook",
+    "newSet": "Create set",
+    "search": "Search {n} words…",
+    "searchBtn": "Search",
+    "words": "{n, plural, one {# word} other {# words}}",
+    "other": "Other words",
+    "all": "All words",
+    "results": "Results for “{q}”",
+    "group": {
+      "set": "My sets",
+      "text": "Reading texts",
+      "listen": "Listening",
+      "ielts": "IELTS tests",
+      "other": "Other"
+    },
+    "state": {
+      "all": "All",
+      "due": "Due",
+      "new": "New",
+      "learning": "Learning",
+      "learned": "Learned"
+    },
+    "learn": "Learn these words",
+    "more": "More",
+    "edit": "Edit",
+    "deleteSet": "Delete set",
+    "deleteConfirm": "Delete the set “{title}”? Its words stay in the notebook.",
+    "empty": "No words here yet.",
+    "noResults": "No words found.",
+    "select": "Select",
+    "selectToMove": "Select to move",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "cancel": "Cancel",
+    "picked": "{n, plural, one {# word} other {# words}} selected",
+    "addToSet": "Add to set",
+    "moveToSet": "Move to set",
+    "removeFromSet": "Remove from set",
+    "newSetName": "New set name",
+    "create": "Create",
+    "added": "{n, plural, one {# word} other {# words}} added to the set",
+    "moved": "{n, plural, one {# word} other {# words}} moved to the set",
+    "removed": "{n, plural, one {# word} other {# words}} removed from the set",
+    "failed": "That didn't work, try again",
+    "listen": "Listen"
   }
 }

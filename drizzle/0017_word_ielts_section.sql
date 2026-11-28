@@ -1,0 +1,2 @@
+ALTER TABLE `words` ADD `ielts_section_id` int;--> statement-breakpoint
+ALTER TABLE `words` ADD CONSTRAINT `words_ielts_section_id_ielts_sections_id_fk` FOREIGN KEY (`ielts_section_id`) REFERENCES `ielts_sections`(`id`) ON DELETE set null ON UPDATE no action;

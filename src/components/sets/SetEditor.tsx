@@ -86,7 +86,7 @@ export default function SetEditor({
         await fetch(`/api/words/${res.wordIds[k]}/images`, { method: "POST", body: fd }).catch(() => null);
       }
     setBusy(false);
-    router.push(textId ? `/words/text/${textId}` : `/words/sets/${res.id}`);
+    router.push(textId ? `/words?src=text:${textId}` : `/words?src=set:${res.id}`);
     router.refresh();
   }
 
