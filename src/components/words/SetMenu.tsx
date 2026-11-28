@@ -8,8 +8,8 @@ import ExportWords, { type ExportGroup } from "@/components/ExportWords";
 import * as I from "@/components/icons";
 import { ask } from "@/components/Toaster";
 
-/** The set's ⋯ menu: edit (own sets, reading texts), export, delete (own sets). */
-export default function SetMenu({ editHref, setId, title, groups }: { editHref?: string; setId?: number; title: string; groups: ExportGroup[] }) {
+/** The set's ⋯ menu: edit, export, delete – for your own sets and the automatic ones (texts, videos, tests, other words). */
+export default function SetMenu({ sourceKey, title, groups }: { sourceKey?: string; title: string; groups: ExportGroup[] }) {
   const t = useTranslations("notebook");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -29,10 +29,15 @@ export default function SetMenu({ editHref, setId, title, groups }: { editHref?:
     };
   }, [open]);
 
+  const [kind, raw] = (sourceKey ?? "").split(":");
+  const editHref = !sourceKey ? undefined : kind === "set" ? `/words/sets/${raw}/edit` : kind === "text" ? `/words/text/${raw}/edit` : `/words/source/edit?src=${encodeURIComponent(sourceKey)}`;
+  const n = groups[0]?.words.length ?? 0;
+
   async function remove() {
     setOpen(false);
-    if (!setId || !(await ask(t("deleteConfirm", { title }), { danger: true }))) return;
-    await fetch(`/api/sets/${setId}`, { method: "DELETE" });
+    const question = kind === "set" ? t("deleteConfirm", { title }) : kind === "other" ? t("deleteOtherConfirm", { n }) : t("deleteAutoConfirm", { title });
+    if (!sourceKey || !(await ask(question, { danger: true }))) return;
+    await fetch(`/api/sets/source?src=${encodeURIComponent(sourceKey)}`, { method: "DELETE" });
     router.push("/words");
     router.refresh();
   }
@@ -62,7 +67,7 @@ export default function SetMenu({ editHref, setId, title, groups }: { editHref?:
               <I.IconArrowDown className="h-4 w-4" /> {t("export")}
             </button>
           )}
-          {setId && (
+          {sourceKey && (
             <button role="menuitem" onClick={remove} className={`${item} text-red-600 dark:text-red-400`}>
               <I.IconTrash className="h-4 w-4" /> {t("deleteSet")}
             </button>

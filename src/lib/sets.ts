@@ -32,7 +32,7 @@ export async function textSets() {
     .orderBy(desc(sql`max(${words.id})`));
 }
 
-async function withImages<T extends { id: number }>(cards: T[]) {
+export async function withImages<T extends { id: number }>(cards: T[]) {
   const imgs = await imagesForWords(cards.map((c) => c.id));
   return cards.map((c) => ({ ...c, images: imgs.get(c.id) ?? [] }));
 }
@@ -70,7 +70,7 @@ export const SetInput = z.object({
 });
 
 /** Update edited cards and save new ones as words (of `lessonId` when given); returns the word ids in card order. */
-async function upsertCards(cards: z.infer<typeof SetCard>[], lessonId?: number) {
+export async function upsertCards(cards: z.infer<typeof SetCard>[], lessonId?: number) {
   const ids: number[] = [];
   for (const c of cards) {
     // only the fields the editor sent; "" clears one

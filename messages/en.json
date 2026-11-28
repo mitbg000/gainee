@@ -1218,7 +1218,9 @@
     "image": "Image",
     "imageHint": "Choose an image, or paste (Ctrl/Cmd+V) / drop one here – PNG, JPG, GIF, WebP up to 8 MB",
     "removeImage": "Remove image",
-    "removeFromText": "Remove from this text (the word stays in the notebook)"
+    "removeFromText": "Remove from this text (the word stays in the notebook)",
+    "otherWords": "Other words",
+    "removeFromSource": "Take out of this set (the word stays in the notebook)"
   },
   "learn": {
     "sentence": {
@@ -2484,6 +2486,8 @@
     "flip": "Flip the card",
     "prev": "Previous card",
     "next": "Next card",
-    "export": "Export"
+    "export": "Export",
+    "deleteAutoConfirm": "Delete the set “{title}”? Its words stay in the notebook, under Other words.",
+    "deleteOtherConfirm": "Delete the {n, plural, one {# word} other {# words}} in Other words for good? This can't be undone."
   }
 }

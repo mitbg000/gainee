@@ -19,7 +19,10 @@ export default function SetEditor({
   initial,
   saved,
   textId,
+  sourceKey,
 }: {
+  /** editing the words of an automatic set (a video, an IELTS test, other words): key as in lib/notebook */
+  sourceKey?: string;
   /** editing the word list of a reading text: its title is the text's, cards keep the text's order */
   textId?: number;
   initial?: { id: number; title: string; description: string | null; cards: { id: number; term: string; meaningVi: string | null; ipa: string | null; pos: string | null; example: string | null; images: Img[] }[] };
@@ -27,6 +30,8 @@ export default function SetEditor({
 }) {
   const t = useTranslations("sets");
   const router = useRouter();
+  // a text's or an automatic set's title is its source's, and its cards keep their order
+  const fixed = !!(textId || sourceKey);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [rows, setRows] = useState<Row[]>(() =>
@@ -59,7 +64,7 @@ export default function SetEditor({
   const filled = rows.filter((r) => r.term.trim());
 
   async function save() {
-    if (!title.trim()) return setError(true);
+    if (!title.trim() && !sourceKey) return setError(true);
     setBusy(true);
     setError(false);
     const body = {
@@ -71,8 +76,8 @@ export default function SetEditor({
           : { id: r.id, term: r.term.trim(), meaningVi: r.meaningVi.trim(), ipa: r.ipa.trim(), pos: r.pos.trim(), example: r.example.trim() },
       ),
     };
-    const url = textId ? `/api/sets/text/${textId}` : initial ? `/api/sets/${initial.id}` : "/api/sets";
-    const r = await fetch(url, { method: textId || initial ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
+    const url = sourceKey ? `/api/sets/source?src=${encodeURIComponent(sourceKey)}` : textId ? `/api/sets/text/${textId}` : initial ? `/api/sets/${initial.id}` : "/api/sets";
+    const r = await fetch(url, { method: sourceKey || textId || initial ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     if (!r?.ok) {
       setBusy(false);
       return setError(true);
@@ -86,22 +91,22 @@ export default function SetEditor({
         await fetch(`/api/words/${res.wordIds[k]}/images`, { method: "POST", body: fd }).catch(() => null);
       }
     setBusy(false);
-    router.push(textId ? `/words?src=text:${textId}` : `/words?src=set:${res.id}`);
+    router.push(sourceKey ? `/words?src=${sourceKey}` : textId ? `/words?src=text:${textId}` : `/words?src=set:${res.id}`);
     router.refresh();
   }
 
   return (
     <div className="pb-10">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="flex-1 font-serif text-2xl font-bold md:text-3xl">{initial || textId ? t("editTitle") : t("newTitle")}</h1>
+        <h1 className="flex-1 font-serif text-2xl font-bold md:text-3xl">{initial || fixed ? t("editTitle") : t("newTitle")}</h1>
         <button onClick={save} disabled={busy} className="btn btn-primary">
-          {busy ? t("saving") : initial || textId ? t("done") : t("create")}
+          {busy ? t("saving") : initial || fixed ? t("done") : t("create")}
         </button>
       </div>
 
-      {textId ? (
+      {fixed ? (
         <p className="mt-3 text-lg font-semibold">
-          {title} <span className="text-sm font-normal text-muted">· {t("fromText")}</span>
+          {title || t("otherWords")} {textId && <span className="text-sm font-normal text-muted">· {t("fromText")}</span>}
         </p>
       ) : (
       <div className="mt-6 space-y-4">
@@ -158,7 +163,7 @@ export default function SetEditor({
                 <button onClick={() => set(r.key, { more: !r.more })} className="icon-btn" aria-label={t("more")} title={t("more")}>
                   <I.IconEdit />
                 </button>
-                {!textId && (
+                {!fixed && (
                   <>
                     <button onClick={() => move(i, -1)} disabled={!i} className="icon-btn" aria-label={t("up")}>
                       <I.IconArrowUp />
@@ -168,7 +173,7 @@ export default function SetEditor({
                     </button>
                   </>
                 )}
-                <button onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} className="icon-btn hover:text-red-600" aria-label={t(textId ? "removeFromText" : "removeCard")} title={t(textId ? "removeFromText" : "removeCard")}>
+                <button onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} className="icon-btn hover:text-red-600" aria-label={t(textId ? "removeFromText" : sourceKey && sourceKey !== "other" ? "removeFromSource" : "removeCard")} title={t(textId ? "removeFromText" : sourceKey && sourceKey !== "other" ? "removeFromSource" : "removeCard")}>
                   <I.IconTrash />
                 </button>
               </span>
@@ -207,7 +212,7 @@ export default function SetEditor({
       {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{title.trim() ? t("saveFailed") : t("needTitle")}</p>}
       <div className="mt-6 flex justify-end">
         <button onClick={save} disabled={busy} className="btn btn-lg btn-primary">
-          {busy ? t("saving") : initial || textId ? t("done") : t("create")}
+          {busy ? t("saving") : initial || fixed ? t("done") : t("create")}
         </button>
       </div>
     </div>

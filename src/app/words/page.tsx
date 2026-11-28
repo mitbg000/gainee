@@ -107,8 +107,6 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
       .limit(2000);
   const images = await imagesForWords(rows.map((r) => r.id));
   const title = q ? t("results", { q }) : source ? (source.kind === "other" ? t("other") : source.title) : t("all");
-  const setId = source?.kind === "set" ? Number(source.key.slice(4)) : null;
-  const textId = source?.kind === "text" ? Number(source.key.slice(5)) : null;
 
   return (
     <Shell>
@@ -117,7 +115,7 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
       </Link>
       <div className="mt-1 flex flex-wrap items-center gap-2">
         <h1 className="min-w-0 flex-1 font-serif text-2xl font-bold md:text-3xl">{title}</h1>
-        <SetMenu editHref={setId ? `/words/sets/${setId}/edit` : textId ? `/words/text/${textId}/edit` : undefined} setId={setId ?? undefined} title={title} groups={[{ key: "list", doc: title, part: null, words: rows }]} />
+        <SetMenu sourceKey={source?.key} title={title} groups={[{ key: "list", doc: title, part: null, words: rows }]} />
       </div>
 
       {rows.length > 0 && <CardViewer cards={rows.map((r) => ({ ...r, images: images.get(r.id) ?? [] }))} />}

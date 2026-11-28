@@ -7,7 +7,8 @@ import { and, count, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-or
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
 import { LEARNED_DAYS } from "@/lib/review";
-import { listSets, textSets } from "@/lib/sets";
+import { CARD_FIELDS, deleteSet, listSets, saveTextSet, textSets, upsertCards, withImages, type SetCard } from "@/lib/sets";
+import type { z } from "zod";
 
 const { words, wordSets, wordSetItems, lessons, listenSources, ieltsSections, ieltsTests, ieltsBooks } = schema;
 
@@ -120,3 +121,67 @@ export async function setItems(setId: number, wordIds: number[], remove = false)
   await db.update(wordSets).set({ updatedAt: new Date() }).where(eq(wordSets.id, setId));
   return true;
 }
+
+/** The words of an automatic set (video, IELTS test, other words) for the set editor, oldest first. */
+export async function sourceCards(key: string) {
+  const uid = await myId();
+  const where = sourceWhere(key, uid);
+  const source = (await notebookSources()).find((s) => s.key === key);
+  if (!where || !source || !["listen", "ielts", "other"].includes(source.kind)) return null;
+  const cards = await getDb().select(CARD_FIELDS).from(words).where(and(eq(words.userId, uid), where)).orderBy(words.id);
+  return { title: source.title, cards: await withImages(cards) };
+}
+
+const wordIdsOf = async (key: string, uid: number) => (await getDb().select({ id: words.id }).from(words).where(and(eq(words.userId, uid), sourceWhere(key, uid)))).map((w) => w.id);
+
+/** Leave a video or IELTS test (or a text): the words stay in the notebook, under "other words" unless in a set. */
+async function detach(key: string, ids: number[], uid: number) {
+  if (!ids.length) return;
+  const db = getDb();
+  const mine = and(eq(words.userId, uid), inArray(words.id, ids));
+  const [kind, raw] = key.split(":");
+  if (kind === "text") await db.update(words).set({ lessonId: null }).where(mine);
+  if (kind === "listen") await db.update(words).set({ listenSourceId: null }).where(mine);
+  if (kind === "ielts") await db.update(words).set({ ieltsSectionId: null, listenSourceId: sql`if(${words.listenSourceId} in (select ls.id from ${listenSources} ls join ${ieltsSections} s on s.id = ls.section_id where s.test_id = ${Number(raw)}), null, ${words.listenSourceId})` }).where(mine);
+}
+
+/**
+ * Save an automatic set from the set editor: edited cards are updated, new ones become words of that video / test,
+ * cards taken out leave it (into "other words"); for "other words" a card taken out is deleted.
+ */
+export async function saveSourceSet(key: string, cards: z.infer<typeof SetCard>[]) {
+  const uid = await myId();
+  if (key.startsWith("text:")) return saveTextSet(Number(key.slice(5)), cards);
+  const source = (await notebookSources()).find((s) => s.key === key);
+  if (!source || !["listen", "ielts", "other"].includes(source.kind)) return null;
+  const db = getDb();
+  const before = await wordIdsOf(key, uid);
+  const ids = await upsertCards(cards);
+  const fresh = ids.filter((id) => !before.includes(id));
+  const gone = before.filter((id) => !ids.includes(id));
+  const [kind, raw] = key.split(":");
+  if (fresh.length && kind === "listen") await db.update(words).set({ listenSourceId: Number(raw) }).where(and(eq(words.userId, uid), inArray(words.id, fresh)));
+  if (fresh.length && kind === "ielts") {
+    const [first] = await db.select({ id: ieltsSections.id }).from(ieltsSections).where(eq(ieltsSections.testId, Number(raw))).orderBy(ieltsSections.skill, ieltsSections.part).limit(1);
+    if (first) await db.update(words).set({ ieltsSectionId: first.id }).where(and(eq(words.userId, uid), inArray(words.id, fresh)));
+  }
+  if (gone.length) {
+    if (kind === "other") await db.delete(words).where(and(eq(words.userId, uid), inArray(words.id, gone)));
+    else await detach(key, gone, uid);
+  }
+  return { id: 0, wordIds: ids };
+}
+
+/** Delete a set: your own set goes (its words stay); an automatic one lets its words go to "other words";
+ *  "other words" deletes those words. */
+export async function deleteSource(key: string) {
+  const uid = await myId();
+  if (key.startsWith("set:")) return void (await deleteSet(Number(key.slice(4))));
+  const ids = await wordIdsOf(key, uid);
+  if (key === "other") {
+    if (ids.length) await getDb().delete(words).where(and(eq(words.userId, uid), inArray(words.id, ids)));
+    return;
+  }
+  await detach(key, ids, uid);
+}
+

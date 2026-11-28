@@ -1218,7 +1218,9 @@
     "image": "Hình ảnh",
     "imageHint": "Chọn ảnh, hoặc dán (Ctrl/Cmd+V) / kéo thả ảnh vào đây – PNG, JPG, GIF, WebP tối đa 8 MB",
     "removeImage": "Xoá ảnh",
-    "removeFromText": "Bỏ khỏi bài đọc này (từ vẫn còn trong sổ tay)"
+    "removeFromText": "Bỏ khỏi bài đọc này (từ vẫn còn trong sổ tay)",
+    "otherWords": "Các từ khác",
+    "removeFromSource": "Bỏ khỏi học phần (từ vẫn còn trong sổ tay)"
   },
   "learn": {
     "sentence": {
@@ -2484,6 +2486,8 @@
     "flip": "Lật thẻ",
     "prev": "Thẻ trước",
     "next": "Thẻ tiếp",
-    "export": "Export"
+    "export": "Export",
+    "deleteAutoConfirm": "Xoá học phần “{title}”? Các từ vẫn còn trong sổ tay, chuyển sang Các từ khác.",
+    "deleteOtherConfirm": "Xoá vĩnh viễn {n} từ trong Các từ khác? Không hoàn tác được."
   }
 }
