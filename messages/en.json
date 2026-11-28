@@ -1725,7 +1725,6 @@
       "none": "No sentences left in this scope."
     },
     "launch": {
-      "review": "Today's review ({n})",
       "random": "Random",
       "mix": "Mixed",
       "scope": "Scope",
@@ -1744,7 +1743,8 @@
       },
       "settings": "Listening settings",
       "close": "Close",
-      "done": "Done"
+      "done": "Done",
+      "reviewShort": "Today's review"
     },
     "add": {
       "title": "Add a YouTube video",

@@ -49,16 +49,25 @@ export default function Launcher({ due, sources }: { due: number; sources: { id:
           <I.IconGear />
         </button>
       </div>
-      <Link href={href("review")} className={`btn btn-lg w-full ${due ? "btn-primary" : "btn-secondary"}`} aria-disabled={!due}>
-        <I.IconCards /> {t("review", { n: due })}
-      </Link>
-      <div className="grid grid-cols-2 gap-2">
-        <Link href={href("random")} className={`btn ${due ? "btn-secondary" : "btn-primary"}`}>
-          <I.IconBolt /> {t("random")}
-        </Link>
-        <Link href={href("mix")} className="btn btn-secondary">
-          <I.IconRefresh /> {t("mix")}
-        </Link>
+      <div className="grid grid-cols-3 gap-2">
+        {(
+          [
+            ["review", <I.IconCards key="i" />, t("reviewShort")],
+            ["random", <I.IconBolt key="i" />, t("random")],
+            ["mix", <I.IconRefresh key="i" />, t("mix")],
+          ] as const
+        ).map(([mode, icon, label]) => (
+          <Link
+            key={mode}
+            href={href(mode)}
+            aria-disabled={mode === "review" && !due}
+            className={`relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-line bg-card px-2 py-4 text-sm font-semibold transition-colors hover:border-accent hover:bg-accent/5 [&>svg]:size-6 [&>svg]:text-accent ${mode === "review" && !due ? "pointer-events-none opacity-50" : ""}`}
+          >
+            {icon}
+            <span className="text-center leading-tight">{label}</span>
+            {mode === "review" && due > 0 && <span className="absolute right-2 top-2 rounded-full bg-accent px-1.5 text-xs tabular-nums text-on-accent">{due}</span>}
+          </Link>
+        ))}
       </div>
 
       {open && (

@@ -1725,7 +1725,6 @@
       "none": "Không còn câu nào trong phạm vi này."
     },
     "launch": {
-      "review": "Ôn hôm nay ({n})",
       "random": "Luyện ngẫu nhiên",
       "mix": "Trộn",
       "scope": "Phạm vi",
@@ -1744,7 +1743,8 @@
       },
       "settings": "Cài đặt luyện nghe",
       "close": "Đóng",
-      "done": "Xong"
+      "done": "Xong",
+      "reviewShort": "Ôn hôm nay"
     },
     "add": {
       "title": "Thêm video YouTube",
