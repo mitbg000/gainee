@@ -2483,6 +2483,7 @@
     "listen": "Nghe",
     "flip": "Lật thẻ",
     "prev": "Thẻ trước",
-    "next": "Thẻ tiếp"
+    "next": "Thẻ tiếp",
+    "export": "Export"
   }
 }

@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
-import ExportWords from "@/components/ExportWords";
 import Shell from "@/components/Shell";
 import Notebook from "@/components/words/Notebook";
-import DeleteSet from "@/components/words/DeleteSet";
+import SetMenu from "@/components/words/SetMenu";
 import CardViewer from "@/components/words/CardViewer";
 import { getDb, schema } from "@/db";
 import { myId } from "@/lib/owner";
@@ -118,20 +117,7 @@ async function SetDetail({ sources, src, q }: { sources: Source[]; src?: string;
       </Link>
       <div className="mt-1 flex flex-wrap items-center gap-2">
         <h1 className="min-w-0 flex-1 font-serif text-2xl font-bold md:text-3xl">{title}</h1>
-        {rows.length > 0 && <ExportWords groups={[{ key: "list", doc: title, part: null, words: rows }]} />}
-        {setId && (
-          <>
-            <Link href={`/words/sets/${setId}/edit`} className="btn btn-sm btn-secondary">
-              <I.IconEdit /> {t("edit")}
-            </Link>
-            <DeleteSet id={setId} title={title} />
-          </>
-        )}
-        {textId && (
-          <Link href={`/words/text/${textId}/edit`} className="btn btn-sm btn-secondary">
-            <I.IconEdit /> {t("edit")}
-          </Link>
-        )}
+        <SetMenu editHref={setId ? `/words/sets/${setId}/edit` : textId ? `/words/text/${textId}/edit` : undefined} setId={setId ?? undefined} title={title} groups={[{ key: "list", doc: title, part: null, words: rows }]} />
       </div>
 
       {rows.length > 0 && <CardViewer cards={rows.map((r) => ({ ...r, images: images.get(r.id) ?? [] }))} />}

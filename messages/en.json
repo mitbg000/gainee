@@ -2483,6 +2483,7 @@
     "listen": "Listen",
     "flip": "Flip the card",
     "prev": "Previous card",
-    "next": "Next card"
+    "next": "Next card",
+    "export": "Export"
   }
 }

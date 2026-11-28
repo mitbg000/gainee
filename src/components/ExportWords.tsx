@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as I from "@/components/icons";
 
 export type ExportWord = { term: string; ipa: string | null; pos: string | null; meaningVi: string | null; definitionEn: string | null; example: string | null };
@@ -44,12 +44,21 @@ export function buildExport(groups: ExportGroup[], format: Format) {
 }
 
 /** Pick parts of the word list and download them for Anki / Quizlet / a spreadsheet. */
-export default function ExportWords({ groups }: { groups: ExportGroup[] }) {
+/** The export dialog; `open`/`onClose` from a menu, or a button of its own when not given. */
+export default function ExportWords({ groups, open: shown, onClose }: { groups: ExportGroup[]; open?: boolean; onClose?: () => void }) {
   const t = useTranslations("wordList.export");
   const [on, setOn] = useState(() => new Set(groups.map((g) => g.key)));
   const [format, setFormat] = useState<Format>("anki");
   const [copied, setCopied] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [own, setOwn] = useState(false);
+  const open = shown ?? own;
+  const setOpen = (v: boolean) => (onClose && !v ? onClose() : setOwn(v));
+  useEffect(() => {
+    if (!open) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && (onClose ? onClose() : setOwn(false));
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [open, onClose]);
   const chosen = useMemo(() => groups.filter((g) => on.has(g.key)), [groups, on]);
   const n = chosen.reduce((a, g) => a + g.words.length, 0);
   const docs = [...new Set(groups.map((g) => g.doc))];
@@ -80,9 +89,11 @@ export default function ExportWords({ groups }: { groups: ExportGroup[] }) {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="btn btn-sm btn-secondary">
-        <I.IconArrowDown /> {t("button")}
-      </button>
+      {shown === undefined && (
+        <button type="button" onClick={() => setOpen(true)} className="btn btn-sm btn-secondary">
+          <I.IconArrowDown /> {t("button")}
+        </button>
+      )}
       {open && (
     <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 p-3 sm:items-center" onClick={() => setOpen(false)}>
       <div role="dialog" aria-modal="true" aria-label={t("open")} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl bg-card p-5 shadow-xl">
