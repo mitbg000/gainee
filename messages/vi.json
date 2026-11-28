@@ -1737,7 +1737,10 @@
       "kinds": {
         "dictation": "Chép cả câu",
         "gaps": "Điền từ"
-      }
+      },
+      "settings": "Cài đặt luyện nghe",
+      "close": "Đóng",
+      "done": "Xong"
     },
     "add": {
       "title": "Thêm video YouTube",

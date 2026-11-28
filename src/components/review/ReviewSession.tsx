@@ -226,7 +226,7 @@ export default function ReviewSession({ doc, forecast, pool }: { doc?: number; f
 
   /* ---------- settings ---------- */
   const settingsBox = settings && (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center" onClick={() => setSettings(false)}>
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 p-3 sm:items-center" onClick={() => setSettings(false)}>
       <div role="dialog" aria-modal="true" aria-label={t("settings.title")} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl bg-card p-5 shadow-xl">
         <div className="flex items-center">
           <h2 className="flex-1 font-bold">{t("settings.title")}</h2>

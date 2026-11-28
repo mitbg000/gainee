@@ -1737,7 +1737,10 @@
       "kinds": {
         "dictation": "Whole sentence",
         "gaps": "Fill the gaps"
-      }
+      },
+      "settings": "Listening settings",
+      "close": "Close",
+      "done": "Done"
     },
     "add": {
       "title": "Add a YouTube video",
